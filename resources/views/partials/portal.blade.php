@@ -46,7 +46,7 @@
         <h1>Learn structures.<br>Follow procedures.<br>Build confidence.</h1>
         <p>AquaDissect combines guided laboratory activities, interactive anatomy, assessments, saved progress, and instructor-reviewed reports.</p>
         <div class="auth-highlights" aria-label="Application highlights">
-          <span>Validated anatomy content</span>
+          <span>Review-controlled anatomy content</span>
           <span>Role-based learning access</span>
           <span>Progress and laboratory reports</span>
         </div>
@@ -158,7 +158,7 @@
         <article><span>01</span><h2>Access</h2><p>Register, verify identity, sign in, and enter an approved role workspace.</p></article>
         <article><span>02</span><h2>Select</h2><p>Choose an instructor-assigned species and learning activity.</p></article>
         <article><span>03</span><h2>Explore</h2><p>Inspect external and internal anatomy with interactive labels.</p></article>
-        <article><span>04</span><h2>Practice</h2><p>Follow the validated dissection sequence and safety reminders.</p></article>
+        <article><span>04</span><h2>Practice</h2><p>Follow the guided dissection sequence and safety reminders.</p></article>
         <article><span>05</span><h2>Identify</h2><p>Complete structure checks and receive bounded feedback.</p></article>
         <article><span>06</span><h2>Report</h2><p>Save results, generate a laboratory report, and receive instructor review.</p></article>
       </div>
