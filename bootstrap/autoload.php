@@ -5,7 +5,10 @@ declare(strict_types=1);
 $applicationBasePath = dirname(__DIR__);
 $_ENV['APP_BASE_PATH'] = $applicationBasePath;
 $_SERVER['APP_BASE_PATH'] = $applicationBasePath;
-putenv('APP_BASE_PATH='.$applicationBasePath);
+
+if (function_exists('putenv')) {
+    putenv('APP_BASE_PATH='.$applicationBasePath);
+}
 
 require dirname(__DIR__).'/vendor/autoload.php';
 
