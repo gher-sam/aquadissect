@@ -75,9 +75,9 @@ npm run build
 "$PHP_BIN" artisan route:cache
 "$PHP_BIN" artisan view:cache
 
-chown -R root:root "$SITE_DIR"
-find "$SITE_DIR" -type d -exec chmod 755 {} +
-find "$SITE_DIR" -type f -exec chmod 644 {} +
+find "$SITE_DIR" -xdev ! -path "$SITE_DIR/public/.user.ini" -exec chown root:root {} +
+find "$SITE_DIR" -xdev -type d -exec chmod 755 {} +
+find "$SITE_DIR" -xdev -type f ! -path "$SITE_DIR/public/.user.ini" -exec chmod 644 {} +
 chmod 600 "$DEPLOY_KEY"
 chmod 640 "$SITE_DIR/.env"
 chown root:"$WEB_GROUP" "$SITE_DIR/.env"
