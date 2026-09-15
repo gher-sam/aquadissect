@@ -10,6 +10,7 @@ import json
 import os
 from pathlib import Path
 import secrets
+import subprocess
 import sys
 
 
@@ -17,6 +18,7 @@ PANEL_ROOT = Path("/www/server/panel")
 SITE_ROOT = Path("/www/wwwroot/aquadissect.com")
 PUBLIC_ROOT = SITE_ROOT / "public"
 ENV_PATH = SITE_ROOT / ".env"
+USER_INI_PATH = PUBLIC_ROOT / ".user.ini"
 INITIAL_ADMIN_PATH = Path("/root/aquadissect-initial-admin.txt")
 
 sys.path.insert(0, str(PANEL_ROOT / "class"))
@@ -112,6 +114,18 @@ def main() -> None:
     ENV_PATH.write_text("\n".join(env_lines), encoding="utf-8", newline="\n")
     os.chown(ENV_PATH, 0, grp.getgrnam("www").gr_gid)
     os.chmod(ENV_PATH, 0o640)
+
+    # Laravel's front controller must be able to load application files above
+    # the public document root. aaPanel makes this file immutable by default.
+    subprocess.run(["chattr", "-i", str(USER_INI_PATH)], check=False)
+    USER_INI_PATH.write_text(
+        f"open_basedir={SITE_ROOT}/:/tmp/\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+    os.chown(USER_INI_PATH, 0, grp.getgrnam("www").gr_gid)
+    os.chmod(USER_INI_PATH, 0o644)
+    subprocess.run(["chattr", "+i", str(USER_INI_PATH)], check=True)
 
     INITIAL_ADMIN_PATH.write_text(
         "admin@aquadissect.com\n" + initial_admin_password + "\n",

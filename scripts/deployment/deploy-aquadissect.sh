@@ -86,6 +86,12 @@ chown -R "$WEB_USER:$WEB_GROUP" \
     "$SITE_DIR/bootstrap/cache" \
     "$SITE_DIR/public/build"
 
+# Webhook state is private but must remain readable and writable by PHP.
+if [[ -d "$SITE_DIR/storage/app/deploy" ]]; then
+    chmod 750 "$SITE_DIR/storage/app/deploy"
+    find "$SITE_DIR/storage/app/deploy" -maxdepth 1 -type f -exec chmod 640 {} +
+fi
+
 release_sha="$(git rev-parse HEAD)"
 printf '%s\n' "$release_sha" > storage/app/deployed-revision.txt
 chown "$WEB_USER:$WEB_GROUP" storage/app/deployed-revision.txt
