@@ -69,7 +69,7 @@ npm ci --no-audit --no-fund
 npm run build
 
 "$PHP_BIN" artisan migrate --force
-"$PHP_BIN" artisan db:seed --class='Database\\Seeders\\SpeciesCatalogSeeder' --force
+"$PHP_BIN" artisan db:seed --class='Database\Seeders\SpeciesCatalogSeeder' --force
 "$PHP_BIN" artisan storage:link || true
 "$PHP_BIN" artisan config:cache
 "$PHP_BIN" artisan route:cache
