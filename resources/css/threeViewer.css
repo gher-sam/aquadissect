@@ -1,0 +1,214 @@
+.three-scene {
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 48% 42%, rgb(255 255 255 / 92%), rgb(232 247 244 / 86%) 48%, rgb(211 236 232 / 94%));
+}
+
+.three-scene::after {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(90deg, rgb(13 103 112 / 4%) 1px, transparent 1px),
+    linear-gradient(rgb(13 103 112 / 4%) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: linear-gradient(to bottom, transparent, black 35%, transparent 92%);
+  content: '';
+  pointer-events: none;
+}
+
+.three-scene canvas {
+  z-index: 2;
+  outline: none;
+}
+
+.three-scene .label-layer {
+  z-index: 4;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.three-scene .model-label {
+  border-color: rgb(8 113 131 / 24%);
+  color: #123f4c;
+  background: rgb(250 255 255 / 94%);
+  box-shadow: 0 8px 20px rgb(4 52 64 / 16%);
+}
+
+.three-scene .model-label span {
+  background: #0aa48c;
+  box-shadow: 0 0 0 3px rgb(10 164 140 / 15%);
+}
+
+.three-scene .scene-topbar,
+.three-scene .interaction-hint {
+  z-index: 10;
+}
+
+.three-scene .mode-badge,
+.three-scene .scene-button {
+  border-color: rgb(8 113 131 / 18%);
+  color: #164b56;
+  background: rgb(255 255 255 / 88%);
+  box-shadow: 0 5px 18px rgb(4 52 64 / 10%);
+}
+
+.three-scene .mode-badge > span {
+  background: #059669;
+  box-shadow: 0 0 0 4px rgb(5 150 105 / 12%);
+}
+
+.three-scene .mode-badge.is-internal > span {
+  background: #d98b22;
+  box-shadow: 0 0 0 4px rgb(217 139 34 / 14%);
+}
+
+.three-scene .scene-button:hover,
+.three-scene .scene-button.is-active {
+  border-color: rgb(5 150 105 / 36%);
+  color: #075f55;
+  background: rgb(235 252 247 / 96%);
+}
+
+.scene-button--icon {
+  justify-content: center;
+  width: 44px;
+  padding: 0;
+}
+
+.three-scene .interaction-hint {
+  border-color: rgb(8 113 131 / 15%);
+  color: #315f67;
+  background: rgb(255 255 255 / 86%);
+  box-shadow: 0 6px 20px rgb(4 52 64 / 10%);
+}
+
+.three-scene .mouse-glyph {
+  border-color: #38737b;
+}
+
+.three-scene .mouse-glyph::before {
+  background: #0891b2;
+}
+
+.viewer-panel {
+  border: 1px solid rgb(8 113 131 / 14%);
+  background: #edf8f6;
+}
+
+.viewer-panel::before,
+.viewer-panel::after {
+  opacity: 0.35;
+}
+
+.viewer-panel .viewer-dock {
+  z-index: 12;
+  border-top-color: rgb(8 113 131 / 14%);
+  color: #184f59;
+  background: rgb(248 255 254 / 92%);
+  box-shadow: 0 -10px 28px rgb(4 52 64 / 6%);
+}
+
+.viewer-panel .dock-button {
+  color: #35666e;
+}
+
+.viewer-panel .dock-button:hover,
+.viewer-panel .dock-button.is-active {
+  color: #075f55;
+  background: rgb(5 150 105 / 10%);
+}
+
+.viewer-panel .dock-divider {
+  background: rgb(8 113 131 / 18%);
+}
+
+.viewer-panel .explode-control {
+  color: #315f67;
+}
+
+.viewer-panel .explode-control input {
+  background: linear-gradient(#9fc9c6, #9fc9c6) center / 100% 4px no-repeat;
+}
+
+.viewer-panel .explode-control output {
+  color: #087a70;
+}
+
+.three-scene .scene-loader {
+  z-index: 15;
+  color: #245965;
+  background: #edf8f6;
+}
+
+.three-scene .scene-loader span {
+  border-color: rgb(8 113 131 / 15%);
+  border-top-color: #059669;
+}
+
+.viewer-panel:fullscreen {
+  width: 100vw;
+  height: 100vh;
+  border: 0;
+  border-radius: 0;
+}
+
+.viewer-panel:fullscreen .scene {
+  min-height: 0;
+}
+
+@media (max-width: 820px) {
+  .three-scene {
+    min-height: 360px;
+  }
+
+  .three-scene .interaction-hint {
+    max-width: calc(100% - 24px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+@media (max-width: 560px) {
+  .three-scene .scene-topbar {
+    top: 12px;
+    right: 12px;
+    left: 12px;
+  }
+
+  .three-scene .mode-badge {
+    max-width: 152px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .three-scene .scene-button span,
+  .three-scene .interaction-hint span[aria-hidden='true'] {
+    display: none;
+  }
+
+  .three-scene .scene-button {
+    justify-content: center;
+    width: 44px;
+    padding: 0;
+  }
+
+  .three-scene .interaction-hint {
+    bottom: 10px;
+    min-height: 34px;
+    padding: 0 11px;
+    font-size: 9px;
+  }
+
+  .viewer-panel .dock-button {
+    min-width: 112px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .three-scene canvas,
+  .three-scene .model-label {
+    transition: none;
+  }
+}

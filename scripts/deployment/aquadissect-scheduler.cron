@@ -1,0 +1,2 @@
+* * * * * www cd /www/wwwroot/aquadissect.com && /www/server/php/83/bin/php artisan schedule:run >/dev/null 2>&1
+* * * * * root /usr/local/sbin/aquadissect-webhook-dispatch

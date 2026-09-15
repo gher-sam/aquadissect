@@ -1,0 +1,41 @@
+{
+  "schemaVersion":"1.0",
+  "packageVersion":"1.0.0",
+  "minimumApplicationVersion":"1.0.0",
+  "species":{
+    "slug":"rabbitfish",
+    "commonName":"Goldspotted Rabbitfish",
+    "scientificName":"Siganus guttatus",
+    "taxonomicGroup":"Actinopterygii"
+  },
+  "lessonKey":"rabbitfish-guided-dissection",
+  "activityMode":"virtual_dissection",
+  "viewer":{"profile":"layered-2d"},
+  "draftNotice":"Educational illustrations for administrator and subject-matter review. This package remains unavailable to students until published.",
+  "safetyNotices":[
+    "Rabbitfish dorsal, pelvic, and anal fin spines can cause a painful venomous puncture.",
+    "A physical specimen may only be handled or dissected under trained supervision using an institution-approved safety protocol.",
+    "This virtual activity demonstrates orientation and sequence; it does not authorize unsupervised physical dissection."
+  ],
+  "references":[
+    {"title":"Biology and culture of siganids","publisher":"SEAFDEC Aquaculture Department","year":1998,"url":"https://repository.seafdec.org.ph/handle/10862/535"},
+    {"title":"Nursery and grow-out culture of rabbitfish Siganus guttatus in brackishwater ponds","publisher":"SEAFDEC Aquaculture Department","year":2022,"url":"https://repository.seafdec.org.ph/handle/10862/6396"},
+    {"title":"Morphological development of the swimming and feeding apparatus in larval rabbit fish, Siganus guttatus","publisher":"Asian Fisheries Society / FAO AGRIS","year":1986,"url":"https://agris.fao.org/search/en/providers/122430/records/6471d3b32a40512c710e7b5e"},
+    {"title":"Occurrence of a stonefish toxin-like toxin in the venom of the rabbitfish Siganus fuscescens","publisher":"Toxicon","year":2017,"url":"https://pubmed.ncbi.nlm.nih.gov/29055787/","scopeNote":"Genus-level evidence for the venom hazard; not a claim of species-specific toxin equivalence."},
+    {"title":"Anatomy of a Fish","publisher":"University of Florida IFAS Extension","url":"https://ask.ifas.ufl.edu/publication/FA173"}
+  ],
+  "licenses":[
+    {"scope":"package content","name":"AquaDissect draft educational content"},
+    {"scope":"natural, external, and internal visuals","name":"Project-generated educational illustrations","notice":"Do not treat the illustrations as diagnostic specimen evidence."}
+  ],
+  "assets":{"natural":"assets/natural.webp","external":"assets/external.webp","internal":"assets/internal.webp"},
+  "content":{"anatomy":"content/anatomy.json","lesson":"content/lesson.json","quiz":"content/quiz.json"},
+  "files":{
+    "assets/natural.webp":"1a3ec0c2c9d48b802e9c8353bca2ae80a7d935d78f0bfe7bb6e853dbe579fbf0",
+    "assets/external.webp":"9252b0437801ffe277de8e0646e01a0bc6316ed56173b976c9e31d37534e8968",
+    "assets/internal.webp":"ad34a530487e5155de9286079320d0a2b3c00ba2656cd9b6c1392fb79d805567",
+    "content/anatomy.json":"15e859fe2f302d45de5a093b26669a49aa78860cf686b74e8f129af971c6e2d1",
+    "content/lesson.json":"6c96e137aa84b03cea1fa568e01e0765a9123f67ef6c0eea87c10644b0c6af8d",
+    "content/quiz.json":"2529c62906fd8e6043c87504270fd379ba71e215a1cc8ed95f1caf8a9fd90ead"
+  }
+}

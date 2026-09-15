@@ -1,0 +1,34 @@
+{
+  "schemaVersion":"1.0",
+  "packageVersion":"1.0.0",
+  "minimumApplicationVersion":"1.0.0",
+  "species":{
+    "slug":"tilapia",
+    "commonName":"Nile Tilapia",
+    "scientificName":"Oreochromis niloticus",
+    "taxonomicGroup":"Actinopterygii"
+  },
+  "lessonKey":"tilapia-guided-dissection",
+  "activityMode":"virtual_dissection",
+  "viewer":{"profile":"layered-2d","optional3d":{"adapter":"tilapia-procedural"}},
+  "safetyNotices":["This virtual activity does not replace instructor supervision, laboratory safety training, or an institution-approved physical dissection protocol."],
+  "references":[
+    {"title":"Anatomy of a Fish","publisher":"University of Florida IFAS Extension","url":"https://ask.ifas.ufl.edu/publication/FA173"},
+    {"title":"Tilapia Fish Dissection Instructions","publisher":"Boston University GK-12 Project","url":"https://www.bu.edu/gk12/adam/Fish_Dissection_instr.htm"},
+    {"title":"Fish Anatomy","publisher":"South Carolina Department of Natural Resources","url":"https://www.dnr.sc.gov/fish/anatomy.html"}
+  ],
+  "licenses":[
+    {"scope":"package content","name":"AquaDissect institutional educational content"},
+    {"scope":"visual assets","name":"Supplied project assets retained for educational use"}
+  ],
+  "assets":{"natural":"assets/natural.png","external":"assets/external.png","internal":"assets/internal.png"},
+  "content":{"anatomy":"content/anatomy.json","lesson":"content/lesson.json","quiz":"content/quiz.json"},
+  "files":{
+    "assets/natural.png":"dde1f9905722438750ca27ed8d7a9fdacf4a748c10b2be8ef87708575a4819ec",
+    "assets/external.png":"6323b5c0f37b0660982711bcf4eeb64fcb9e2a27ee78dc926d059a4ba07b70b9",
+    "assets/internal.png":"78fba26b5ea996d575162a5e2547c1fc3195ad34f685df1c96c173f3da7616e4",
+    "content/anatomy.json":"737496f04c079e856596fd6d1575507f2a49b6e2c24e21971c7e135aa1de1b85",
+    "content/lesson.json":"4d070f05a08476acf58abf7e55b26adf43ef6e0bf2c44083884dba18cf243205",
+    "content/quiz.json":"5a40017f21eef9458f2cc219519056fa24d44b50ff8d17b4aa62fb5b0fcdbd7b"
+  }
+}

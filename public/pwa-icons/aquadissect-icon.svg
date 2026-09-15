@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title description">
+  <title id="title">AquaDissect app icon</title>
+  <desc id="description">A white fish and water lines on a teal rounded square.</desc>
+  <defs>
+    <linearGradient id="background" x1="64" y1="48" x2="448" y2="464" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0ca1ae"/>
+      <stop offset="1" stop-color="#073642"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="116" fill="url(#background)"/>
+  <circle cx="256" cy="246" r="152" fill="#ffffff" fill-opacity=".08"/>
+  <path d="M122 251c65-91 171-106 245-35l58-48v150l-58-48c-74 71-180 56-245-19Z" fill="#f5ffff"/>
+  <circle cx="326" cy="226" r="12" fill="#073642"/>
+  <path d="M105 360c46-23 86 23 132 0s86 23 132 0" fill="none" stroke="#8ef2ed" stroke-width="18" stroke-linecap="round"/>
+  <path d="M126 405c36-18 68 18 104 0s68 18 104 0" fill="none" stroke="#8ef2ed" stroke-width="14" stroke-linecap="round" opacity=".85"/>
+</svg>

@@ -1,0 +1,8 @@
+{
+  "formative":true,
+  "questions":[
+    {"id":"q1","question":"Which organ helps a Tilapia maintain depth with less swimming effort?","options":["Liver","Swim bladder","Kidney"],"answer":"Swim bladder"},
+    {"id":"q2","question":"Where does continued digestion and most nutrient absorption occur?","options":["Intestine","Heart","Operculum"],"answer":"Intestine"},
+    {"id":"q3","question":"Which structure senses movement and vibration in the water?","options":["Caudal fin","Lateral line","Gonad"],"answer":"Lateral line"}
+  ]
+}

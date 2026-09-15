@@ -1,0 +1,20 @@
+{
+  "key":"tilapia-guided-dissection",
+  "title":"Tilapia guided dissection",
+  "subtitle":"Nile Tilapia",
+  "description":"A safe guided exploration of external structures, gills, body-cavity organization, major organs, and body systems.",
+  "duration":"10–15 min",
+  "learningGoals":["Identify major external and internal structures","Relate organ position to function","Follow the sequence of a supervised classroom dissection"],
+  "stepDepths":[0,34,82,52,100,100,100,100,100],
+  "steps":[
+    {"eyebrow":"Orientation","title":"Observe a swimming specimen","description":"Begin with the generated Tilapia swimming reference video, then move into the interactive external and internal anatomy layers.","prompt":"Observe the tail, fin, body, and operculum movements before starting the anatomy activity.","action":"Begin external inspection","kind":"continue","targets":[]},
+    {"eyebrow":"Step 1 of 7","title":"Inspect external anatomy","description":"External structures reveal how Tilapia sense their environment and move through water.","prompt":"Find the lateral line, operculum, and caudal fin.","action":"Continue to the gills","kind":"targets","targets":["lateralLine","operculum","caudalFin"]},
+    {"eyebrow":"Step 2 of 7","title":"Look beneath the gill cover","description":"The operculum protects the gills while helping water flow across their thin respiratory surfaces.","prompt":"Select the exposed gills to examine their function.","action":"Locate the incision landmark","kind":"targets","targets":["gills"]},
+    {"eyebrow":"Step 3 of 7","title":"Plan the virtual incision","description":"A standard classroom approach begins near the vent and travels forward along the ventral surface. This is a demonstration, not procedural advice for unsupervised dissection.","prompt":"Select the vent, then reveal the guided incision path.","action":"Trace virtual incision","kind":"action-target","targets":["vent"]},
+    {"eyebrow":"Step 4 of 7","title":"Open the body wall","description":"The body wall is lifted away so the organs can be observed in their original positions before anything is moved.","prompt":"Open the virtual body wall to reveal the cavity.","action":"Open body wall","kind":"action","targets":[]},
+    {"eyebrow":"Step 5 of 7","title":"Map the major organs","description":"Notice how tightly the organs fit together. Position is an important clue when identifying an unfamiliar structure.","prompt":"Find the heart, liver, stomach, and swim bladder.","action":"Trace the digestive route","kind":"targets","targets":["heart","liver","stomach","swimBladder"]},
+    {"eyebrow":"Step 6 of 7","title":"Trace digestion","description":"Food moves from the mouth through the esophagus to the stomach, then along the folded intestine where nutrients are absorbed.","prompt":"Select the stomach first, followed by the intestine.","action":"Explore body systems","kind":"ordered-targets","targets":["stomach","intestine"]},
+    {"eyebrow":"Step 7 of 7","title":"Separate the systems","description":"An exploded view adds space without changing anatomical relationships. Compare the kidney, gonad, and vertebral column.","prompt":"Find the kidney, gonad, and vertebral column.","action":"Take the knowledge check","kind":"targets","targets":["kidney","gonad","spine"]},
+    {"eyebrow":"Knowledge check","title":"Show what you discovered","description":"Answer three formative questions to complete your virtual dissection.","prompt":"Choose one answer for each question.","action":"Check my answers","kind":"quiz","targets":[]}
+  ]
+}
