@@ -11,6 +11,11 @@ Options -Indexes
 
     RewriteEngine On
 
+    # Keep production traffic encrypted while allowing certificate renewals.
+    RewriteCond %{HTTPS} !=on
+    RewriteCond %{REQUEST_URI} !^/\.well-known/acme-challenge/
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
     # Preserve authentication headers for Laravel.
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
