@@ -56,8 +56,8 @@
         <span class="portal-kicker">Secure account access</span>
         <h2>Sign in</h2>
         <p class="portal-muted">Use an approved institutional account.</p>
-        <label class="portal-field">Email address<input name="email" type="email" autocomplete="username" required value="student@aquadissect.local"></label>
-        <label class="portal-field">Password<input name="password" type="password" autocomplete="current-password" required value="demo123"></label>
+        <label class="portal-field">Email address<input name="email" type="email" autocomplete="username" required value="{{ app()->environment('production') ? '' : 'student@aquadissect.local' }}"></label>
+        <label class="portal-field">Password<input name="password" type="password" autocomplete="current-password" required value="{{ app()->environment('production') ? '' : 'demo123' }}"></label>
         <div class="auth-options">
           <label><input name="remember" type="checkbox"> Remember me</label>
           <button class="portal-link" type="button" id="forgotPassword">Forgot password?</button>
@@ -65,16 +65,18 @@
         <p class="portal-message" id="loginMessage" role="alert" hidden></p>
         <button class="portal-primary portal-full" type="submit">Sign in</button>
         <button class="portal-secondary portal-full" type="button" data-portal-page="register">Create a student or instructor account</button>
+        @unless(app()->environment('production'))
         <div class="demo-access">
           <span>Preview a role</span>
           <div>
-            <button type="button" data-demo-role="student">Student</button>
-            <button type="button" data-demo-role="instructor">Instructor</button>
-            <button type="button" data-demo-role="admin">Administrator</button>
+            <button type="button" data-demo-role="student" data-demo-email="student@aquadissect.local" data-demo-password="demo123">Student</button>
+            <button type="button" data-demo-role="instructor" data-demo-email="instructor@aquadissect.local" data-demo-password="demo123">Instructor</button>
+            <button type="button" data-demo-role="admin" data-demo-email="admin@aquadissect.local" data-demo-password="demo123">Administrator</button>
           </div>
           <small>Seeded demonstration accounts use password <strong>demo123</strong>.</small>
           <small>Authentication uses Laravel sessions and hashed database passwords.</small>
         </div>
+        @endunless
       </form>
     </section>
 

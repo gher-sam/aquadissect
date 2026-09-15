@@ -5,11 +5,6 @@ import { downloadedVersionFor, downloadPackage, isDownloaded, listDownloadedPack
 import { setupProgressiveWebApp } from '../pwa.js';
 
 const bootstrap = window.AQUADISSECT_BOOTSTRAP || {};
-const demoCredentials = {
-  student: 'student@aquadissect.local',
-  instructor: 'instructor@aquadissect.local',
-  admin: 'admin@aquadissect.local',
-};
 const dashboardCopy = {
   student: ['Student workspace', 'Welcome back', 'Continue assigned lessons and monitor your progress by package version.'],
   instructor: ['Instructor workspace', 'Welcome', 'Manage owned classes, assignments, drafts, and student results.'],
@@ -294,10 +289,10 @@ export function setupAquaPortal({ app, onOpenPackage }) {
   async function handlePortalClick(event) {
     const navigation = event.target.closest('[data-portal-page]');
     if (navigation) showPage(navigation.dataset.portalPage);
-    const demoRole = event.target.closest('[data-demo-role]')?.dataset.demoRole;
-    if (demoRole) {
+    const demoButton = event.target.closest('[data-demo-role]');
+    if (demoButton) {
       setMessage(elements.loginMessage);
-      try { signIn(await request('/api/login', { method: 'POST', body: { email: demoCredentials[demoRole], password: 'demo123' } })); }
+      try { signIn(await request('/api/login', { method: 'POST', body: { email: demoButton.dataset.demoEmail, password: demoButton.dataset.demoPassword } })); }
       catch (error) { setMessage(elements.loginMessage, error.message); }
     }
     if (event.target.closest('[data-portal-signout]')) await signOut();
