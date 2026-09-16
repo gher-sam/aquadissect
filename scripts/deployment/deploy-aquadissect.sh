@@ -100,6 +100,13 @@ chown -R "$WEB_USER:$WEB_GROUP" \
     "$SITE_DIR/bootstrap/cache" \
     "$SITE_DIR/public/build"
 
+for clone_file in "$CLONE_DB_PATH" "$CLONE_DB_PATH-wal" "$CLONE_DB_PATH-shm"; do
+    if [[ -f "$clone_file" ]]; then
+        chown "$WEB_USER:$WEB_GROUP" "$clone_file"
+        chmod 640 "$clone_file"
+    fi
+done
+
 # Webhook state is private but must remain readable and writable by PHP.
 if [[ -d "$SITE_DIR/storage/app/deploy" ]]; then
     chmod 750 "$SITE_DIR/storage/app/deploy"
