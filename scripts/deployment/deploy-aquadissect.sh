@@ -9,6 +9,7 @@ PHP_BIN="/www/server/php/83/bin/php"
 COMPOSER_BIN="/usr/bin/composer"
 WEB_USER="www"
 WEB_GROUP="www"
+CLONE_DB_PATH="$SITE_DIR/storage/app/private/aquadissect-clone.sqlite"
 
 exec >>"$LOG_FILE" 2>&1
 printf '[%s] Starting AquaDissect deployment.\n' "$(date '+%Y-%m-%d %H:%M:%S')"
@@ -70,6 +71,19 @@ npm run build
 
 "$PHP_BIN" artisan migrate --force
 "$PHP_BIN" artisan db:seed --class='Database\Seeders\SpeciesCatalogSeeder' --force
+
+clone_initialized=0
+if [[ ! -f "$CLONE_DB_PATH" ]]; then
+    install -o "$WEB_USER" -g "$WEB_GROUP" -m 640 /dev/null "$CLONE_DB_PATH"
+    clone_initialized=1
+fi
+
+# Schema changes are immediate for both databases. Domain mutations remain
+# subject to the delayed-clone outbox after the initial recovery snapshot.
+"$PHP_BIN" artisan migrate --database=sqlite_clone --force
+if [[ "$clone_initialized" -eq 1 ]]; then
+    "$PHP_BIN" artisan clone:refresh --yes
+fi
 "$PHP_BIN" artisan storage:link || true
 "$PHP_BIN" artisan config:cache
 "$PHP_BIN" artisan route:cache
