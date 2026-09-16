@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 
 class RegisterRequest extends FormRequest
 {
@@ -31,7 +32,7 @@ class RegisterRequest extends FormRequest
                 'required_if:role,'.User::ROLE_STUDENT,
                 Rule::exists('classes', 'code')->where('status', 'active'),
             ],
-            'password' => ['required', 'string', 'min:8', 'max:255'],
+            'password' => ['required', 'string', Password::min(8)->letters()->numbers(), 'max:255'],
             'agreement' => ['accepted'],
         ];
     }

@@ -43,6 +43,9 @@ export function setupAquaPortal({ app, onOpenPackage }) {
     registrationRole: requireElement(portal, '#registrationRole'),
     registrationNote: requireElement(portal, '#registrationNote'),
     classCodeField: requireElement(portal, '#classCodeField'),
+    registrationPassword: requireElement(portal, '#registrationPassword'),
+    registrationPasswordConfirmation: requireElement(portal, '#registrationPasswordConfirmation'),
+    passwordRequirements: requireElement(portal, '#passwordRequirements'),
     dashboardKicker: requireElement(portal, '#dashboardKicker'),
     dashboardGreeting: requireElement(portal, '#dashboardGreeting'),
     dashboardSummary: requireElement(portal, '#dashboardSummary'),
@@ -287,6 +290,16 @@ export function setupAquaPortal({ app, onOpenPackage }) {
   }
 
   async function handlePortalClick(event) {
+    const visibilityButton = event.target.closest('[data-password-toggle]');
+    if (visibilityButton) {
+      const input = requireElement(portal, `#${visibilityButton.dataset.passwordToggle}`);
+      const reveal = input.type === 'password';
+      input.type = reveal ? 'text' : 'password';
+      visibilityButton.textContent = reveal ? 'Hide' : 'Show';
+      visibilityButton.setAttribute('aria-pressed', String(reveal));
+      input.focus({ preventScroll: true });
+      return;
+    }
     const navigation = event.target.closest('[data-portal-page]');
     if (navigation) showPage(navigation.dataset.portalPage);
     const demoButton = event.target.closest('[data-demo-role]');
@@ -340,11 +353,20 @@ export function setupAquaPortal({ app, onOpenPackage }) {
     }
     if (event.target === elements.registrationForm) {
       event.preventDefault();
+      setMessage(elements.registrationMessage);
       const data = new FormData(elements.registrationForm);
       const email = String(data.get('email')).trim().toLowerCase();
+      const password = String(data.get('password'));
+      const passwordConfirmation = String(data.get('passwordConfirmation'));
+      if (password !== passwordConfirmation) {
+        setMessage(elements.registrationMessage, 'The password confirmation does not match.');
+        elements.registrationPasswordConfirmation.focus();
+        return;
+      }
       try {
-        const response = await request('/api/register', { method: 'POST', body: { firstName: String(data.get('firstName')).trim(), lastName: String(data.get('lastName')).trim(), email, identityNumber: String(data.get('identityNumber')).trim(), role: String(data.get('role')), classCode: String(data.get('classCode') || '').trim(), password: String(data.get('password')), agreement: data.get('agreement') === 'on' } });
+        const response = await request('/api/register', { method: 'POST', body: { firstName: String(data.get('firstName')).trim(), lastName: String(data.get('lastName')).trim(), email, identityNumber: String(data.get('identityNumber')).trim(), role: String(data.get('role')), classCode: String(data.get('classCode') || '').trim(), password, agreement: data.get('agreement') === 'on' } });
         elements.registrationForm.reset();
+        updatePasswordGuidance();
         showPage('login');
         showToast(response.message);
       } catch (error) { setMessage(elements.registrationMessage, error.message); }
@@ -389,6 +411,18 @@ export function setupAquaPortal({ app, onOpenPackage }) {
       : '<strong>Student activation:</strong> the class code must identify an active AquaDissect class.';
   }
 
+  function updatePasswordGuidance() {
+    const password = elements.registrationPassword.value;
+    const rules = {
+      length: password.length >= 8,
+      letter: /[A-Za-z]/.test(password),
+      number: /\d/.test(password),
+    };
+    elements.passwordRequirements.querySelectorAll('[data-password-rule]').forEach((item) => {
+      item.classList.toggle('is-met', Boolean(rules[item.dataset.passwordRule]));
+    });
+  }
+
   portal.addEventListener('click', handlePortalClick);
   portal.addEventListener('submit', handlePortalSubmit);
   elements.menuButton.addEventListener('click', () => setSidebarOpen(!portal.classList.contains('is-sidebar-open')));
@@ -396,6 +430,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
   document.addEventListener('keydown', handleSidebarKeydown);
   window.addEventListener('resize', () => setSidebarOpen(false, { restoreFocus: false }));
   elements.registrationRole.addEventListener('change', updateRegistrationRole);
+  elements.registrationPassword.addEventListener('input', updatePasswordGuidance);
   requireElement(portal, '#forgotPassword').addEventListener('click', () => showToast('Password recovery will use the verified institutional email when mail delivery is configured.'));
   window.addEventListener('online', async () => {
     updateNetworkStatus();
@@ -408,6 +443,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
 
   updateSession();
   updateNetworkStatus();
+  updatePasswordGuidance();
   showPage(state.currentUser ? 'home' : 'login');
   setupProgressiveWebApp({ installButton: elements.installButton, notify: showToast })
     .catch(() => { elements.installButton.hidden = true; });

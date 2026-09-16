@@ -662,6 +662,10 @@
   font-weight: 700;
 }
 
+.portal-field[hidden] {
+  display: none;
+}
+
 .auth-card .portal-field + .portal-field {
   margin-top: 14px;
 }
@@ -1794,6 +1798,699 @@
 @media (prefers-reduced-motion: reduce) {
   .portal-toast,
   .is-authenticated .portal-header {
+    transition: none;
+  }
+}
+
+/* Scientific-atlas authentication experience. */
+#aquaPortal:not(.is-authenticated) {
+  min-height: 100dvh;
+  background:
+    linear-gradient(rgb(8 113 131 / 3%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(8 113 131 / 3%) 1px, transparent 1px),
+    radial-gradient(circle at 88% 8%, rgb(34 211 238 / 10%), transparent 27rem),
+    #edf7f6;
+  background-size: 28px 28px, 28px 28px, auto, auto;
+}
+
+#aquaPortal:not(.is-authenticated) .portal-header {
+  background: rgb(250 255 255 / 94%);
+  box-shadow: 0 8px 28px rgb(4 52 64 / 7%);
+}
+
+#aquaPortal:not(.is-authenticated) .portal-brand strong {
+  font-size: 20px;
+}
+
+#aquaPortal:not(.is-authenticated) .portal-brand small {
+  color: #35646d;
+  letter-spacing: 0.025em;
+}
+
+#aquaPortal:not(.is-authenticated) .portal-main {
+  width: min(1460px, calc(100% - 40px));
+  padding: 24px 0 48px;
+}
+
+.auth-editorial-page {
+  display: grid;
+  grid-template-columns: minmax(0, 1.18fr) minmax(400px, 0.72fr);
+  align-items: stretch;
+  gap: clamp(18px, 2.5vw, 34px);
+  min-height: calc(100dvh - 144px);
+}
+
+.auth-specimen-card {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 680px;
+  flex-direction: column;
+  padding: clamp(20px, 2.4vw, 34px);
+  overflow: hidden;
+  border: 1px solid rgb(8 113 131 / 14%);
+  border-radius: 28px 20px 28px 18px;
+  background:
+    radial-gradient(circle at 88% 12%, rgb(34 211 238 / 12%), transparent 22rem),
+    linear-gradient(135deg, #f8ffff 0%, #e7f4f2 100%);
+  box-shadow: 0 18px 44px rgb(4 52 64 / 10%);
+}
+
+.auth-specimen-card::before,
+.auth-specimen-card::after {
+  position: absolute;
+  z-index: 0;
+  content: '';
+  pointer-events: none;
+}
+
+.auth-specimen-card::before {
+  inset: 0;
+  background: repeating-linear-gradient(90deg, transparent 0 55px, rgb(8 113 131 / 4%) 55px 56px);
+  mask-image: linear-gradient(to bottom, transparent, black 22%, black 78%, transparent);
+}
+
+.auth-specimen-card::after {
+  right: -70px;
+  bottom: -90px;
+  width: 280px;
+  height: 280px;
+  border: 1px solid rgb(8 113 131 / 10%);
+  border-radius: 50%;
+  box-shadow: 0 0 0 28px rgb(8 113 131 / 3%), 0 0 0 62px rgb(8 113 131 / 2%);
+}
+
+.specimen-card-heading,
+.specimen-footer,
+.specimen-figure,
+.specimen-scale {
+  position: relative;
+  z-index: 1;
+}
+
+.specimen-card-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 17px;
+  border-bottom: 1px solid rgb(8 113 131 / 16%);
+}
+
+.specimen-card-heading strong,
+.specimen-card-heading small {
+  display: block;
+}
+
+.specimen-card-heading strong {
+  color: #103f4c;
+  font-family: 'Lora', Georgia, serif;
+  font-size: clamp(20px, 2vw, 28px);
+  font-weight: 600;
+}
+
+.specimen-card-heading small {
+  margin-top: 3px;
+  color: #52737b;
+  font-family: 'Lora', Georgia, serif;
+  font-size: 12px;
+  font-style: italic;
+}
+
+.specimen-number {
+  flex: 0 0 auto;
+  padding: 6px 9px;
+  border: 1px solid rgb(8 113 131 / 18%);
+  border-radius: 999px;
+  color: #34717b;
+  background: rgb(255 255 255 / 64%);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.specimen-figure {
+  display: grid;
+  flex: 1;
+  align-content: center;
+  margin: 20px 0 12px;
+}
+
+.specimen-figure img {
+  display: block;
+  width: 100%;
+  max-height: 430px;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+  filter: grayscale(55%) sepia(12%) saturate(75%) hue-rotate(122deg) contrast(92%);
+}
+
+.auth-specimen-card--internal .specimen-figure img {
+  filter: grayscale(32%) sepia(12%) saturate(68%) hue-rotate(122deg) contrast(92%);
+}
+
+.specimen-figure figcaption {
+  max-width: 590px;
+  margin: 15px auto 0;
+  color: #55757d;
+  font-family: 'Lora', Georgia, serif;
+  font-size: 13px;
+  font-style: italic;
+  line-height: 1.55;
+  text-align: center;
+}
+
+.specimen-scale {
+  display: grid;
+  grid-template-columns: auto repeat(4, minmax(24px, 1fr)) auto;
+  align-items: end;
+  width: min(280px, 70%);
+  margin-top: 8px;
+  color: #4c7179;
+  font-size: 9px;
+}
+
+.specimen-scale i {
+  height: 9px;
+  border-bottom: 1px solid #4d8992;
+  border-left: 1px solid #4d8992;
+}
+
+.specimen-scale i:last-of-type {
+  border-right: 1px solid #4d8992;
+}
+
+.specimen-footer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 22px;
+  padding-top: 17px;
+  margin-top: 18px;
+  border-top: 1px solid rgb(8 113 131 / 14%);
+}
+
+.specimen-footer p {
+  max-width: 500px;
+  margin: 0;
+  color: #4f7078;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.specimen-footer > span {
+  flex: 0 0 auto;
+  color: #087183;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.auth-card--login,
+.auth-card--registration {
+  align-self: center;
+  width: 100%;
+  border: 1px solid rgb(8 113 131 / 15%);
+  border-radius: 24px 18px 26px 16px;
+  background: rgb(252 255 255 / 97%);
+  box-shadow: 0 22px 52px rgb(4 52 64 / 12%);
+}
+
+.auth-card--login {
+  max-width: 510px;
+  padding: clamp(26px, 3.3vw, 46px);
+}
+
+.auth-card-brand {
+  width: 52px;
+  height: 13px;
+  margin-bottom: 22px;
+  overflow: hidden;
+}
+
+.auth-card-brand::before,
+.auth-card-brand::after,
+.auth-card-brand span {
+  display: block;
+  width: 45px;
+  height: 3px;
+  border-radius: 50%;
+  border-top: 2px solid #0b8390;
+  content: '';
+}
+
+.auth-card-brand::after {
+  margin-top: -1px;
+  margin-left: 7px;
+}
+
+.auth-card--login h1,
+.registration-heading h1 {
+  margin: 0;
+  color: #103f4c;
+  font-family: 'Lora', Georgia, serif;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.auth-card--login h1 {
+  font-size: clamp(31px, 3vw, 42px);
+}
+
+.auth-card--login .portal-muted {
+  margin: 9px 0 26px;
+  font-size: 13px;
+}
+
+.portal-input-control {
+  position: relative;
+  display: block;
+}
+
+.portal-input-control > svg {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  z-index: 1;
+  width: 18px;
+  height: 18px;
+  color: #397582;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.portal-input-control input,
+.portal-input-control select {
+  min-height: 50px;
+  padding-left: 44px;
+  border-color: #bed9dc;
+  background: #fbfefe;
+  box-shadow: inset 0 1px 2px rgb(4 52 64 / 3%);
+}
+
+.portal-input-control input:hover,
+.portal-input-control select:hover {
+  border-color: #8ebdc3;
+}
+
+.portal-input-control input:focus,
+.portal-input-control select:focus {
+  border-color: #087f91;
+  box-shadow: 0 0 0 4px rgb(8 145 178 / 12%);
+  outline: 0;
+}
+
+.portal-field > small {
+  color: #637e84;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.portal-input-control:has(.password-visibility) input {
+  padding-right: 62px;
+}
+
+.password-visibility {
+  position: absolute;
+  top: 50%;
+  right: 7px;
+  z-index: 2;
+  min-width: 48px;
+  min-height: 38px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 8px;
+  color: #176779;
+  background: transparent;
+  font-size: 10px;
+  font-weight: 800;
+  transform: translateY(-50%);
+}
+
+.password-visibility:hover,
+.password-visibility[aria-pressed='true'] {
+  background: #e6f5f4;
+}
+
+.auth-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  background: linear-gradient(135deg, #087f91, #076a79);
+  border-color: #087f91;
+  box-shadow: 0 10px 24px rgb(8 113 131 / 19%);
+}
+
+.auth-submit:hover {
+  background: linear-gradient(135deg, #076f80, #075c69);
+}
+
+.auth-submit svg {
+  width: 17px;
+  height: 17px;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0 12px;
+  color: #69858b;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  flex: 1;
+  height: 1px;
+  background: #d4e5e6;
+  content: '';
+}
+
+.demo-access {
+  padding-top: 14px;
+  margin-top: 18px;
+  border-top: 1px solid var(--color-border);
+  color: #55737a;
+}
+
+.demo-access summary {
+  min-height: 44px;
+  cursor: pointer;
+  color: #2c626d;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 44px;
+}
+
+.demo-access > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-start;
+  margin: 4px 0 9px;
+}
+
+.demo-access small {
+  text-align: left;
+}
+
+.auth-security-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 15px 0 0;
+  color: #617d83;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.auth-security-note svg {
+  width: 16px;
+  height: 16px;
+  color: #168071;
+}
+
+.registration-page {
+  grid-template-columns: minmax(0, 0.8fr) minmax(560px, 1.2fr);
+}
+
+.auth-card--registration {
+  max-width: 840px;
+  padding: clamp(24px, 3vw, 38px);
+  margin: 0;
+}
+
+.registration-heading {
+  position: relative;
+  padding-right: 130px;
+}
+
+.registration-heading h1 {
+  font-size: clamp(30px, 3vw, 40px);
+}
+
+.registration-heading > p {
+  max-width: 600px;
+  margin: 8px 0 0;
+  color: var(--color-muted-text);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.auth-back-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 7px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 9px;
+  color: #336b75;
+  background: #edf8f7;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.auth-back-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.registration-progress {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  padding: 0;
+  margin: 25px 0 23px;
+  list-style: none;
+}
+
+.registration-progress li {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  color: #6b858b;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.registration-progress li:not(:last-child)::after {
+  position: absolute;
+  top: 15px;
+  left: calc(50% + 20px);
+  width: calc(100% - 40px);
+  height: 1px;
+  background: #c8dcde;
+  content: '';
+}
+
+.registration-progress li > span {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: 31px;
+  height: 31px;
+  place-items: center;
+  border: 1px solid #b8d2d5;
+  border-radius: 50%;
+  background: #f7fbfb;
+}
+
+.registration-progress .is-active {
+  color: #075f6f;
+}
+
+.registration-progress .is-active > span {
+  border-color: #078394;
+  color: white;
+  background: #078394;
+  box-shadow: 0 0 0 5px rgb(8 145 178 / 10%);
+}
+
+.password-requirements {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px 14px;
+  padding: 0;
+  margin: -4px 0 0;
+  color: #6a8288;
+  font-size: 10px;
+  list-style: none;
+}
+
+.password-requirements li {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.password-requirements svg {
+  width: 10px;
+  height: 10px;
+  fill: transparent;
+  color: #8caaae;
+}
+
+.password-requirements li.is-met {
+  color: #176b54;
+}
+
+.password-requirements li.is-met svg {
+  fill: #19a67b;
+  color: #19a67b;
+}
+
+.auth-card--registration .registration-note {
+  margin-top: 18px;
+}
+
+@media (max-width: 1080px) {
+  .auth-editorial-page,
+  .registration-page {
+    grid-template-columns: minmax(0, 0.8fr) minmax(430px, 1fr);
+  }
+
+  .auth-specimen-card {
+    min-height: 650px;
+  }
+
+  .specimen-footer {
+    display: grid;
+  }
+}
+
+@media (max-width: 900px) {
+  #aquaPortal:not(.is-authenticated) .portal-main {
+    width: min(760px, calc(100% - 32px));
+  }
+
+  .auth-editorial-page,
+  .registration-page {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .auth-specimen-card {
+    min-height: 0;
+    max-height: 430px;
+  }
+
+  .specimen-figure {
+    min-height: 220px;
+    margin: 10px 0 0;
+  }
+
+  .specimen-figure img {
+    max-height: 260px;
+  }
+
+  .specimen-figure figcaption,
+  .specimen-scale,
+  .specimen-footer {
+    display: none;
+  }
+
+  .auth-card--login,
+  .auth-card--registration {
+    max-width: none;
+    margin: 0;
+  }
+}
+
+@media (max-width: 620px) {
+  #aquaPortal:not(.is-authenticated) .portal-main {
+    width: min(100% - 20px, 760px);
+    padding-top: 12px;
+  }
+
+  .auth-editorial-page,
+  .registration-page {
+    gap: 10px;
+  }
+
+  .auth-specimen-card {
+    max-height: 270px;
+    padding: 17px;
+    border-radius: 20px 16px 20px 14px;
+  }
+
+  .specimen-card-heading strong {
+    font-size: 18px;
+  }
+
+  .specimen-card-heading small {
+    font-size: 10px;
+  }
+
+  .specimen-figure {
+    min-height: 145px;
+  }
+
+  .specimen-figure img {
+    max-height: 185px;
+  }
+
+  .auth-card--login,
+  .auth-card--registration {
+    padding: 24px 18px;
+    border-radius: 20px 16px 22px 14px;
+  }
+
+  .auth-card--login h1,
+  .registration-heading h1 {
+    font-size: 30px;
+  }
+
+  .registration-heading {
+    padding-right: 0;
+  }
+
+  .auth-back-button {
+    position: static;
+    margin-bottom: 18px;
+  }
+
+  .registration-progress li small {
+    font-size: 9px;
+    text-align: center;
+  }
+
+  .registration-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .portal-wide {
+    grid-column: auto;
+  }
+
+  .password-requirements {
+    display: grid;
+  }
+
+  .registration-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .registration-actions .portal-primary,
+  .registration-actions .portal-secondary {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portal-input-control input,
+  .portal-input-control select,
+  .password-visibility {
     transition: none;
   }
 }

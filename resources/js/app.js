@@ -5,9 +5,10 @@ import '@fontsource/raleway/latin-500.css';
 import '@fontsource/raleway/latin-600.css';
 import '@fontsource/raleway/latin-700.css';
 import {
-  ArrowLeft, ArrowRight, BadgeCheck, BookOpen, Check, ChevronRight, CircleHelp, ClipboardList,
-  Download, Eye, Fish, Focus, Info, Layers3, LayoutDashboard, LogOut, Maximize2, Menu, PackageOpen,
-  Pause, Play, RotateCcw, ScanSearch, School, Sparkles, Users, Waves, X, createIcons,
+  ArrowLeft, ArrowRight, Badge, BadgeCheck, BookOpen, Check, ChevronRight, Circle, CircleHelp, ClipboardList,
+  Download, Eye, Fish, Focus, GraduationCap, Info, Layers3, LayoutDashboard, LockKeyhole, LogOut, Mail,
+  Maximize2, Menu, PackageOpen, Pause, Play, RotateCcw, ScanSearch, School, ShieldCheck, Sparkles, User,
+  Users, UsersRound, Waves, X, createIcons,
 } from 'lucide';
 import { createViewer } from './viewerFactory.js';
 import { setupAquaPortal } from './portal/index.js';
@@ -79,7 +80,7 @@ app.innerHTML = `
     <dialog class="completion-dialog" id="completionDialog"><span class="completion-mark" aria-hidden="true"><i data-lucide="badge-check"></i></span><p class="eyebrow">Formative activity complete</p><h2 id="completionTitle">Observation recorded</h2><p id="completionCopy"></p><div class="score-card"><span>Your score</span><strong id="scoreValue">0 / 0</strong></div><div class="completion-actions"><button class="primary-button" id="reviewLesson" type="button"><i data-lucide="rotate-ccw"></i><span>Review lesson</span></button><button class="text-button" id="completionDashboard" type="button">Return to dashboard</button><button class="text-button" data-close-dialog="completionDialog" type="button">Keep exploring</button></div></dialog>
   </div>`;
 
-const icons = { ArrowLeft, ArrowRight, BadgeCheck, BookOpen, Check, ChevronRight, CircleHelp, ClipboardList, Download, Eye, Fish, Focus, Info, Layers3, LayoutDashboard, LogOut, Maximize2, Menu, PackageOpen, Pause, Play, RotateCcw, ScanSearch, School, Sparkles, Users, Waves, X };
+const icons = { ArrowLeft, ArrowRight, Badge, BadgeCheck, BookOpen, Check, ChevronRight, Circle, CircleHelp, ClipboardList, Download, Eye, Fish, Focus, GraduationCap, Info, Layers3, LayoutDashboard, LockKeyhole, LogOut, Mail, Maximize2, Menu, PackageOpen, Pause, Play, RotateCcw, ScanSearch, School, ShieldCheck, Sparkles, User, Users, UsersRound, Waves, X };
 const refreshIcons = () => createIcons({ icons, attrs: { 'stroke-width': 1.8, 'aria-hidden': 'true' } });
 const query = (selector) => document.querySelector(selector);
 const elements = {
