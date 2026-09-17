@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Services\CourseProvisioner;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -39,5 +40,6 @@ class DatabaseSeeder extends Seeder
         }
 
         $this->call(SpeciesCatalogSeeder::class);
+        app(CourseProvisioner::class)->ensure();
     }
 }

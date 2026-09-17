@@ -8,13 +8,13 @@ AquaDissect is a Laravel 13, package-driven aquatic-vertebrate learning platform
 - Vite 8, a generic package-driven lesson runtime, and lazy-loaded Three.js viewers
 - Laragon MySQL as the primary application database
 - SQLite as a delayed, local clone of durable domain data
-- Versioned `.aqpack` content, class assignments, offline downloads, and idempotent formative attempts
+- One reusable MB 304L course, term-and-section offerings, versioned `.aqpack` assignments, offline downloads, and idempotent formative attempts
 
 ## Included roles
 
-- Student: opens assigned published packages, downloads them for offline use, and sees version-pinned results
-- Instructor: manages owned classes and assignments, imports drafts, submits reviews, exports packages, and reviews results
-- Administrator: validates and publishes immutable versions, selects the active version, archives/restores packages, monitors storage, and manages approvals
+- Student: activates an administrator-provided account, opens assigned published packages, and sees version-pinned results
+- Instructor: uses administrator-assigned MB 304L sections, manages species assignments, imports drafts, and reviews section progress
+- Administrator: provisions students and sections, assigns instructors, reviews roster conflicts, manages approvals, and controls package publication
 
 ## Code organization
 
@@ -71,13 +71,19 @@ An `.aqpack` is a ZIP-based, data-only archive with `manifest.json`, anatomy/les
 
 Instructors can import and submit drafts. Administrators control publishing, active-version selection, archiving, and restoration. Publishing a new version upgrades only assignments without a started attempt; started work remains pinned until an instructor explicitly reassigns it.
 
+## Accounts and MB 304L sections
+
+The administrator reuses one MB 304L course and creates a distinct offering for each academic year, semester, and section. Instructors cannot create offerings or accept student accounts. Public registration is limited to instructor requests, which still require administrator approval. Students receive accounts from the administrator and activate them with a single-use code that expires after three days. The code is returned once to the administrator, who must deliver it privately; it is not emailed by the application. Research consent is a separate process.
+
+On **Roster & Sections**, the administrator can add a student manually or preview a CSV with the exact columns `first_name,last_name,email,identity_number`. A CSV import is all-or-nothing: conflicting IDs, emails, names, or duplicate rows must be resolved first. Reimporting the same roster reuses accounts and active enrollments. Administrators may assign instructors and archive or restore offerings without deleting results. Existing class records are labeled as legacy offerings; past attempts are not assigned to a section without reliable evidence. New attempts record their section.
+
 ## Offline learning
 
 The Downloads page stores a version-specific application shell, content manifest, package assets, fonts, and any supported 3D viewer modules. Every declared package file is SHA-256 verified before the new cache replaces an older version. Formative attempts made without a connection use a client UUID in IndexedDB and synchronize idempotently after reconnection. Non-formative assessments are rejected offline.
 
 ## Delayed SQLite clone
 
-The application reads and writes its live data in the Laragon MySQL database named `aquadissect`. Create, update, and delete operations for users, species, package metadata/assets, classes, instructor links, enrollments, assignments, package events, and lesson results produce an outbox change in the same MySQL transaction. The SQLite copy is not updated until that change is at least 12 hours old. Package binary media remains in private versioned Laravel storage and is not duplicated into SQLite.
+The application reads and writes its live data in the Laragon MySQL database named `aquadissect`. Create, update, and delete operations for users, courses, section offerings, instructor links, enrollments, activation-token hashes, roster audit events, species/package metadata, assignments, and lesson results produce an outbox change in the same MySQL transaction. Schema migrations apply to both databases immediately, but the SQLite copy receives data mutations only when they are at least 12 hours old. Package binary media remains in private versioned Laravel storage and is not duplicated into SQLite.
 
 Runtime infrastructure tables (`sessions`, cache, and queues) remain MySQL-only. They are intentionally excluded because they are temporary application state rather than durable learning records.
 
@@ -113,7 +119,7 @@ npm run build
 php artisan test
 ```
 
-The feature suite covers the previous baseline plus role-aware catalogs, package validation and lifecycle rules, active-version rollback, assignment pinning/upgrades, server scoring and attempt deduplication, authenticated export, and the complete 12-hour relational clone graph.
+The feature suite covers role-aware catalogs, package validation and lifecycle rules, account activation, roster import and conflict handling, course/section authorization, server scoring and attempt deduplication, and the 12-hour relational clone graph.
 
 ## Production deployment
 

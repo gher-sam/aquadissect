@@ -4,14 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
-use App\Models\ClassEnrollment;
-use App\Models\LearningClass;
+use App\Models\AccountActivationToken;
+use App\Models\RosterEvent;
 use App\Models\User;
 use App\Services\DelayedCloneWrite;
 use App\Support\PortalData;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -32,7 +33,9 @@ class AuthController extends Controller
             if (! $user->isActive()) {
                 Auth::logout();
                 $request->session()->invalidate();
-                throw ValidationException::withMessages(['email' => 'This account is waiting for administrator approval.']);
+                throw ValidationException::withMessages(['email' => $user->role === User::ROLE_STUDENT
+                    ? 'This student account needs activation. Use the code supplied by the administrator.'
+                    : 'This account is waiting for administrator approval.']);
             }
 
             return response()->json($portalData->for($user));
@@ -44,20 +47,34 @@ class AuthController extends Controller
         return $writes->transaction(function () use ($request): JsonResponse {
             $user = User::query()->create($request->userAttributes());
 
-            if ($user->role === User::ROLE_STUDENT) {
-                $class = LearningClass::query()->where('code', $user->class_code)->where('status', 'active')->firstOrFail();
-                ClassEnrollment::query()->create([
-                    'class_id' => $class->id,
-                    'user_id' => $user->id,
-                    'status' => 'active',
-                ]);
+            return response()->json([
+                'message' => 'Instructor request submitted for administrator approval.',
+            ], 201);
+        });
+    }
+
+    public function activate(Request $request, DelayedCloneWrite $writes): JsonResponse
+    {
+        $validated = $request->validate([
+            'email' => ['required', 'email'],
+            'code' => ['required', 'string', 'size:48'],
+            'password' => ['required', 'confirmed', Password::min(8)->letters()->numbers()],
+        ]);
+
+        return $writes->transaction(function () use ($validated): JsonResponse {
+            $user = User::query()->whereRaw('LOWER(email) = ?', [strtolower(trim($validated['email']))])->first();
+            $token = $user ? AccountActivationToken::query()->where('user_id', $user->id)->lockForUpdate()->first() : null;
+            if (! $user || $user->role !== User::ROLE_STUDENT || $user->status !== User::STATUS_PENDING
+                || ! $token || $token->expires_at->isPast()
+                || ! hash_equals($token->token_hash, hash('sha256', $validated['code']))) {
+                throw ValidationException::withMessages(['code' => 'This activation code is invalid or expired. Ask the administrator for a new code.']);
             }
 
-            return response()->json([
-                'message' => $user->isActive()
-                    ? 'Student account created. You can now sign in.'
-                    : 'Instructor request submitted for administrator approval.',
-            ], 201);
+            $user->update(['password' => $validated['password'], 'status' => User::STATUS_ACTIVE]);
+            $token->delete();
+            RosterEvent::query()->create(['user_id' => $user->id, 'action' => 'student_activated']);
+
+            return response()->json(['message' => 'Account activated. You can now sign in.']);
         });
     }
 

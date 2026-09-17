@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreLessonAttemptRequest;
 use App\Models\LessonResult;
 use App\Models\SpeciesPackage;
+use App\Services\AttemptOffering;
 use App\Services\DelayedCloneWrite;
 use App\Services\SpeciesPackageContent;
 use Illuminate\Http\JsonResponse;
@@ -16,6 +17,7 @@ class LessonAttemptController extends Controller
         string $lessonKey,
         StoreLessonAttemptRequest $request,
         SpeciesPackageContent $content,
+        AttemptOffering $offering,
         DelayedCloneWrite $writes,
     ): JsonResponse {
         $validated = $request->validated();
@@ -31,6 +33,7 @@ class LessonAttemptController extends Controller
 
         $package = SpeciesPackage::query()->with('assets')->findOrFail($validated['packageId']);
         $content->authorize($request->user(), $package);
+        $classId = $offering->resolve($request->user(), $package->id, isset($validated['classId']) ? (int) $validated['classId'] : null);
         $manifest = $content->manifest($package);
         if (($manifest['lessonKey'] ?? null) !== $lessonKey || $package->version !== $validated['packageVersion']) {
             throw ValidationException::withMessages(['packageVersion' => 'The lesson key or package version does not match the selected package.']);
@@ -45,8 +48,9 @@ class LessonAttemptController extends Controller
         $answers = $validated['answers'];
         $score = $questions->filter(fn (array $question) => ($answers[$question['id']] ?? null) === $question['answer'])->count();
 
-        return $writes->transaction(function () use ($request, $package, $lessonKey, $validated, $score, $questions): JsonResponse {
+        return $writes->transaction(function () use ($request, $package, $lessonKey, $validated, $score, $questions, $classId): JsonResponse {
             $result = $request->user()->lessonResults()->create([
+                'class_id' => $classId,
                 'species_package_id' => $package->id,
                 'lesson_key' => $lessonKey,
                 'attempt_uuid' => $validated['clientAttemptUuid'],

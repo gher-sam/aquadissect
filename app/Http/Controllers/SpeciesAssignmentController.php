@@ -60,5 +60,6 @@ class SpeciesAssignmentController extends Controller
     private function authorizeOwner(Request $request, LearningClass $class): void
     {
         abort_unless(ClassInstructor::query()->where('class_id', $class->id)->where('user_id', $request->user()->id)->exists(), 403);
+        abort_unless($class->status === 'active', 422, 'Archived sections cannot be changed.');
     }
 }

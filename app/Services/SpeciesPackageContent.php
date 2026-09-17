@@ -25,9 +25,10 @@ class SpeciesPackageContent
         if ($user->role === User::ROLE_STUDENT && $package->status === SpeciesPackage::STATUS_PUBLISHED) {
             $assigned = $user->classEnrollments()
                 ->where('class_enrollments.status', 'active')
-                ->whereHas('learningClass.assignments', fn ($query) => $query
-                    ->where('species_package_id', $package->id)
-                    ->where('active', true))
+                ->whereHas('learningClass', fn ($class) => $class->where('status', 'active')
+                    ->whereHas('assignments', fn ($query) => $query
+                        ->where('species_package_id', $package->id)
+                        ->where('active', true)))
                 ->exists();
             if ($assigned) {
                 return;

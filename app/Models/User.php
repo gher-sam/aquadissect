@@ -30,7 +30,7 @@ class User extends Authenticatable
 
     public const STATUS_PENDING = 'pending';
 
-    public const REGISTRABLE_ROLES = [self::ROLE_STUDENT, self::ROLE_INSTRUCTOR];
+    public const REGISTRABLE_ROLES = [self::ROLE_INSTRUCTOR];
 
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;

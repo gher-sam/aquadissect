@@ -8,7 +8,8 @@
     <nav class="portal-nav" aria-label="Primary navigation">
       <button type="button" data-portal-page="home"><i class="portal-nav-icon" data-lucide="layout-dashboard"></i><span data-nav-label="home">Home</span></button>
       <button type="button" data-portal-page="library" data-role-nav="student,instructor,admin"><i class="portal-nav-icon" data-lucide="fish"></i><span data-nav-label="library">Species Library</span></button>
-      <button type="button" data-portal-page="classes" data-role-nav="student,instructor,admin"><i class="portal-nav-icon" data-lucide="school"></i><span data-nav-label="classes">My Classes</span></button>
+      <button type="button" data-portal-page="classes" data-role-nav="student,instructor,admin"><i class="portal-nav-icon" data-lucide="school"></i><span data-nav-label="classes">My Sections</span></button>
+      <button type="button" data-portal-page="roster" data-role-nav="admin"><i class="portal-nav-icon" data-lucide="users-round"></i><span data-nav-label="roster">Roster &amp; Sections</span></button>
       <button type="button" data-portal-page="assignments" data-role-nav="student,instructor"><i class="portal-nav-icon" data-lucide="clipboard-list"></i><span data-nav-label="assignments">Assignments</span></button>
       <button type="button" data-portal-page="downloads" data-role-nav="student,instructor,admin"><i class="portal-nav-icon" data-lucide="download"></i><span data-nav-label="downloads">Downloads</span></button>
       <button type="button" data-portal-page="manager" data-role-nav="instructor,admin"><i class="portal-nav-icon" data-lucide="package-open"></i><span data-nav-label="manager">Species Manager</span></button>
@@ -77,8 +78,10 @@
         </div>
         <p class="portal-message" id="loginMessage" role="alert" hidden></p>
         <button class="portal-primary portal-full auth-submit" type="submit"><span>Sign in</span><i data-lucide="arrow-right" aria-hidden="true"></i></button>
-        <div class="auth-divider"><span>New to AquaDissect?</span></div>
-        <button class="portal-secondary portal-full" type="button" data-portal-page="register">Create an account</button>
+        <div class="auth-divider"><span>First time here?</span></div>
+        <button class="portal-secondary portal-full" type="button" data-portal-page="activate">Activate student account</button>
+        <button class="portal-link portal-full" type="button" data-portal-page="register">Request instructor access</button>
+        <p class="portal-muted">Student accounts are created by the administrator. Ask for your one-time activation code.</p>
         @unless(app()->environment('production'))
         <details class="demo-access">
           <summary>Open local demonstration access</summary>
@@ -114,9 +117,9 @@
       <form class="registration-card auth-card--registration" id="registrationForm">
         <div class="registration-heading">
           <button class="auth-back-button" type="button" data-portal-page="login"><i data-lucide="arrow-left" aria-hidden="true"></i><span>Back to sign in</span></button>
-          <span class="portal-kicker">Account request</span>
-          <h1>Create your account</h1>
-          <p>Students join with an active class code. Instructor requests require administrator approval.</p>
+          <span class="portal-kicker">Faculty account request</span>
+          <h1>Request instructor access</h1>
+          <p>Instructor requests require administrator approval. Students receive accounts from the administrator.</p>
         </div>
 
         <ol class="registration-progress" aria-label="Registration process">
@@ -129,9 +132,7 @@
           <label class="portal-field" for="registrationFirstName"><span>First name</span><span class="portal-input-control"><i data-lucide="user" aria-hidden="true"></i><input id="registrationFirstName" name="firstName" required autocomplete="given-name"></span></label>
           <label class="portal-field" for="registrationLastName"><span>Last name</span><span class="portal-input-control"><i data-lucide="user" aria-hidden="true"></i><input id="registrationLastName" name="lastName" required autocomplete="family-name"></span></label>
           <label class="portal-field portal-wide" for="registrationEmail"><span>Institutional email</span><span class="portal-input-control"><i data-lucide="mail" aria-hidden="true"></i><input id="registrationEmail" name="email" type="email" required autocomplete="username"></span><small>Use the email associated with your institution or class record.</small></label>
-          <label class="portal-field" for="registrationIdentity"><span>Student or employee ID</span><span class="portal-input-control"><i data-lucide="badge" aria-hidden="true"></i><input id="registrationIdentity" name="identityNumber" required autocomplete="off"></span></label>
-          <label class="portal-field" for="registrationRole"><span>Account type</span><span class="portal-input-control"><i data-lucide="graduation-cap" aria-hidden="true"></i><select name="role" id="registrationRole"><option value="student">Student</option><option value="instructor">Instructor</option></select></span></label>
-          <label class="portal-field portal-wide" id="classCodeField" for="registrationClassCode"><span>Class enrollment code</span><span class="portal-input-control"><i data-lucide="users-round" aria-hidden="true"></i><input id="registrationClassCode" name="classCode" value="FISHBIO-101" autocomplete="off"></span><small>Provided by the instructor managing the AquaDissect class.</small></label>
+          <label class="portal-field" for="registrationIdentity"><span>Employee ID</span><span class="portal-input-control"><i data-lucide="badge" aria-hidden="true"></i><input id="registrationIdentity" name="identityNumber" required autocomplete="off"></span></label>
           <label class="portal-field" for="registrationPassword"><span>Password</span><span class="portal-input-control"><i data-lucide="lock-keyhole" aria-hidden="true"></i><input id="registrationPassword" name="password" type="password" required minlength="8" autocomplete="new-password"><button class="password-visibility" type="button" data-password-toggle="registrationPassword" aria-controls="registrationPassword" aria-pressed="false">Show</button></span></label>
           <label class="portal-field" for="registrationPasswordConfirmation"><span>Confirm password</span><span class="portal-input-control"><i data-lucide="lock-keyhole" aria-hidden="true"></i><input id="registrationPasswordConfirmation" name="passwordConfirmation" type="password" required minlength="8" autocomplete="new-password"><button class="password-visibility" type="button" data-password-toggle="registrationPasswordConfirmation" aria-controls="registrationPasswordConfirmation" aria-pressed="false">Show</button></span></label>
           <ul class="password-requirements portal-wide" id="passwordRequirements" aria-live="polite">
@@ -141,12 +142,30 @@
           </ul>
           <label class="portal-check portal-wide"><input name="agreement" type="checkbox" required><span>I agree to use AquaDissect only for approved educational activities and to follow laboratory safety requirements.</span></label>
         </div>
-        <div class="registration-note" id="registrationNote"><strong>Student activation:</strong> the class code must identify an active AquaDissect class.</div>
+        <div class="registration-note"><strong>Instructor access:</strong> the request remains pending until an administrator verifies and approves it.</div>
         <p class="portal-message" id="registrationMessage" role="alert" hidden></p>
         <div class="registration-actions">
           <button class="portal-secondary" type="button" data-portal-page="login">Cancel</button>
           <button class="portal-primary auth-submit" type="submit"><span>Submit registration</span><i data-lucide="arrow-right" aria-hidden="true"></i></button>
         </div>
+      </form>
+    </section>
+
+    <section class="portal-page auth-editorial-page registration-page" data-portal-panel="activate" hidden>
+      <article class="auth-specimen-card auth-specimen-card--internal" aria-label="Tilapia internal anatomy illustration">
+        <div class="specimen-card-heading"><span><strong>Internal anatomy</strong><small>Tilapia · educational view</small></span><span class="specimen-number">Fig. 02</span></div>
+        <figure class="specimen-figure"><img src="{{ rtrim(request()->getBaseUrl(), '/') }}/species/tilapia/internal-anatomy.png" alt="Educational illustration of tilapia internal anatomy"><figcaption>Begin with the account supplied by your administrator.</figcaption></figure>
+      </article>
+      <form class="registration-card auth-card--registration" id="activationForm">
+        <div class="registration-heading"><button class="auth-back-button" type="button" data-portal-page="login"><i data-lucide="arrow-left" aria-hidden="true"></i><span>Back to sign in</span></button><span class="portal-kicker">Student access</span><h1>Activate your account</h1><p>Use the email and one-time code supplied by the administrator. Codes expire after three days.</p></div>
+        <div class="registration-grid">
+          <label class="portal-field portal-wide"><span>Institutional email</span><span class="portal-input-control"><i data-lucide="mail" aria-hidden="true"></i><input name="email" type="email" autocomplete="username" required></span></label>
+          <label class="portal-field portal-wide"><span>One-time activation code</span><span class="portal-input-control"><i data-lucide="key-round" aria-hidden="true"></i><input name="code" autocomplete="one-time-code" minlength="48" maxlength="48" required></span></label>
+          <label class="portal-field"><span>New password</span><span class="portal-input-control"><i data-lucide="lock-keyhole" aria-hidden="true"></i><input name="password" type="password" autocomplete="new-password" minlength="8" required></span></label>
+          <label class="portal-field"><span>Confirm password</span><span class="portal-input-control"><i data-lucide="lock-keyhole" aria-hidden="true"></i><input name="passwordConfirmation" type="password" autocomplete="new-password" minlength="8" required></span></label>
+        </div>
+        <p class="portal-message" id="activationMessage" role="alert" hidden></p>
+        <div class="registration-actions"><button class="portal-secondary" type="button" data-portal-page="login">Cancel</button><button class="portal-primary auth-submit" type="submit">Activate account</button></div>
       </form>
     </section>
 
@@ -167,8 +186,13 @@
     </section>
 
     <section class="portal-page" data-portal-panel="classes" hidden>
-      <div class="portal-page-title"><span class="portal-kicker">Learning groups</span><h1>My Classes</h1><p>Classes connect instructors, enrolled students, and version-pinned species assignments.</p></div>
+      <div class="portal-page-title"><span class="portal-kicker">MB 304L offerings</span><h1>My Sections</h1><p>One course is reused across semesters while each section keeps its own roster, assignments, and results.</p></div>
       <div id="classesContent"></div>
+    </section>
+
+    <section class="portal-page" data-portal-panel="roster" hidden>
+      <div class="portal-page-title"><span class="portal-kicker">Administrator workspace</span><h1>Roster &amp; Sections</h1><p>Create term sections, provision students, assign instructors, and review conflicts before import.</p></div>
+      <div id="rosterContent"></div>
     </section>
 
     <section class="portal-page" data-portal-panel="assignments" hidden>
@@ -189,17 +213,17 @@
     <section class="portal-page" data-portal-panel="access" hidden>
       <div class="portal-page-title"><span class="portal-kicker">Permission model</span><h1>Role-based user access</h1><p>Access is limited by responsibility, class assignment, and content approval status.</p></div>
       <div class="access-grid">
-        <article class="access-card"><span class="access-icon" aria-hidden="true">S</span><h2>Student</h2><ul><li>Join approved classes</li><li>Open assigned species and lessons</li><li>Complete guided activities and quizzes</li><li>See only personal progress and feedback</li><li>Generate personal laboratory reports</li></ul></article>
-        <article class="access-card"><span class="access-icon" aria-hidden="true">I</span><h2>Instructor</h2><ul><li>Manage assigned classes</li><li>Assign approved learning activities</li><li>Review student progress and reports</li><li>Provide feedback and approve submissions</li><li>Submit content for administrator approval</li></ul></article>
-        <article class="access-card"><span class="access-icon" aria-hidden="true">A</span><h2>Administrator</h2><ul><li>Approve instructor requests</li><li>Manage accounts, roles, and access status</li><li>Publish validated species packages</li><li>Control lessons and answer keys</li><li>Review system and content audit records</li></ul></article>
+        <article class="access-card"><span class="access-icon" aria-hidden="true">S</span><h2>Student</h2><ul><li>Activate an administrator-provided account</li><li>Open assigned species and lessons</li><li>Complete guided activities and quizzes</li><li>See only personal progress and feedback</li></ul></article>
+        <article class="access-card"><span class="access-icon" aria-hidden="true">I</span><h2>Instructor</h2><ul><li>Use administrator-assigned MB 304L sections</li><li>Assign approved learning activities</li><li>Review section rosters and formative results</li><li>Submit content for administrator approval</li></ul></article>
+        <article class="access-card"><span class="access-icon" aria-hidden="true">A</span><h2>Administrator</h2><ul><li>Provision student accounts and sections</li><li>Assign instructors and review roster conflicts</li><li>Approve instructor requests</li><li>Publish validated species packages</li><li>Review roster and content audit records</li></ul></article>
       </div>
-      <div class="access-policy"><strong>Account policy:</strong> students use verified school identities and enrollment codes; instructors require administrator approval; administrator accounts are created internally and never through public registration.</div>
+      <div class="access-policy"><strong>Account policy:</strong> administrators create student accounts and provide one-time activation codes; instructors request approval; administrator accounts are created internally. Research consent is separate from account activation.</div>
     </section>
 
     <section class="portal-page" data-portal-panel="about" hidden>
       <div class="portal-page-title"><span class="portal-kicker">System overview</span><h1>How AquaDissect works</h1><p>A browser-based learning system for selected aquatic organisms.</p></div>
       <div class="flow-grid">
-        <article><span>01</span><h2>Access</h2><p>Register, verify identity, sign in, and enter an approved role workspace.</p></article>
+        <article><span>01</span><h2>Access</h2><p>Activate an administrator-provided student account or request instructor access, then sign in.</p></article>
         <article><span>02</span><h2>Select</h2><p>Choose an instructor-assigned species and learning activity.</p></article>
         <article><span>03</span><h2>Explore</h2><p>Inspect external and internal anatomy with interactive labels.</p></article>
         <article><span>04</span><h2>Practice</h2><p>Follow the guided dissection sequence and safety reminders.</p></article>

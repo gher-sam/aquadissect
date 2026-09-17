@@ -1,5 +1,5 @@
 import { request } from './api.js';
-import { adminDashboard, classCards, instructorDashboard, managerView, speciesLibrary, studentDashboard } from './dashboards.js';
+import { adminDashboard, adminRosterView, classCards, instructorDashboard, managerView, speciesLibrary, studentDashboard } from './dashboards.js';
 import { escapeHtml, titleCase } from './format.js';
 import { downloadedVersionFor, downloadPackage, isDownloaded, listDownloadedPackages, removeDownloadedPackage, submitOrQueueAttempt, synchronizeQueuedAttempts } from '../offlinePackages.js';
 import { setupProgressiveWebApp } from '../pwa.js';
@@ -7,11 +7,11 @@ import { setupProgressiveWebApp } from '../pwa.js';
 const bootstrap = window.AQUADISSECT_BOOTSTRAP || {};
 const dashboardCopy = {
   student: ['Student workspace', 'Welcome back', 'Continue assigned lessons and monitor your progress by package version.'],
-  instructor: ['Instructor workspace', 'Welcome', 'Manage owned classes, assignments, drafts, and student results.'],
+  instructor: ['Instructor workspace', 'Welcome', 'Use assigned MB 304L sections, assignments, drafts, and student results.'],
   admin: ['Administrator workspace', 'System overview', 'Validate packages, publish immutable versions, and monitor platform operations.'],
 };
 const pageLabels = {
-  home: 'Dashboard', library: 'Species Library', classes: 'My Classes', assignments: 'Assignments',
+  home: 'Dashboard', library: 'Species Library', classes: 'My Sections', roster: 'Roster & Sections', assignments: 'Assignments',
   downloads: 'Downloads', manager: 'Species Manager', access: 'User access', about: 'How it works',
 };
 
@@ -40,9 +40,8 @@ export function setupAquaPortal({ app, onOpenPackage }) {
     loginMessage: requireElement(portal, '#loginMessage'),
     registrationForm: requireElement(portal, '#registrationForm'),
     registrationMessage: requireElement(portal, '#registrationMessage'),
-    registrationRole: requireElement(portal, '#registrationRole'),
-    registrationNote: requireElement(portal, '#registrationNote'),
-    classCodeField: requireElement(portal, '#classCodeField'),
+    activationForm: requireElement(portal, '#activationForm'),
+    activationMessage: requireElement(portal, '#activationMessage'),
     registrationPassword: requireElement(portal, '#registrationPassword'),
     registrationPasswordConfirmation: requireElement(portal, '#registrationPasswordConfirmation'),
     passwordRequirements: requireElement(portal, '#passwordRequirements'),
@@ -52,6 +51,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
     dashboardContent: requireElement(portal, '#dashboardContent'),
     library: requireElement(portal, '#speciesLibraryContent'),
     classes: requireElement(portal, '#classesContent'),
+    roster: requireElement(portal, '#rosterContent'),
     assignments: requireElement(portal, '#assignmentsContent'),
     downloads: requireElement(portal, '#downloadsContent'),
     manager: requireElement(portal, '#speciesManagerContent'),
@@ -66,6 +66,12 @@ export function setupAquaPortal({ app, onOpenPackage }) {
     pendingUsers: Array.isArray(bootstrap.pendingUsers) ? [...bootstrap.pendingUsers] : [],
     species: Array.isArray(bootstrap.species) ? [...bootstrap.species] : [],
     classes: Array.isArray(bootstrap.classes) ? [...bootstrap.classes] : [],
+    adminRoster: null,
+    rosterPreview: [],
+    rosterFile: null,
+    rosterClassId: null,
+    activationCodes: [],
+    activeClassId: null,
     toastTimer: null,
     currentPage: 'home',
   };
@@ -160,8 +166,9 @@ export function setupAquaPortal({ app, onOpenPackage }) {
   function assignmentView() {
     if (state.currentUser?.role === 'student') return `<div class="species-library-grid">${speciesLibrary(state.species)}</div>`;
     const published = state.species.filter((item) => item.status === 'published');
-    if (!state.classes.length) return '<div class="empty-state"><strong>No owned class is available</strong><span>Create or link a class before assigning a package.</span></div>';
-    return `<div class="assignment-grid">${state.classes.map((course) => `
+    const activeClasses = state.classes.filter((item) => item.status === 'active');
+    if (!activeClasses.length) return '<div class="empty-state"><strong>No assigned section is available</strong><span>Ask the administrator to assign you to an active MB 304L section.</span></div>';
+    return `<div class="assignment-grid">${activeClasses.map((course) => `
       <form class="assignment-card" data-assignment-form="${course.id}">
         <span class="portal-kicker">${escapeHtml(course.code)}</span><h2>${escapeHtml(course.name)}</h2>
         <label class="portal-field">Published package<select name="speciesPackageId" required>${published.map((item) => `<option value="${item.id}">${escapeHtml(item.commonName)} · v${escapeHtml(item.version)}</option>`).join('')}</select></label>
@@ -187,9 +194,9 @@ export function setupAquaPortal({ app, onOpenPackage }) {
     }
     if (name === 'library') elements.library.innerHTML = speciesLibrary(state.species);
     if (name === 'classes') {
-      const createForm = state.currentUser?.role === 'instructor' ? '<form id="classCreateForm" class="package-import-card compact"><span class="portal-kicker">Instructor-owned class</span><h2>Create a class</h2><div class="inline-fields"><label class="portal-field">Code<input name="code" placeholder="FISHBIO-102" required></label><label class="portal-field">Name<input name="name" placeholder="Fish Biology 102" required></label></div><button class="portal-primary" type="submit">Create class</button></form>' : '';
-      elements.classes.innerHTML = `${createForm}${classCards(state.classes)}`;
+      elements.classes.innerHTML = classCards(state.classes, state.currentUser?.role);
     }
+    if (name === 'roster') elements.roster.innerHTML = adminRosterView(state.adminRoster, state.rosterPreview, state.activationCodes);
     if (name === 'assignments') elements.assignments.innerHTML = assignmentView();
     if (name === 'downloads') {
       elements.downloads.innerHTML = `<div class="download-summary"><strong>${listDownloadedPackages().length}</strong><span>package version(s) stored on this device</span></div><div class="species-library-grid">${speciesLibrary(state.species.filter((item) => item.status === 'published'), { offline: true })}</div>`;
@@ -212,7 +219,8 @@ export function setupAquaPortal({ app, onOpenPackage }) {
   }
 
   function showPage(name) {
-    if (!state.currentUser && !['login', 'register', 'access', 'about'].includes(name)) name = 'login';
+    if (!state.currentUser && !['login', 'register', 'activate', 'access', 'about'].includes(name)) name = 'login';
+    if (name === 'roster' && state.currentUser?.role !== 'admin') name = state.currentUser ? 'home' : 'login';
     state.currentPage = name;
     portal.querySelectorAll('[data-portal-panel]').forEach((panel) => { panel.hidden = panel.dataset.portalPanel !== name; });
     portal.querySelectorAll('.portal-nav [data-portal-page]').forEach((button) => {
@@ -223,6 +231,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
     elements.pageLabel.textContent = pageLabels[name] || 'AquaDissect';
     setSidebarOpen(false);
     renderPage(name);
+    if (name === 'roster' && !state.adminRoster) void refreshRoster();
     window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
   }
 
@@ -232,6 +241,8 @@ export function setupAquaPortal({ app, onOpenPackage }) {
     state.pendingUsers = payload.pendingUsers || [];
     state.species = payload.species || [];
     state.classes = payload.classes || [];
+    state.adminRoster = null;
+    state.activationCodes = [];
     updateSession();
     showPage('home');
     showToast(`Signed in as ${titleCase(payload.user.role)}`);
@@ -245,6 +256,15 @@ export function setupAquaPortal({ app, onOpenPackage }) {
     renderPage();
   }
 
+  async function refreshRoster() {
+    if (state.currentUser?.role !== 'admin') return;
+    try {
+      state.adminRoster = await request('/api/admin/roster');
+      state.classes = state.adminRoster.classes || [];
+      renderPage();
+    } catch (error) { showToast(error.message); }
+  }
+
   async function signOut() {
     try {
       await request('/api/logout', { method: 'POST' });
@@ -253,15 +273,29 @@ export function setupAquaPortal({ app, onOpenPackage }) {
       state.pendingUsers = [];
       state.species = [];
       state.classes = [];
+      state.adminRoster = null;
+      state.activationCodes = [];
+      state.rosterPreview = [];
+      state.rosterFile = null;
+      state.activeClassId = null;
       updateSession();
       showPage('login');
       showToast('Signed out');
     } catch (error) { showToast(error.message); }
   }
 
-  async function openPackage(id, viewerType = 'auto') {
+  async function openPackage(id, viewerType = 'auto', selectedClassId = null) {
     const record = state.species.find((item) => String(item.id) === String(id));
     if (!record) return;
+    const matchingClasses = state.currentUser?.role === 'student'
+      ? state.classes.filter((item) => item.status === 'active' && item.assignments.some((assignment) => String(assignment.packageId) === String(id)))
+      : [];
+    if (matchingClasses.length > 1 && !selectedClassId) {
+      showPage('classes');
+      showToast('Open this lesson from the correct section below.');
+      return;
+    }
+    state.activeClassId = selectedClassId || matchingClasses[0]?.id || null;
     try {
       const response = await request(`/api/species/${record.slug}/packages/${record.id}/manifest`);
       await onOpenPackage(response.package, record, { viewerType });
@@ -311,7 +345,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
     if (event.target.closest('[data-portal-signout]')) await signOut();
     const openButton = event.target.closest('[data-open-package]');
     const openId = openButton?.dataset.openPackage;
-    if (openId) await openPackage(openId, openButton.dataset.viewerMode || 'auto');
+    if (openId) await openPackage(openId, openButton.dataset.viewerMode || 'auto', openButton.dataset.classId ? Number(openButton.dataset.classId) : null);
     const approvalId = event.target.closest('[data-approve-account]')?.dataset.approveAccount;
     if (approvalId && state.currentUser?.role === 'admin') {
       try {
@@ -319,6 +353,35 @@ export function setupAquaPortal({ app, onOpenPackage }) {
         state.pendingUsers = state.pendingUsers.filter((item) => String(item.id) !== approvalId);
         renderPage();
         showToast('Instructor account approved');
+      } catch (error) { showToast(error.message); }
+    }
+    const offeringAction = event.target.closest('[data-offering-status]');
+    if (offeringAction && state.currentUser?.role === 'admin') {
+      try {
+        await request(`/api/admin/offerings/${offeringAction.dataset.offeringId}/status`, { method: 'PATCH', body: { status: offeringAction.dataset.offeringStatus } });
+        await refreshRoster();
+        showToast(`Section ${offeringAction.dataset.offeringStatus}`);
+      } catch (error) { showToast(error.message); }
+    }
+    const activationId = event.target.closest('[data-issue-activation]')?.dataset.issueActivation;
+    if (activationId && state.currentUser?.role === 'admin') {
+      try {
+        const result = await request(`/api/admin/students/${activationId}/activation`, { method: 'POST' });
+        state.activationCodes = [{ email: result.email, code: result.code }];
+        renderPage('roster');
+      } catch (error) { showToast(error.message); }
+    }
+    if (event.target.closest('[data-import-reviewed-roster]') && state.rosterFile) {
+      const body = new FormData();
+      body.append('classId', state.rosterClassId);
+      body.append('roster', state.rosterFile);
+      try {
+        const result = await request('/api/admin/roster/import', { method: 'POST', body });
+        state.activationCodes = result.activationCodes || [];
+        state.rosterPreview = [];
+        state.rosterFile = null;
+        await refreshRoster();
+        showToast('Roster imported. Existing accounts were reused.');
       } catch (error) { showToast(error.message); }
     }
     for (const action of ['submit', 'publish', 'activate', 'archive', 'restore']) {
@@ -364,12 +427,28 @@ export function setupAquaPortal({ app, onOpenPackage }) {
         return;
       }
       try {
-        const response = await request('/api/register', { method: 'POST', body: { firstName: String(data.get('firstName')).trim(), lastName: String(data.get('lastName')).trim(), email, identityNumber: String(data.get('identityNumber')).trim(), role: String(data.get('role')), classCode: String(data.get('classCode') || '').trim(), password, agreement: data.get('agreement') === 'on' } });
+        const response = await request('/api/register', { method: 'POST', body: { firstName: String(data.get('firstName')).trim(), lastName: String(data.get('lastName')).trim(), email, identityNumber: String(data.get('identityNumber')).trim(), role: 'instructor', password, agreement: data.get('agreement') === 'on' } });
         elements.registrationForm.reset();
         updatePasswordGuidance();
         showPage('login');
         showToast(response.message);
       } catch (error) { setMessage(elements.registrationMessage, error.message); }
+      return;
+    }
+    if (event.target === elements.activationForm) {
+      event.preventDefault();
+      setMessage(elements.activationMessage);
+      const data = new FormData(event.target);
+      if (data.get('password') !== data.get('passwordConfirmation')) {
+        setMessage(elements.activationMessage, 'The password confirmation does not match.');
+        return;
+      }
+      try {
+        const response = await request('/api/activate', { method: 'POST', body: { email: String(data.get('email')).trim().toLowerCase(), code: String(data.get('code')).trim(), password: String(data.get('password')), password_confirmation: String(data.get('passwordConfirmation')) } });
+        elements.activationForm.reset();
+        showPage('login');
+        showToast(response.message);
+      } catch (error) { setMessage(elements.activationMessage, error.message); }
       return;
     }
     if (event.target.id === 'packageImportForm') {
@@ -382,13 +461,47 @@ export function setupAquaPortal({ app, onOpenPackage }) {
       } catch (error) { setMessage(message, error.message); }
       return;
     }
-    if (event.target.id === 'classCreateForm') {
+    if (event.target.id === 'offeringCreateForm') {
       event.preventDefault();
       const data = new FormData(event.target);
       try {
-        await request('/api/instructor/classes', { method: 'POST', body: { code: data.get('code'), name: data.get('name') } });
-        await refreshData();
-        showToast('Class created');
+        await request('/api/admin/offerings', { method: 'POST', body: { academicYear: data.get('academicYear'), semester: data.get('semester'), sectionCode: data.get('sectionCode') } });
+        await refreshRoster();
+        showToast('Section created for the existing MB 304L course');
+      } catch (error) { showToast(error.message); }
+      return;
+    }
+    if (event.target.id === 'studentCreateForm') {
+      event.preventDefault();
+      const data = new FormData(event.target);
+      try {
+        const result = await request('/api/admin/students', { method: 'POST', body: Object.fromEntries(data) });
+        state.activationCodes = result.activationCodes || [];
+        await refreshRoster();
+        showToast('Student roster updated');
+      } catch (error) { showToast(error.message); }
+      return;
+    }
+    if (event.target.id === 'rosterCsvForm') {
+      event.preventDefault();
+      const data = new FormData(event.target);
+      try {
+        const result = await request('/api/admin/roster/preview', { method: 'POST', body: data });
+        state.rosterFile = data.get('roster');
+        state.rosterClassId = data.get('classId');
+        state.rosterPreview = result.rows || [];
+        renderPage('roster');
+        showToast('Roster preview ready. No accounts changed.');
+      } catch (error) { showToast(error.message); }
+      return;
+    }
+    if (event.target.matches('[data-instructor-form]')) {
+      event.preventDefault();
+      const data = new FormData(event.target);
+      try {
+        await request(`/api/admin/offerings/${event.target.dataset.instructorForm}/instructors`, { method: 'POST', body: { instructorId: Number(data.get('instructorId')) } });
+        await refreshRoster();
+        showToast('Instructor assigned to section');
       } catch (error) { showToast(error.message); }
       return;
     }
@@ -401,14 +514,6 @@ export function setupAquaPortal({ app, onOpenPackage }) {
         showToast('Assignment saved with the selected package version');
       } catch (error) { showToast(error.message); }
     }
-  }
-
-  function updateRegistrationRole() {
-    const isInstructor = elements.registrationRole.value === 'instructor';
-    elements.classCodeField.hidden = isInstructor;
-    elements.registrationNote.innerHTML = isInstructor
-      ? '<strong>Instructor activation:</strong> the request remains pending until an administrator verifies and approves it.'
-      : '<strong>Student activation:</strong> the class code must identify an active AquaDissect class.';
   }
 
   function updatePasswordGuidance() {
@@ -429,9 +534,8 @@ export function setupAquaPortal({ app, onOpenPackage }) {
   elements.sidebarScrim.addEventListener('click', () => setSidebarOpen(false));
   document.addEventListener('keydown', handleSidebarKeydown);
   window.addEventListener('resize', () => setSidebarOpen(false, { restoreFocus: false }));
-  elements.registrationRole.addEventListener('change', updateRegistrationRole);
   elements.registrationPassword.addEventListener('input', updatePasswordGuidance);
-  requireElement(portal, '#forgotPassword').addEventListener('click', () => showToast('Password recovery will use the verified institutional email when mail delivery is configured.'));
+  requireElement(portal, '#forgotPassword').addEventListener('click', () => showToast('Contact your administrator for account support.'));
   window.addEventListener('online', async () => {
     updateNetworkStatus();
     try {
@@ -452,7 +556,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
     openDashboard,
     currentUser: () => state.currentUser,
     async recordAttempt(lessonKey, attempt) {
-      const response = await submitOrQueueAttempt(lessonKey, attempt);
+      const response = await submitOrQueueAttempt(lessonKey, { ...attempt, classId: state.activeClassId });
       if (response.queued) showToast('Attempt saved offline and queued for synchronization');
       else {
         state.latestResult = response.result;

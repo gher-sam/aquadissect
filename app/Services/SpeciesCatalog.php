@@ -16,6 +16,7 @@ class SpeciesCatalog
         if ($user->role === User::ROLE_STUDENT) {
             $packageIds = $user->classEnrollments()
                 ->where('class_enrollments.status', 'active')
+                ->whereHas('learningClass', fn ($query) => $query->where('status', 'active'))
                 ->with('learningClass.assignments')
                 ->get()
                 ->flatMap(fn ($enrollment) => $enrollment->learningClass->assignments

@@ -37,6 +37,7 @@ class AutomaticDatabaseSetup
                 }
                 $this->migrateConnection($migrator, $clone);
             }
+            app(CourseProvisioner::class)->ensure();
             $tilapiaVideoPackageMissing = ! SpeciesPackage::query()
                 ->whereHas('species', fn ($query) => $query->where('slug', 'tilapia'))
                 ->where('version', '1.1.0')

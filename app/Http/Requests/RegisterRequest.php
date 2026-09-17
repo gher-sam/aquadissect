@@ -9,13 +9,6 @@ use Illuminate\Validation\Rules\Password;
 
 class RegisterRequest extends FormRequest
 {
-    protected function prepareForValidation(): void
-    {
-        $this->merge([
-            'classCode' => strtoupper(trim((string) $this->input('classCode'))),
-        ]);
-    }
-
     /** @return array<string, mixed> */
     public function rules(): array
     {
@@ -25,13 +18,6 @@ class RegisterRequest extends FormRequest
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'identityNumber' => ['required', 'string', 'max:80', 'unique:users,identity_number'],
             'role' => ['required', Rule::in(User::REGISTRABLE_ROLES)],
-            'classCode' => [
-                'nullable',
-                'string',
-                'max:80',
-                'required_if:role,'.User::ROLE_STUDENT,
-                Rule::exists('classes', 'code')->where('status', 'active'),
-            ],
             'password' => ['required', 'string', Password::min(8)->letters()->numbers(), 'max:255'],
             'agreement' => ['accepted'],
         ];
@@ -41,7 +27,6 @@ class RegisterRequest extends FormRequest
     public function userAttributes(): array
     {
         $data = $this->validated();
-        $isStudent = $data['role'] === User::ROLE_STUDENT;
 
         return [
             'first_name' => $data['firstName'],
@@ -49,8 +34,8 @@ class RegisterRequest extends FormRequest
             'email' => strtolower($data['email']),
             'identity_number' => $data['identityNumber'],
             'role' => $data['role'],
-            'status' => $isStudent ? User::STATUS_ACTIVE : User::STATUS_PENDING,
-            'class_code' => $isStudent ? $data['classCode'] : null,
+            'status' => User::STATUS_PENDING,
+            'class_code' => null,
             'password' => $data['password'],
         ];
     }

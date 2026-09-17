@@ -63,7 +63,9 @@ class SpeciesPackageLifecycle
                         ->pluck('user_id');
                     $started = LessonResult::query()
                         ->where('species_package_id', $assignment->species_package_id)
-                        ->whereIn('user_id', $studentIds)
+                        ->where(fn ($query) => $query
+                            ->where('class_id', $assignment->class_id)
+                            ->orWhere(fn ($legacy) => $legacy->whereNull('class_id')->whereIn('user_id', $studentIds)))
                         ->exists();
 
                     if ($started) {

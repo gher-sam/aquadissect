@@ -13,6 +13,7 @@ class StoreLessonAttemptRequest extends FormRequest
         return [
             'packageId' => ['required', 'integer', 'exists:species_packages,id'],
             'packageVersion' => ['required', 'string', 'max:40'],
+            'classId' => ['nullable', 'integer', 'exists:classes,id'],
             'clientAttemptUuid' => ['required', 'uuid'],
             'source' => ['required', Rule::in(['online', 'offline'])],
             'completedAt' => ['required', 'date', 'before_or_equal:now'],

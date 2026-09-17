@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminRosterController;
 use App\Http\Controllers\AdminSpeciesPackageController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\AuthController;
@@ -17,6 +18,7 @@ Route::get('/', PortalController::class);
 Route::prefix('api')->group(function (): void {
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
     Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:registration');
+    Route::post('/activate', [AuthController::class, 'activate'])->middleware('throttle:registration');
     Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth');
 
     Route::middleware('auth')->group(function (): void {
@@ -31,12 +33,19 @@ Route::prefix('api')->group(function (): void {
         Route::middleware('role:instructor')->prefix('instructor')->group(function (): void {
             Route::post('/species-packages', [InstructorSpeciesPackageController::class, 'store']);
             Route::post('/species-packages/{package}/submit', [InstructorSpeciesPackageController::class, 'submit']);
-            Route::post('/classes', [ClassController::class, 'store']);
             Route::post('/classes/{class}/assignments', [SpeciesAssignmentController::class, 'store']);
             Route::delete('/classes/{class}/assignments', [SpeciesAssignmentController::class, 'destroy']);
         });
 
         Route::middleware('role:admin')->prefix('admin')->group(function (): void {
+            Route::get('/roster', [AdminRosterController::class, 'index']);
+            Route::post('/offerings', [AdminRosterController::class, 'storeOffering']);
+            Route::post('/offerings/{class}/instructors', [AdminRosterController::class, 'assignInstructor']);
+            Route::patch('/offerings/{class}/status', [AdminRosterController::class, 'setOfferingStatus']);
+            Route::post('/students', [AdminRosterController::class, 'storeStudent']);
+            Route::post('/roster/preview', [AdminRosterController::class, 'preview']);
+            Route::post('/roster/import', [AdminRosterController::class, 'import']);
+            Route::post('/students/{user}/activation', [AdminRosterController::class, 'issueActivation']);
             Route::post('/species-packages/{package}/publish', [AdminSpeciesPackageController::class, 'publish']);
             Route::post('/species-packages/{package}/activate', [AdminSpeciesPackageController::class, 'activate']);
             Route::post('/species-packages/{package}/archive', [AdminSpeciesPackageController::class, 'archive']);

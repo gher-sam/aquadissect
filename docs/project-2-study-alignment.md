@@ -48,6 +48,12 @@ The defense-ready application retains the three roles currently implemented:
 
 Separate Super Administrator and Staff roles are deferred unless formally required. Application roles must not be confused with research respondents or adapted Scrum responsibilities.
 
+## Account and section-management decision
+
+Confirmed September 17, 2026: AquaDissect uses one reusable MB 304L course with distinct section offerings for each academic year and semester. Authorized administrators provision and enroll student accounts from a verified roster, assign instructors to existing offerings, and archive completed offerings without deleting results. Students do not publicly self-register or require instructor acceptance; they activate administrator-provided accounts with a one-time code. Instructors may request account approval but do not create offerings or admit students. Account activation is separate from informed consent for research participation.
+
+Legacy class records and lesson results must be retained. Existing results without reliable historical section evidence remain unattributed rather than being assigned to a section by inference. New attempts record their offering. The adviser-provided ERD has not yet been supplied and must be reviewed against this confirmed workflow when available; it is not evidence that implementation or validation is complete.
+
 ## Species scope and current implementation truth
 
 The proposed defense scope is Tilapia, Rabbitfish, and Scad.

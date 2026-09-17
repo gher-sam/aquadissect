@@ -71,7 +71,7 @@ class AquaDissectTest extends TestCase
         $this->assertGuest();
     }
 
-    public function test_registration_applies_the_expected_role_status(): void
+    public function test_public_registration_only_accepts_instructor_requests(): void
     {
         $student = [
             'firstName' => 'Lina',
@@ -84,8 +84,8 @@ class AquaDissectTest extends TestCase
             'agreement' => true,
         ];
 
-        $this->postJson('/api/register', $student)->assertCreated();
-        $this->assertDatabaseHas('users', ['email' => $student['email'], 'status' => 'active']);
+        $this->postJson('/api/register', $student)->assertUnprocessable()->assertJsonValidationErrors('role');
+        $this->assertDatabaseMissing('users', ['email' => $student['email']]);
 
         $this->postJson('/api/register', [
             ...$student,

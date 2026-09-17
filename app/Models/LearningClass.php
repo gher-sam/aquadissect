@@ -5,14 +5,20 @@ namespace App\Models;
 use App\Models\Concerns\ReplicatesToDelayedClone;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['code', 'name', 'status'])]
+#[Fillable(['course_id', 'code', 'name', 'status', 'academic_year', 'semester', 'section_code'])]
 class LearningClass extends Model
 {
     use ReplicatesToDelayedClone;
 
     protected $table = 'classes';
+
+    public function course(): BelongsTo
+    {
+        return $this->belongsTo(Course::class);
+    }
 
     public function instructors(): HasMany
     {
