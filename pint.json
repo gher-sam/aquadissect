@@ -1,5 +1,9 @@
 {
     "exclude": [
-        "archive"
+        "archive",
+        ".codex-work",
+        ".codex_doc_review",
+        ".codex_tmp",
+        ".docx_qa"
     ]
 }
