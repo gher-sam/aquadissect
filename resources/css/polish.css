@@ -441,6 +441,14 @@ summary:active {
   outline: none;
 }
 
+[data-portal-panel] h1[tabindex='-1']:focus-visible,
+[data-portal-panel] h2[tabindex='-1']:focus-visible,
+#stepTitle[tabindex='-1']:focus-visible {
+  border-radius: 6px;
+  outline: 3px solid #1594e3;
+  outline-offset: 5px;
+}
+
 .motion-feature-video,
 .motion-feature-fish {
   animation: none;

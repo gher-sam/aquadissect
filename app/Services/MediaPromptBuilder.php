@@ -25,7 +25,7 @@ class MediaPromptBuilder
         return implode("\n\n", [
             'Create '.$medium.' for AquaDissect, an MB 304L virtual pre-laboratory learning system.',
             "Subject: {$tool['name']}. Purpose: {$tool['purpose']} Handling focus: {$tool['handling']}",
-            "Composition: {$options['view']} view; {$options['action']} demonstration; {$options['ppe']} presentation. Use a clean laboratory tray context, accurate proportions, restrained marine-blue and teal accents, soft studio lighting, and a neutral uncluttered background.",
+            "Composition: {$options['view']} view; {$options['action']} demonstration; {$options['ppe']} presentation. Use a clean laboratory tray context, accurate proportions, restrained navy, royal-blue, and aqua accents, flat color fields without gradients, soft studio lighting, and a neutral uncluttered background.",
             "Safety: {$tool['safety']} Show only instructor-supervised educational handling. Do not show unsafe grip, loose sharps, blood, gore, injury, brand marks, institutional seals, personal names, or identifying text.",
             $motion,
             'Accessibility and export: keep the subject readable at mobile size, preserve clear contrast, leave caption-safe space, include no baked-in labels, and provide a transparent or easily isolated background when the medium supports it.',
