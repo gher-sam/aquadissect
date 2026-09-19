@@ -16,6 +16,7 @@ import '../css/style.css';
 import '../css/portal.css';
 import '../css/threeViewer.css';
 import '../css/imageViewer.css';
+import '../css/polish.css';
 
 const app = document.querySelector('#app');
 app.innerHTML = `

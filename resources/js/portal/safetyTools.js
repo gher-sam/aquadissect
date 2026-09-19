@@ -52,19 +52,19 @@ function reviewForm(module, currentUser) {
 function assetForm(module) {
   if (!['draft', 'review'].includes(module.status)) return '';
 
-  return `<form class="module-asset-form" data-module-asset="${module.id}">
-    <h3>Attach reviewed media candidate</h3>
+  return `<details class="workflow-disclosure module-asset-disclosure"><summary><span><strong>Add an illustration or short video</strong><small>Optional draft media</small></span></summary><form class="module-asset-form" data-module-asset="${module.id}">
+    <h3>Media details</h3>
     <div class="module-form-grid">
-      <label class="portal-field">Asset key<input name="assetKey" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="scalpel-side-view" required></label>
+      <label class="portal-field">Short file name<input name="assetKey" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="scalpel-side-view" required><small>Use lowercase words joined with hyphens.</small></label>
       <label class="portal-field">Image or short video<input name="asset" type="file" accept="image/png,image/jpeg,image/webp,video/mp4,video/webm" required></label>
       <label class="portal-field">Source<input name="source" maxlength="500" required></label>
-      <label class="portal-field">Licence<input name="licence" maxlength="300" required></label>
-      <label class="portal-field module-form-wide">Accessible caption<textarea name="caption" rows="2" maxlength="1000" required></textarea></label>
-      <label class="portal-check module-form-wide"><input name="aiGenerated" type="checkbox" value="1"><span>Declare that this media was generated with an AI tool.</span></label>
+      <label class="portal-field">Usage licence<input name="licence" maxlength="300" required></label>
+      <label class="portal-field module-form-wide">Caption for learners<textarea name="caption" rows="2" maxlength="1000" required></textarea></label>
+      <label class="portal-check module-form-wide"><input name="aiGenerated" type="checkbox" value="1"><span>This media was generated with an AI tool.</span></label>
     </div>
-    <button class="portal-secondary" type="submit">Sanitize and attach media</button>
-    <small>Uploaded images are re-encoded to remove metadata. Video upload requires the configured server sanitizer.</small>
-  </form>`;
+    <button class="portal-secondary" type="submit">Check and attach media</button>
+    <small>Personal metadata is removed from accepted media before it is saved.</small>
+  </form></details>`;
 }
 
 function staffCard(module, role, currentUser) {
@@ -79,11 +79,11 @@ function staffCard(module, role, currentUser) {
     ${module.latestReview ? `<div class="module-review-summary"><strong>${escapeHtml(titleCase(module.latestReview.decision.replace('_', ' ')))}</strong><span>${escapeHtml(module.latestReview.reviewerRole)}</span><p>${escapeHtml(module.latestReview.notes)}</p>${module.latestReview.evidenceReference ? `<small>Evidence: ${escapeHtml(module.latestReview.evidenceReference)}</small>` : ''}</div>` : ''}
     <div class="package-actions">
       <button class="portal-secondary" type="button" data-open-learning-module="${module.id}">Preview module</button>
-      ${module.status === 'draft' ? `<button class="portal-primary" type="button" data-submit-learning-module="${module.id}">Submit for faculty review</button>` : ''}
+      ${module.status === 'draft' ? `<button class="portal-primary" type="button" data-submit-learning-module="${module.id}">Send for faculty review</button>` : ''}
       ${role === 'admin' && module.status === 'review' && module.approvalCurrent ? `<button class="portal-primary" type="button" data-publish-learning-module="${module.id}">Publish approved version</button>` : ''}
       ${role === 'admin' && module.status === 'published' ? `<button class="portal-secondary" type="button" data-archive-learning-module="${module.id}">Archive version</button>` : ''}
     </div>
-    <details class="module-tool-audit"><summary>Tool validation register</summary><ul>${module.tools.map((tool) => `<li><span>${escapeHtml(tool.name)}</span><small>${escapeHtml(titleCase(tool.validationStatus.replaceAll('_', ' ')))}</small></li>`).join('')}</ul></details>
+    <details class="module-tool-audit"><summary>View all 15 tool checks</summary><ul>${module.tools.map((tool) => `<li><span>${escapeHtml(tool.name)}</span><small>${escapeHtml(titleCase(tool.validationStatus.replaceAll('_', ' ')))}</small></li>`).join('')}</ul></details>
     ${reviewForm(module, currentUser)}
     ${assetForm(module)}
   </article>`;
@@ -102,23 +102,23 @@ export function promptStudio(modules) {
   if (!editable.length) return '<div class="empty-state"><strong>No editable module version</strong><span>Create a draft version before preparing media prompts.</span></div>';
   const initial = editable[0];
 
-  return `<div class="prompt-studio-layout">
+  return `<div class="prompt-studio-steps" aria-label="Media prompt steps"><span><b>1</b>Choose the item</span><span><b>2</b>Build the prompt</span><span><b>3</b>Copy and use it</span></div><div class="prompt-studio-layout">
     <form class="prompt-studio-form" id="mediaPromptForm">
       <div class="module-form-grid">
-        <label class="portal-field">Draft version<select name="versionId" data-prompt-version>${editable.map((module) => `<option value="${module.id}">${escapeHtml(module.title)} · v${escapeHtml(module.version)}</option>`).join('')}</select></label>
-        <label class="portal-field">Tool<select name="toolKey" data-prompt-tool>${initial.tools.map((tool) => `<option value="${escapeHtml(tool.key)}">${escapeHtml(tool.name)}</option>`).join('')}</select></label>
-        <label class="portal-field">Media<select name="mediaType"><option value="illustration">2.5D illustration</option><option value="video">Short-loop video</option></select></label>
-        <label class="portal-field">View<select name="view"><option value="side">Side</option><option value="three-quarter">Three-quarter</option><option value="top">Top</option></select></label>
-        <label class="portal-field">Handling focus<select name="action"><option value="identification">Identification</option><option value="proper-handling">Proper handling</option><option value="storage-and-disposal">Storage and disposal</option></select></label>
-        <label class="portal-field">PPE context<select name="ppe"><option value="gloved-hands">Gloved hands</option><option value="full-ppe-context">Full PPE context</option><option value="tool-only">Tool only</option></select></label>
+        <label class="portal-field">Draft module version<select name="versionId" data-prompt-version>${editable.map((module) => `<option value="${module.id}">${escapeHtml(module.title)} · v${escapeHtml(module.version)}</option>`).join('')}</select></label>
+        <label class="portal-field">Laboratory item<select name="toolKey" data-prompt-tool>${initial.tools.map((tool) => `<option value="${escapeHtml(tool.key)}">${escapeHtml(tool.name)}</option>`).join('')}</select></label>
+        <label class="portal-field">Output type<select name="mediaType"><option value="illustration">2.5D illustration</option><option value="video">Short-loop video</option></select></label>
+        <label class="portal-field">Camera or view angle<select name="view"><option value="side">Side</option><option value="three-quarter">Three-quarter</option><option value="top">Top</option></select></label>
+        <label class="portal-field">Teaching focus<select name="action"><option value="identification">Identification</option><option value="proper-handling">Proper handling</option><option value="storage-and-disposal">Storage and disposal</option></select></label>
+        <label class="portal-field">Safety and PPE shown<select name="ppe"><option value="gloved-hands">Gloved hands</option><option value="full-ppe-context">Full PPE context</option><option value="tool-only">Tool only</option></select></label>
         <label class="portal-check module-form-wide"><input name="attach" type="checkbox"><span>Attach this prompt to the draft audit record.</span></label>
       </div>
-      <button class="portal-primary" type="submit">Create media prompt</button>
-      <p class="portal-muted">The studio prepares text without connecting to an external media service.</p>
+      <button class="portal-primary" type="submit">Build prompt</button>
+      <p class="portal-muted">AquaDissect prepares text only. It does not contact an external service or store a password or API key.</p>
     </form>
     <section class="prompt-output" aria-live="polite">
-      <div><span class="portal-kicker">Copyable output</span><h2>Media prompt</h2></div>
-      <textarea id="mediaPromptOutput" rows="18" readonly placeholder="Choose the learning objective and create a prompt."></textarea>
+      <div><span class="portal-kicker">Ready to use</span><h2>Prompt ready to copy</h2></div>
+      <textarea id="mediaPromptOutput" rows="18" readonly placeholder="Choose the options, then build the prompt."></textarea>
       <button class="portal-secondary" type="button" data-copy-media-prompt disabled>Copy prompt</button>
       <p id="mediaPromptStatus" class="portal-muted"></p>
     </section>
@@ -176,7 +176,7 @@ export function createModuleExperience(container, manifest, record, callbacks = 
       <article class="module-step-copy" data-module-step-copy></article>
     </div>
     <div class="module-hotspots" data-module-hotspots></div>
-    <div class="module-step-actions"><button class="portal-secondary" type="button" data-module-previous>Previous</button><button class="portal-primary" type="button" data-module-complete-step>Mark step complete &amp; continue</button></div>
+    <div class="module-step-actions"><button class="portal-secondary" type="button" data-module-previous>Previous</button><button class="portal-primary" type="button" data-module-complete-step>Done — continue</button></div>
     <div data-module-activity-slot></div>
   </section>`;
 
@@ -201,7 +201,7 @@ export function createModuleExperience(container, manifest, record, callbacks = 
       : step.caption;
     container.querySelector('[data-module-previous]').disabled = index === 0;
     const completionButton = container.querySelector('[data-module-complete-step]');
-    completionButton.textContent = completed.has(step.id) ? (index === steps.length - 1 ? 'Step viewed' : 'Continue') : 'Mark step complete & continue';
+    completionButton.textContent = completed.has(step.id) ? (index === steps.length - 1 ? 'Step viewed' : 'Continue') : 'Done — continue';
     completionButton.disabled = step.id === 'tool-selection';
     activitySlot.innerHTML = step.id === 'tool-selection' ? activityMarkup(manifest.activity || {}) : '';
     container.querySelectorAll('[data-module-step]').forEach((button, stepIndex) => {

@@ -11,13 +11,13 @@ import { setupProgressiveWebApp } from '../pwa.js';
 
 const bootstrap = window.AQUADISSECT_BOOTSTRAP || {};
 const dashboardCopy = {
-  student: ['Student workspace', 'Welcome back', 'Continue assigned lessons and monitor your progress by package version.'],
-  instructor: ['Instructor workspace', 'Welcome', 'Use assigned MB 304L sections, assignments, drafts, and student results.'],
-  admin: ['Administrator workspace', 'System overview', 'Validate packages, publish immutable versions, and monitor platform operations.'],
+  student: ['Student workspace', 'Welcome back', 'Choose your next activity below. AquaDissect keeps your saved progress with the lesson.'],
+  instructor: ['Instructor workspace', 'Welcome', 'Open a class section to review students, safety status, and learning activities.'],
+  admin: ['Administrator workspace', 'System overview', 'Review the people, class sections, and learning content that need attention.'],
 };
 const pageLabels = {
-  home: 'Dashboard', library: 'Species Library', classes: 'My Sections', roster: 'Roster & Sections', assignments: 'Assignments',
-  safety: 'Safety & Tools', downloads: 'Downloads', manager: 'Species Manager', 'prompt-studio': 'Media Prompt Studio', access: 'User access', about: 'How it works',
+  home: 'Home', library: 'Species lessons', classes: 'Class sections', roster: 'People & sections', assignments: 'Class activities',
+  safety: 'Safety & Tools', downloads: 'Offline access', manager: 'Species content', 'prompt-studio': 'Create media prompts', access: 'Account roles', about: 'Help & guide',
 };
 
 function requireElement(root, selector) {
@@ -101,7 +101,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
   function updateNetworkStatus() {
     const online = navigator.onLine;
     elements.systemStatus.classList.toggle('is-offline', !online);
-    elements.systemStatus.querySelector('.dashboard-system-status-label').textContent = online ? 'System online' : 'Offline mode';
+    elements.systemStatus.querySelector('.dashboard-system-status-label').textContent = online ? 'Online' : 'Offline';
   }
 
   function updateSession() {
@@ -122,7 +122,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
       elements.roleLabel.textContent = 'AquaDissect';
     }
     const published = state.species.filter((item) => item.status === 'published').length;
-    elements.sidebarSpeciesCount.textContent = `${published} published`;
+    elements.sidebarSpeciesCount.textContent = `${published} lesson${published === 1 ? '' : 's'} ready`;
     portal.querySelectorAll('[data-nav-label]').forEach((label) => {
       label.textContent = pageLabels[label.dataset.navLabel] || label.textContent;
     });
@@ -180,10 +180,10 @@ export function setupAquaPortal({ app, onOpenPackage }) {
     return `<div class="assignment-grid">${activeClasses.map((course) => `
       <form class="assignment-card" data-assignment-form="${course.id}">
         <span class="portal-kicker">${escapeHtml(course.code)}</span><h2>${escapeHtml(course.name)}</h2>
-        <label class="portal-field">Published package<select name="speciesPackageId" required>${published.map((item) => `<option value="${item.id}">${escapeHtml(item.commonName)} · v${escapeHtml(item.version)}</option>`).join('')}</select></label>
+        <label class="portal-field">Published species lesson<select name="speciesPackageId" required>${published.map((item) => `<option value="${item.id}">${escapeHtml(item.commonName)} · v${escapeHtml(item.version)}</option>`).join('')}</select></label>
         <label class="portal-field">Due date (optional)<input name="dueAt" type="date"></label>
-        <button class="portal-primary" type="submit">Assign selected version</button>
-        <small>An explicit reassignment upgrades a class even after a learner has started.</small>
+        <button class="portal-primary" type="submit">Assign lesson</button>
+        <small>Students who already started remain on their saved lesson version unless you intentionally assign a new version.</small>
       </form>`).join('')}</div>`;
   }
 
@@ -213,7 +213,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
     if (name === 'roster') elements.roster.innerHTML = adminRosterView(state.adminRoster, state.rosterPreview, state.activationCodes);
     if (name === 'assignments') elements.assignments.innerHTML = assignmentView();
     if (name === 'downloads') {
-      elements.downloads.innerHTML = `<div class="download-summary"><strong>${listDownloadedPackages().length + listDownloadedLearningModules().length}</strong><span>verified learning version(s) stored on this device</span></div><div class="portal-page-title portal-page-title--compact"><span class="portal-kicker">Prerequisite</span><h2>Safety &amp; Tools</h2></div>${safetyWorkspace(state.learningModules, state.currentUser?.role, state.currentUser, { offline: true })}<div class="portal-page-title portal-page-title--compact"><span class="portal-kicker">Assigned anatomy</span><h2>Species lessons</h2></div><div class="species-library-grid">${speciesLibrary(state.species.filter((item) => item.status === 'published'), { offline: true })}</div>`;
+      elements.downloads.innerHTML = `<div class="download-summary"><strong>${listDownloadedPackages().length + listDownloadedLearningModules().length}</strong><span>learning items saved on this device</span></div><div class="portal-page-title portal-page-title--compact"><span class="portal-kicker">Prerequisite</span><h2>Safety module</h2></div>${safetyWorkspace(state.learningModules, state.currentUser?.role, state.currentUser, { offline: true })}<div class="portal-page-title portal-page-title--compact"><span class="portal-kicker">Assigned anatomy</span><h2>Species lessons</h2></div><div class="species-library-grid">${speciesLibrary(state.species.filter((item) => item.status === 'published'), { offline: true })}</div>`;
       state.species.forEach((item) => {
         const button = elements.downloads.querySelector(`[data-offline-toggle="${item.id}"]`);
         if (button) {

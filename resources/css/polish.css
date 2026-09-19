@@ -1,0 +1,734 @@
+/*
+ * AquaDissect interface polish
+ * A calm, flat visual system for learners and staff who may not be technical.
+ */
+
+:root {
+  --color-primary: #087f91;
+  --color-primary-deep: #075466;
+  --color-secondary: #2f9fac;
+  --color-accent: #078a66;
+  --color-accent-hover: #066e55;
+  --color-background: #edf5f4;
+  --color-surface: #ffffff;
+  --color-surface-soft: #f4f9f8;
+  --color-foreground: #113d49;
+  --color-muted-text: #54717a;
+  --color-border: #c9dfdd;
+  --color-focus: #d89514;
+  --shadow-sm: 0 2px 8px rgb(4 52 64 / 7%);
+  --shadow-md: 0 10px 28px rgb(4 52 64 / 9%);
+  --shadow-lg: 0 22px 54px rgb(4 38 48 / 15%);
+}
+
+/* The interface intentionally uses solid colors throughout. */
+body,
+#aquaPortal,
+#aquaPortal *,
+#aquaPortal *::before,
+#aquaPortal *::after,
+.app-shell,
+.app-shell *,
+.app-shell *::before,
+.app-shell *::after {
+  background-image: none !important;
+  mask-image: none !important;
+}
+
+html,
+body,
+#aquaPortal,
+#aquaPortal.is-authenticated {
+  background-color: var(--color-background);
+}
+
+button,
+a,
+input,
+select,
+textarea,
+summary {
+  transition: color 170ms ease-out, background-color 170ms ease-out, border-color 170ms ease-out, box-shadow 170ms ease-out, transform 170ms ease-out;
+}
+
+button:not(:disabled):active,
+.button-link:active,
+summary:active {
+  transform: translateY(1px);
+}
+
+.portal-primary,
+.primary-button,
+.auth-submit {
+  border-color: var(--color-accent);
+  color: #ffffff;
+  background-color: var(--color-accent);
+  box-shadow: 0 8px 18px rgb(7 138 102 / 18%);
+}
+
+.portal-primary:hover,
+.primary-button:hover,
+.auth-submit:hover {
+  border-color: var(--color-accent-hover);
+  background-color: var(--color-accent-hover);
+}
+
+.portal-secondary,
+.text-button,
+.scene-button,
+.dock-button,
+.icon-button,
+.button-link {
+  background-color: var(--color-surface);
+}
+
+.portal-secondary:hover,
+.text-button:hover,
+.scene-button:hover,
+.dock-button:hover,
+.icon-button:hover,
+.button-link:hover {
+  border-color: #8dbbb8;
+  background-color: #eaf4f2;
+}
+
+.portal-brand-mark,
+.brand-mark,
+.dialog-icon,
+.completion-mark {
+  background-color: #0b8fa0;
+}
+
+.progress-track span,
+.module-progress-track span {
+  background-color: var(--color-accent);
+}
+
+/* Signed-in navigation */
+.is-authenticated .portal-header {
+  overflow-x: hidden;
+  overflow-y: auto;
+  border-right-color: rgb(255 255 255 / 12%);
+  background-color: #073e49;
+  box-shadow: 12px 0 32px rgb(4 38 48 / 13%);
+}
+
+.is-authenticated .portal-brand-mark {
+  background-color: #0b8fa0;
+}
+
+.is-authenticated .portal-sidebar-label {
+  margin: 22px 10px 7px;
+  color: #9bc7ca;
+}
+
+.portal-nav-section {
+  display: block;
+  padding: 12px 12px 4px;
+  color: #84b4b9;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+}
+
+#aquaPortal:not(.is-authenticated) .portal-nav-section {
+  display: none !important;
+}
+
+.is-authenticated .portal-nav {
+  gap: 2px;
+}
+
+.is-authenticated .portal-nav button {
+  min-height: 44px;
+  padding: 9px 12px;
+  border-radius: 11px;
+  color: #c9e5e7;
+}
+
+.is-authenticated .portal-nav button:hover {
+  color: #ffffff;
+  background-color: rgb(255 255 255 / 9%);
+  transform: translateX(2px);
+}
+
+.is-authenticated .portal-nav button.is-active {
+  color: #ffffff;
+  background-color: #0c8f9e;
+  box-shadow: 0 8px 18px rgb(1 24 30 / 20%);
+}
+
+.is-authenticated .portal-sidebar-note {
+  margin-top: 18px;
+  background-color: rgb(255 255 255 / 7%);
+}
+
+.is-authenticated .dashboard-topbar,
+#aquaPortal:not(.is-authenticated) .portal-header,
+.app-header {
+  background-color: rgb(255 255 255 / 95%);
+}
+
+.is-authenticated .portal-page {
+  padding-top: clamp(30px, 4vw, 50px);
+}
+
+/* Clear headings and page guidance */
+.portal-page-title {
+  max-width: 980px;
+  margin: 0 0 30px;
+  text-align: left;
+}
+
+.portal-page-title h1,
+.dashboard-hero h1 {
+  max-width: 850px;
+  color: var(--color-primary-deep);
+  font-size: clamp(30px, 3.4vw, 42px);
+  line-height: 1.12;
+}
+
+.portal-page-title > p,
+.dashboard-hero p {
+  max-width: 760px;
+  color: var(--color-muted-text);
+  font-size: clamp(14px, 1.6vw, 16px);
+  line-height: 1.65;
+}
+
+.portal-page-title--compact {
+  margin-top: 32px;
+  margin-bottom: 16px;
+}
+
+.portal-page-title--compact h2 {
+  margin: 4px 0 0;
+  color: var(--color-primary-deep);
+  font-family: 'Lora', Georgia, serif;
+  font-size: clamp(23px, 3vw, 30px);
+}
+
+.page-guidance {
+  display: flex;
+  width: fit-content;
+  max-width: 760px;
+  align-items: center;
+  gap: 11px;
+  padding: 11px 14px;
+  margin-top: 17px;
+  border: 1px solid #bcdad6;
+  border-radius: 13px;
+  color: #315d64;
+  background-color: #e4f2ef;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.page-guidance > svg {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  color: var(--color-primary);
+}
+
+.page-guidance span,
+.page-guidance strong {
+  display: block;
+}
+
+.page-guidance strong {
+  margin-bottom: 1px;
+  color: var(--color-primary-deep);
+  font-size: 12px;
+}
+
+/* Cards */
+.species-card,
+.class-card,
+.assignment-card,
+.package-import-card,
+.download-summary,
+.status-card,
+.module-grid > article,
+.access-card,
+.flow-grid > article,
+.admin-table-card,
+.metric-card,
+.admin-operations-card,
+.learning-module-card,
+.learning-module-manager-card,
+.prompt-studio-form,
+.prompt-output,
+.safety-experience,
+.manager-storage-summary {
+  border-color: var(--color-border);
+  border-radius: 18px;
+  color: var(--color-foreground);
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-md);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .species-card,
+  .class-card,
+  .assignment-card,
+  .metric-card,
+  .module-grid > article,
+  .access-card,
+  .flow-grid > article,
+  .learning-module-card {
+    transition: border-color 180ms ease-out, box-shadow 180ms ease-out, transform 180ms ease-out;
+  }
+
+  .species-card:hover,
+  .class-card:hover,
+  .assignment-card:hover,
+  .metric-card:hover,
+  .module-grid > article:hover,
+  .access-card:hover,
+  .flow-grid > article:hover,
+  .learning-module-card:hover {
+    border-color: #9bc8c3;
+    box-shadow: 0 14px 32px rgb(4 52 64 / 12%);
+    transform: translateY(-2px);
+  }
+}
+
+.species-card-image,
+.auth-specimen-card,
+.resume-card,
+.task-card,
+.selected-card {
+  background-color: #f3f8f7;
+}
+
+.motion-feature {
+  border-color: #247984;
+  border-radius: 22px;
+  background-color: #075866;
+  box-shadow: 0 18px 40px rgb(2 56 70 / 17%);
+}
+
+.motion-feature::before {
+  background-color: transparent;
+}
+
+.motion-feature-action {
+  border-color: #ffffff;
+  color: #075466;
+  background-color: #ffffff;
+}
+
+.motion-feature-action:hover {
+  border-color: #d8efec;
+  color: #063f4c;
+  background-color: #eaf5f3;
+}
+
+.motion-feature-secondary,
+.motion-feature-points span,
+.motion-feature-label {
+  background-color: rgb(255 255 255 / 10%);
+}
+
+.motion-feature-video,
+.motion-feature-fish {
+  animation: none;
+}
+
+.motion-feature-video {
+  background-color: #e7efed;
+}
+
+.metric-card > strong {
+  color: var(--color-primary-deep);
+}
+
+.metric-card small {
+  overflow: visible;
+  text-overflow: initial;
+  white-space: normal;
+  line-height: 1.45;
+}
+
+.empty-state {
+  gap: 7px;
+  padding: 22px 24px;
+  border-style: solid;
+  border-left: 5px solid #61a9a5;
+  background-color: #f5faf9;
+}
+
+.empty-state strong {
+  font-size: 15px;
+}
+
+/* Forms and simple progressive disclosure */
+.portal-field {
+  color: #315d64;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.portal-field input,
+.portal-field select,
+.portal-field textarea,
+.prompt-output textarea,
+.roster-inline-form select,
+.learner-override-form input {
+  min-height: 46px;
+  border-color: #accbc9;
+  border-radius: 10px;
+  color: var(--color-foreground);
+  background-color: #ffffff;
+}
+
+.portal-field input:hover,
+.portal-field select:hover,
+.portal-field textarea:hover,
+.prompt-output textarea:hover {
+  border-color: #7faaa7;
+}
+
+.portal-field input:focus,
+.portal-field select:focus,
+.portal-field textarea:focus,
+.prompt-output textarea:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px rgb(8 127 145 / 13%);
+  outline: 0;
+}
+
+.portal-check input {
+  width: 20px;
+  height: 20px;
+}
+
+.workflow-step {
+  display: inline-flex;
+  min-height: 28px;
+  align-items: center;
+  padding: 5px 9px;
+  border-radius: 999px;
+  color: #075466;
+  background-color: #dff1ee;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.roster-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.roster-bulk-disclosure {
+  grid-column: 1 / -1;
+}
+
+.workflow-disclosure {
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.workflow-disclosure > summary {
+  position: relative;
+  display: flex;
+  min-height: 58px;
+  align-items: center;
+  padding: 12px 50px 12px 16px;
+  color: var(--color-primary-deep);
+  cursor: pointer;
+  list-style: none;
+}
+
+.workflow-disclosure > summary::-webkit-details-marker {
+  display: none;
+}
+
+.workflow-disclosure > summary::after {
+  position: absolute;
+  right: 16px;
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--color-primary-deep);
+  background-color: #e4f2ef;
+  content: '+';
+  font-size: 20px;
+  line-height: 1;
+}
+
+.workflow-disclosure[open] > summary {
+  border-bottom: 1px solid var(--color-border);
+  background-color: #f3f8f7;
+}
+
+.workflow-disclosure[open] > summary::after {
+  content: '−';
+}
+
+.workflow-disclosure summary span,
+.workflow-disclosure summary strong,
+.workflow-disclosure summary small {
+  display: block;
+}
+
+.workflow-disclosure summary small {
+  margin-top: 2px;
+  color: var(--color-muted-text);
+  font-weight: 500;
+}
+
+.package-import-card--nested,
+.module-asset-form {
+  max-width: none;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background-color: #ffffff;
+  box-shadow: none;
+}
+
+.module-asset-disclosure {
+  margin-top: 18px;
+}
+
+.module-asset-form {
+  padding: 18px;
+}
+
+.module-asset-form > h3 {
+  margin-top: 0;
+}
+
+.module-review-form {
+  background-color: #f4f9f8;
+}
+
+.module-tool-audit,
+.roster-details {
+  border-top-color: var(--color-border);
+}
+
+.module-tool-audit summary,
+.roster-details summary {
+  min-height: 44px;
+  padding: 10px 0;
+  color: var(--color-primary-deep);
+}
+
+/* Media Prompt Studio */
+.prompt-studio-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.prompt-studio-steps span {
+  display: flex;
+  min-height: 54px;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 13px;
+  border: 1px solid var(--color-border);
+  border-radius: 13px;
+  color: #315d64;
+  background-color: #f5faf9;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.prompt-studio-steps b {
+  display: grid;
+  width: 29px;
+  height: 29px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  color: #ffffff;
+  background-color: var(--color-primary);
+}
+
+.prompt-output textarea {
+  background-color: #f7faf9;
+}
+
+/* Safety viewer and lesson viewer */
+.learning-module-card__visual,
+.module-25d-viewer,
+.image-scene {
+  background-color: #063e51;
+}
+
+.module-scene__tray {
+  background-color: #b8cfce;
+}
+
+.module-progress-track,
+.progress-track {
+  background-color: #d6e7e5;
+}
+
+.module-step-copy,
+.module-audit-grid > div,
+.module-review-summary,
+.module-review-form,
+.module-asset-form,
+.override-panel,
+.class-module-summary,
+.module-activity label {
+  color: var(--color-foreground);
+  background-color: #f4f9f8;
+}
+
+.three-scene {
+  background-color: #dfeceb;
+}
+
+.three-scene::after {
+  background-color: transparent;
+}
+
+.explode-control input[type='range'],
+.image-scene input[type='range'] {
+  background-color: #9fc9c6;
+}
+
+.task-card,
+.selected-card {
+  border-color: var(--color-border);
+}
+
+.module-viewer-controls button {
+  min-width: 44px;
+  width: 44px;
+  height: 44px;
+}
+
+/* Smaller screens keep the next action visible and controls easy to tap. */
+@media (max-width: 900px) {
+  .prompt-studio-steps {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 780px) {
+  .is-authenticated .portal-header {
+    background-color: #073e49;
+  }
+
+  .portal-nav-section {
+    padding-top: 14px;
+  }
+}
+
+@media (max-height: 840px) {
+  .is-authenticated .portal-sidebar-note {
+    display: none;
+  }
+
+  .is-authenticated .portal-sidebar-label {
+    margin-top: 14px;
+  }
+}
+
+@media (max-width: 620px) {
+  .is-authenticated .portal-page {
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+
+  .portal-page-title {
+    margin-bottom: 22px;
+  }
+
+  .portal-page-title h1,
+  .dashboard-hero h1 {
+    font-size: clamp(28px, 9vw, 36px);
+  }
+
+  .page-guidance {
+    width: 100%;
+    align-items: flex-start;
+  }
+
+  .roster-grid,
+  .module-form-grid,
+  .module-audit-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .roster-bulk-disclosure,
+  .module-form-wide {
+    grid-column: auto;
+  }
+
+  .species-card-body,
+  .class-card,
+  .assignment-card,
+  .package-import-card,
+  .learning-module-manager-card,
+  .prompt-studio-form,
+  .prompt-output {
+    padding: 18px;
+  }
+
+  .motion-feature {
+    border-radius: 18px;
+  }
+
+  .module-step-actions {
+    position: sticky;
+    bottom: 8px;
+    z-index: 6;
+    padding: 8px;
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    background-color: rgb(255 255 255 / 96%);
+    box-shadow: var(--shadow-md);
+  }
+}
+
+@media (max-width: 390px) {
+  .is-authenticated .dashboard-topbar {
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+
+  .dashboard-breadcrumb strong {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .workflow-disclosure > summary {
+    padding-left: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+  }
+
+  button:not(:disabled):active,
+  .button-link:active,
+  summary:active,
+  .is-authenticated .portal-nav button:hover {
+    transform: none;
+  }
+}

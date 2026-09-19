@@ -6,22 +6,25 @@
     </button>
     <span class="portal-sidebar-label">Workspace</span>
     <nav class="portal-nav" aria-label="Primary navigation">
+      <span class="portal-nav-section" data-role-nav="student,instructor,admin">Learn</span>
       <button type="button" data-portal-page="home"><i class="portal-nav-icon" data-lucide="layout-dashboard"></i><span data-nav-label="home">Home</span></button>
-      <button type="button" data-portal-page="library" data-role-nav="student,instructor,admin"><i class="portal-nav-icon" data-lucide="fish"></i><span data-nav-label="library">Species Library</span></button>
+      <button type="button" data-portal-page="library" data-role-nav="student,instructor,admin"><i class="portal-nav-icon" data-lucide="fish"></i><span data-nav-label="library">Species lessons</span></button>
       <button type="button" data-portal-page="safety" data-role-nav="student,instructor,admin"><i class="portal-nav-icon" data-lucide="shield-check"></i><span data-nav-label="safety">Safety &amp; Tools</span></button>
-      <button type="button" data-portal-page="classes" data-role-nav="student,instructor,admin"><i class="portal-nav-icon" data-lucide="school"></i><span data-nav-label="classes">My Sections</span></button>
-      <button type="button" data-portal-page="roster" data-role-nav="admin"><i class="portal-nav-icon" data-lucide="users-round"></i><span data-nav-label="roster">Roster &amp; Sections</span></button>
-      <button type="button" data-portal-page="assignments" data-role-nav="student,instructor"><i class="portal-nav-icon" data-lucide="clipboard-list"></i><span data-nav-label="assignments">Assignments</span></button>
-      <button type="button" data-portal-page="downloads" data-role-nav="student,instructor,admin"><i class="portal-nav-icon" data-lucide="download"></i><span data-nav-label="downloads">Downloads</span></button>
-      <button type="button" data-portal-page="manager" data-role-nav="instructor,admin"><i class="portal-nav-icon" data-lucide="package-open"></i><span data-nav-label="manager">Species Manager</span></button>
-      <button type="button" data-portal-page="prompt-studio" data-role-nav="instructor,admin"><i class="portal-nav-icon" data-lucide="sparkles"></i><span data-nav-label="prompt-studio">Media Prompt Studio</span></button>
-      <button type="button" data-portal-page="access"><i class="portal-nav-icon" data-lucide="users"></i><span data-nav-label="access">User access</span></button>
-      <button type="button" data-portal-page="about"><i class="portal-nav-icon" data-lucide="book-open"></i><span data-nav-label="about">About</span></button>
+      <button type="button" data-portal-page="classes" data-role-nav="student,instructor,admin"><i class="portal-nav-icon" data-lucide="school"></i><span data-nav-label="classes">Class sections</span></button>
+      <button type="button" data-portal-page="assignments" data-role-nav="student,instructor"><i class="portal-nav-icon" data-lucide="clipboard-list"></i><span data-nav-label="assignments">Class activities</span></button>
+      <button type="button" data-portal-page="downloads" data-role-nav="student,instructor,admin"><i class="portal-nav-icon" data-lucide="download"></i><span data-nav-label="downloads">Offline access</span></button>
+      <span class="portal-nav-section" data-role-nav="instructor,admin">Manage</span>
+      <button type="button" data-portal-page="roster" data-role-nav="admin"><i class="portal-nav-icon" data-lucide="users-round"></i><span data-nav-label="roster">People &amp; sections</span></button>
+      <button type="button" data-portal-page="manager" data-role-nav="instructor,admin"><i class="portal-nav-icon" data-lucide="package-open"></i><span data-nav-label="manager">Species content</span></button>
+      <button type="button" data-portal-page="prompt-studio" data-role-nav="instructor,admin"><i class="portal-nav-icon" data-lucide="sparkles"></i><span data-nav-label="prompt-studio">Create media prompts</span></button>
+      <span class="portal-nav-section portal-nav-section--support" data-role-nav="student,instructor,admin">Help</span>
+      <button type="button" data-portal-page="access"><i class="portal-nav-icon" data-lucide="users"></i><span data-nav-label="access">Account roles</span></button>
+      <button type="button" data-portal-page="about"><i class="portal-nav-icon" data-lucide="book-open"></i><span data-nav-label="about">Help &amp; guide</span></button>
     </nav>
     <div class="portal-sidebar-note">
       <span class="sidebar-note-icon" aria-hidden="true"><i data-lucide="fish"></i></span>
-      <span><small>Platform library</small><strong id="sidebarSpeciesCount">1 published</strong></span>
-      <span class="sidebar-status">Multi-species</span>
+      <span><small>Lesson library</small><strong id="sidebarSpeciesCount">1 lesson ready</strong></span>
+      <span class="sidebar-status">Ready</span>
     </div>
     <div class="portal-session" id="portalSession">
       <button class="portal-primary" id="portalSignIn" type="button" data-portal-page="login">Sign in</button>
@@ -40,7 +43,7 @@
       <button class="dashboard-menu-button" id="dashboardMenuButton" type="button" aria-label="Open navigation" aria-controls="portalSidebar" aria-expanded="false"><i data-lucide="menu"></i></button>
       <div class="dashboard-breadcrumb"><span id="dashboardRoleLabel">AquaDissect</span><strong id="dashboardPageLabel">Overview</strong></div>
       <button class="dashboard-install-button" id="installAppButton" type="button" hidden><i data-lucide="download"></i><span>Install app</span></button>
-      <div class="dashboard-system-status" id="dashboardSystemStatus"><span aria-hidden="true"></span><span class="dashboard-system-status-label">System online</span></div>
+      <div class="dashboard-system-status" id="dashboardSystemStatus"><span aria-hidden="true"></span><span class="dashboard-system-status-label">Online</span></div>
     </div>
 
     <section class="portal-page auth-editorial-page auth-page" data-portal-panel="login">
@@ -183,48 +186,48 @@
     </section>
 
     <section class="portal-page" data-portal-panel="library" hidden>
-      <div class="portal-page-title"><span class="portal-kicker">Approved and preview content</span><h1>Species Library</h1><p>Open assigned published lessons or preview draft packages when your role allows it.</p></div>
+      <div class="portal-page-title"><span class="portal-kicker">Guided anatomy lessons</span><h1>Choose a species lesson</h1><p>Open a lesson card to begin. Staff can also preview content that is still being reviewed.</p><div class="page-guidance"><i data-lucide="arrow-right" aria-hidden="true"></i><span><strong>Start here</strong>Select a species, then choose <b>Open lesson</b>.</span></div></div>
       <div id="speciesLibraryContent" class="species-library-grid"></div>
     </section>
 
     <section class="portal-page" data-portal-panel="safety" hidden>
-      <div class="portal-page-title"><span class="portal-kicker">Required pre-laboratory learning</span><h1>Safety &amp; Laboratory Tools</h1><p>Prepare for assigned anatomy lessons with faculty-reviewed safety steps, tool handling, and a formative selection activity.</p></div>
+      <div class="portal-page-title"><span class="portal-kicker">Before anatomy lessons</span><h1>Safety &amp; Laboratory Tools</h1><p>Learn the required safety steps and correct tool handling before opening assigned anatomy lessons.</p><div class="page-guidance"><i data-lucide="shield-check" aria-hidden="true"></i><span><strong>What happens here</strong>Students complete every step. Staff prepare, review, and publish the approved module.</span></div></div>
       <div id="safetyToolsContent"></div>
       <div id="safetyModuleExperience" hidden></div>
     </section>
 
     <section class="portal-page" data-portal-panel="classes" hidden>
-      <div class="portal-page-title"><span class="portal-kicker">MB 304L offerings</span><h1>My Sections</h1><p>One course is reused across semesters while each section keeps its own roster, assignments, and results.</p></div>
+      <div class="portal-page-title"><span class="portal-kicker">Your MB 304L classes</span><h1>Class sections</h1><p>See the people, safety status, activities, and progress connected to each class section.</p><div class="page-guidance"><i data-lucide="school" aria-hidden="true"></i><span><strong>Start here</strong>Open a section to see its assigned learning activities.</span></div></div>
       <div id="classesContent"></div>
     </section>
 
     <section class="portal-page" data-portal-panel="roster" hidden>
-      <div class="portal-page-title"><span class="portal-kicker">Administrator workspace</span><h1>Roster &amp; Sections</h1><p>Create term sections, provision students, assign instructors, and review conflicts before import.</p></div>
+      <div class="portal-page-title"><span class="portal-kicker">Administrator workspace</span><h1>People &amp; sections</h1><p>Create a class section, add its students, then assign the responsible instructor.</p><div class="page-guidance"><i data-lucide="users-round" aria-hidden="true"></i><span><strong>Recommended order</strong>1. Add a section &nbsp; 2. Add students &nbsp; 3. Assign the instructor.</span></div></div>
       <div id="rosterContent"></div>
     </section>
 
     <section class="portal-page" data-portal-panel="assignments" hidden>
-      <div class="portal-page-title"><span class="portal-kicker">Version-aware learning</span><h1>Assignments</h1><p>Published species stay pinned to the assigned version after a student begins.</p></div>
+      <div class="portal-page-title"><span class="portal-kicker">Class learning activities</span><h1>Class activities</h1><p>Students see the published lesson assigned to their section. A started lesson keeps its current version.</p><div class="page-guidance"><i data-lucide="clipboard-list" aria-hidden="true"></i><span><strong>For instructors</strong>Choose a section and lesson, review the optional due date, then assign it.</span></div></div>
       <div id="assignmentsContent"></div>
     </section>
 
     <section class="portal-page" data-portal-panel="downloads" hidden>
-      <div class="portal-page-title"><span class="portal-kicker">Resilient learning</span><h1>Downloads</h1><p>Keep selected lessons on this device for formative learning when the connection is unavailable.</p></div>
+      <div class="portal-page-title"><span class="portal-kicker">Use without internet</span><h1>Offline access</h1><p>Save assigned learning materials on this device while you still have an internet connection.</p><div class="page-guidance"><i data-lucide="download" aria-hidden="true"></i><span><strong>Before going offline</strong>Download the safety module first, followed by the assigned species lesson.</span></div></div>
       <div id="downloadsContent"></div>
     </section>
 
     <section class="portal-page" data-portal-panel="manager" hidden>
-      <div class="portal-page-title"><span class="portal-kicker">Controlled content lifecycle</span><h1>Species Manager</h1><p>Import data-only .aqpack files, review immutable versions, and publish approved content.</p></div>
+      <div class="portal-page-title"><span class="portal-kicker">Reviewed learning content</span><h1>Species content</h1><p>Preview species lessons and move reviewed content through draft, review, and publication.</p><div class="page-guidance"><i data-lucide="package-open" aria-hidden="true"></i><span><strong>Publishing rule</strong>Only an administrator should publish content after the required review.</span></div></div>
       <div id="speciesManagerContent"></div>
     </section>
 
     <section class="portal-page" data-portal-panel="prompt-studio" hidden>
-      <div class="portal-page-title"><span class="portal-kicker">Staff-only media workflow</span><h1>Media Prompt Studio</h1><p>Create text prompts for draft 2.5D illustrations or short-loop videos, then copy them into the approved media workflow.</p></div>
+      <div class="portal-page-title"><span class="portal-kicker">Staff-only media helper</span><h1>Create media prompts</h1><p>Create a text prompt for a draft illustration or short video.</p><div class="page-guidance"><i data-lucide="sparkles" aria-hidden="true"></i><span><strong>Three simple steps</strong>Choose the tool, create the prompt, then copy it into the approved media process.</span></div></div>
       <div id="mediaPromptStudioContent"></div>
     </section>
 
     <section class="portal-page" data-portal-panel="access" hidden>
-      <div class="portal-page-title"><span class="portal-kicker">Permission model</span><h1>Role-based user access</h1><p>Access is limited by responsibility, class assignment, and content approval status.</p></div>
+      <div class="portal-page-title"><span class="portal-kicker">Quick reference</span><h1>Who can do what?</h1><p>Each account sees only the tools needed for its responsibility.</p><div class="page-guidance"><i data-lucide="users" aria-hidden="true"></i><span><strong>Need access?</strong>Students receive an account from the administrator. Instructors submit an access request.</span></div></div>
       <div class="access-grid">
         <article class="access-card"><span class="access-icon" aria-hidden="true">S</span><h2>Student</h2><ul><li>Activate an administrator-provided account</li><li>Open assigned species and lessons</li><li>Complete guided activities and quizzes</li><li>See only personal progress and feedback</li></ul></article>
         <article class="access-card"><span class="access-icon" aria-hidden="true">I</span><h2>Instructor</h2><ul><li>Use administrator-assigned MB 304L sections</li><li>Assign approved learning activities</li><li>Review section rosters and formative results</li><li>Submit content for administrator approval</li></ul></article>
@@ -234,14 +237,14 @@
     </section>
 
     <section class="portal-page" data-portal-panel="about" hidden>
-      <div class="portal-page-title"><span class="portal-kicker">System overview</span><h1>How AquaDissect works</h1><p>A browser-based learning system for selected aquatic organisms.</p></div>
+      <div class="portal-page-title"><span class="portal-kicker">Help &amp; guide</span><h1>How to use AquaDissect</h1><p>Follow the steps below from account access through formative feedback.</p></div>
       <div class="flow-grid">
         <article><span>01</span><h2>Access</h2><p>Activate an administrator-provided student account or request instructor access, then sign in.</p></article>
         <article><span>02</span><h2>Select</h2><p>Choose an instructor-assigned species and learning activity.</p></article>
         <article><span>03</span><h2>Explore</h2><p>Inspect external and internal anatomy with interactive labels.</p></article>
         <article><span>04</span><h2>Practice</h2><p>Follow the guided dissection sequence and safety reminders.</p></article>
         <article><span>05</span><h2>Identify</h2><p>Complete structure checks and receive bounded feedback.</p></article>
-        <article><span>06</span><h2>Report</h2><p>Save results, generate a laboratory report, and receive instructor review.</p></article>
+        <article><span>06</span><h2>Review</h2><p>Save formative results and review the recorded feedback with your instructor.</p></article>
       </div>
     </section>
   </main>
