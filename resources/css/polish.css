@@ -405,6 +405,21 @@ summary:active {
   height: 20px;
 }
 
+.auth-options label,
+.auth-options .portal-link {
+  min-height: 44px;
+  align-items: center;
+}
+
+.auth-options input[type='checkbox'] {
+  width: 20px;
+  height: 20px;
+}
+
+.password-visibility {
+  min-height: 44px;
+}
+
 .workflow-step {
   display: inline-flex;
   min-height: 28px;
