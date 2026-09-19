@@ -1,6 +1,6 @@
 # AquaDissect Laravel application
 
-AquaDissect is a Laravel 13, package-driven aquatic-vertebrate learning platform. Tilapia 1.0.0 is the published flagship package, with layered 2.5D imagery and its existing procedural 3D viewer. Goldspotted Rabbitfish (*Siganus guttatus*) 1.0.0 is included as a complete 2.5D draft for administrator and subject-matter review and is not available to students until it is published.
+AquaDissect is a Laravel 13, package-driven aquatic-vertebrate learning platform. Tilapia is the published flagship package, with layered 2.5D imagery and its existing procedural 3D viewer. Goldspotted Rabbitfish (*Siganus guttatus*) remains a staff-only draft. The versioned Safety and Laboratory Tools module adds faculty-reviewed pre-laboratory preparation, prerequisite controls, offline progress, and a staff-only media prompt workflow.
 
 ## Technology
 
@@ -8,13 +8,13 @@ AquaDissect is a Laravel 13, package-driven aquatic-vertebrate learning platform
 - Vite 8, a generic package-driven lesson runtime, and lazy-loaded Three.js viewers
 - Laragon MySQL as the primary application database
 - SQLite as a delayed, local clone of durable domain data
-- One reusable MB 304L course, term-and-section offerings, versioned `.aqpack` assignments, offline downloads, and idempotent formative attempts
+- One reusable MB 304L course, term-and-section offerings, versioned `.aqpack` and learning-module assignments, offline downloads, and idempotent formative attempts
 
 ## Included roles
 
-- Student: activates an administrator-provided account, opens assigned published packages, and sees version-pinned results
-- Instructor: uses administrator-assigned MB 304L sections, manages species assignments, imports drafts, and reviews section progress
-- Administrator: provisions students and sections, assigns instructors, reviews roster conflicts, manages approvals, and controls package publication
+- Student: activates an administrator-provided account, completes assigned published prerequisite modules, opens unlocked species packages, and sees version-pinned progress
+- Instructor: uses administrator-assigned MB 304L sections, reviews module drafts, manages documented prerequisite exceptions, and reviews section progress
+- Administrator: provisions students and sections, assigns instructors, manages approvals, and controls immutable module and species publication
 
 ## Code organization
 
@@ -22,8 +22,8 @@ AquaDissect is a Laravel 13, package-driven aquatic-vertebrate learning platform
 app/
 ├── Http/Controllers      Catalog, lifecycle, assignment, attempt, and access endpoints
 ├── Http/Requests         Validation and input mapping
-├── Models                Species, packages, classes, assignments, results, and clone metadata
-├── Services              Package validation/storage, lifecycle, catalog, automatic setup, and clone services
+├── Models                Species, learning modules, classes, assignments, progress, and clone metadata
+├── Services              Package/module validation, lifecycle, prerequisite, media, automatic setup, and clone services
 └── Support/PortalData.php Shared role-aware portal bootstrap payload
 
 resources/
@@ -32,6 +32,7 @@ resources/
 ├── js/layeredAnatomyViewer.js Required package-defined 2.5D viewer and accessible hotspots
 ├── js/viewerFactory.js   Built-in 2.5D, Tilapia procedural 3D, or data-only GLB selection
 ├── js/offlinePackages.js Verified package caches and IndexedDB attempt queue
+├── js/portal/safetyTools.js Module cards, 2.5D experience, faculty review, and Media Prompt Studio
 ├── js/tilapia3DViewer.js Lazy-loaded Tilapia renderer and accessibility hooks
 ├── js/tilapiaModel.js    Procedural exterior and segmented anatomy geometry
 ├── js/portal             API client, dashboard views, formatting, and portal controller
@@ -39,6 +40,14 @@ resources/
 ├── media/tilapia         Original source and anatomical reference media
 └── views/partials        Server-rendered portal markup
 ```
+
+## Safety and Laboratory Tools
+
+`lab-safety-tools` version `0.1.0` is installed as a draft. Its eight required steps cover safety orientation, PPE, workspace preparation, cutting and handling tools, measurement and specimen containment, cleanup and waste, and a formative tool-selection activity. The register contains 15 tools and safety items. Each record includes its purpose, handling, applicable procedure step, precaution, source references, licence statement, and validation status.
+
+The lifecycle is `draft → review → published → archived`. The uploader cannot approve the same version. Approval requires a faculty evidence reference and confirmation against the current laboratory procedure; an administrator performs publication. Published versions and their media are immutable. The first published version is assigned as a required prerequisite to active MB 304L sections. Learners who already have an anatomy attempt receive a documented legacy exception, while new learners must complete every required step and submit the formative activity once. Scores are retained but do not control completion. Section and learner exceptions require a reason and retain grant and revocation history.
+
+The learner viewer uses code-rendered 2.5D layers, hotspots, handling overlays, captions, play, pause, replay, keyboard navigation, responsive layouts, and reduced-motion behavior. The staff-only Media Prompt Studio prepares text prompts for draft illustrations and short-loop videos. It runs without an external media service or API key. Image uploads are re-encoded to WebP to remove metadata; short video uploads require `AQUADISSECT_FFMPEG_BINARY` so the server can re-encode them without metadata or audio before review.
 
 ## Laragon use
 
@@ -79,11 +88,11 @@ On **Roster & Sections**, the administrator can add a student manually or previe
 
 ## Offline learning
 
-The Downloads page stores a version-specific application shell, content manifest, package assets, fonts, and any supported 3D viewer modules. Every declared package file is SHA-256 verified before the new cache replaces an older version. Formative attempts made without a connection use a client UUID in IndexedDB and synchronize idempotently after reconnection. Non-formative assessments are rejected offline.
+The Downloads page stores version-specific module and species manifests, the application shell, media, fonts, and supported viewer modules. Every declared asset is SHA-256 verified before the new cache replaces an older version. Module progress and formative attempts made without a connection use client UUIDs in IndexedDB and synchronize idempotently after reconnection. Non-formative assessments are rejected offline.
 
 ## Delayed SQLite clone
 
-The application reads and writes its live data in the Laragon MySQL database named `aquadissect`. Create, update, and delete operations for users, courses, section offerings, instructor links, enrollments, activation-token hashes, roster audit events, species/package metadata, assignments, and lesson results produce an outbox change in the same MySQL transaction. Schema migrations apply to both databases immediately, but the SQLite copy receives data mutations only when they are at least 12 hours old. Package binary media remains in private versioned Laravel storage and is not duplicated into SQLite.
+The application reads and writes its live data in the Laragon MySQL database named `aquadissect`. Create, update, and delete operations for users, courses, section offerings, instructor links, enrollments, activation-token hashes, roster audit events, species/package metadata, learning modules, assets, assignments, progress, reviews, prerequisite exceptions, prompt records, and lesson results produce an outbox change in the same MySQL transaction. Schema migrations apply to both databases immediately, but the SQLite copy receives data mutations only when they are at least 12 hours old. Binary media remains in private versioned Laravel storage and is not duplicated into SQLite.
 
 Runtime infrastructure tables (`sessions`, cache, and queues) remain MySQL-only. They are intentionally excluded because they are temporary application state rather than durable learning records.
 
@@ -119,7 +128,7 @@ npm run build
 php artisan test
 ```
 
-The feature suite covers role-aware catalogs, package validation and lifecycle rules, account activation, roster import and conflict handling, course/section authorization, server scoring and attempt deduplication, and the 12-hour relational clone graph.
+The feature suite covers role-aware catalogs, package and learning-module lifecycle rules, independent faculty review, prerequisite completion and exceptions, version pinning, media provenance, account activation, roster conflict handling, server scoring, idempotent synchronization, and the 12-hour relational clone graph.
 
 ## Production deployment
 
@@ -132,7 +141,7 @@ storage.
 The production server keeps `.env`, uploaded package data, the delayed SQLite
 clone, logs, sessions, and cache files outside Git. Deployment installs locked
 Composer and npm dependencies, builds Vite assets, applies migrations, refreshes
-the bundled species catalog, caches Laravel configuration/routes/views, and
+the bundled species and learning-module catalogs, caches Laravel configuration/routes/views, and
 returns the application from maintenance mode. `DatabaseSeeder` is deliberately
 not run in production because its demonstration accounts use local-only
 credentials.

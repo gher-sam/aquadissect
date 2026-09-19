@@ -8,11 +8,13 @@
     <nav class="portal-nav" aria-label="Primary navigation">
       <button type="button" data-portal-page="home"><i class="portal-nav-icon" data-lucide="layout-dashboard"></i><span data-nav-label="home">Home</span></button>
       <button type="button" data-portal-page="library" data-role-nav="student,instructor,admin"><i class="portal-nav-icon" data-lucide="fish"></i><span data-nav-label="library">Species Library</span></button>
+      <button type="button" data-portal-page="safety" data-role-nav="student,instructor,admin"><i class="portal-nav-icon" data-lucide="shield-check"></i><span data-nav-label="safety">Safety &amp; Tools</span></button>
       <button type="button" data-portal-page="classes" data-role-nav="student,instructor,admin"><i class="portal-nav-icon" data-lucide="school"></i><span data-nav-label="classes">My Sections</span></button>
       <button type="button" data-portal-page="roster" data-role-nav="admin"><i class="portal-nav-icon" data-lucide="users-round"></i><span data-nav-label="roster">Roster &amp; Sections</span></button>
       <button type="button" data-portal-page="assignments" data-role-nav="student,instructor"><i class="portal-nav-icon" data-lucide="clipboard-list"></i><span data-nav-label="assignments">Assignments</span></button>
       <button type="button" data-portal-page="downloads" data-role-nav="student,instructor,admin"><i class="portal-nav-icon" data-lucide="download"></i><span data-nav-label="downloads">Downloads</span></button>
       <button type="button" data-portal-page="manager" data-role-nav="instructor,admin"><i class="portal-nav-icon" data-lucide="package-open"></i><span data-nav-label="manager">Species Manager</span></button>
+      <button type="button" data-portal-page="prompt-studio" data-role-nav="instructor,admin"><i class="portal-nav-icon" data-lucide="sparkles"></i><span data-nav-label="prompt-studio">Media Prompt Studio</span></button>
       <button type="button" data-portal-page="access"><i class="portal-nav-icon" data-lucide="users"></i><span data-nav-label="access">User access</span></button>
       <button type="button" data-portal-page="about"><i class="portal-nav-icon" data-lucide="book-open"></i><span data-nav-label="about">About</span></button>
     </nav>
@@ -185,6 +187,12 @@
       <div id="speciesLibraryContent" class="species-library-grid"></div>
     </section>
 
+    <section class="portal-page" data-portal-panel="safety" hidden>
+      <div class="portal-page-title"><span class="portal-kicker">Required pre-laboratory learning</span><h1>Safety &amp; Laboratory Tools</h1><p>Prepare for assigned anatomy lessons with faculty-reviewed safety steps, tool handling, and a formative selection activity.</p></div>
+      <div id="safetyToolsContent"></div>
+      <div id="safetyModuleExperience" hidden></div>
+    </section>
+
     <section class="portal-page" data-portal-panel="classes" hidden>
       <div class="portal-page-title"><span class="portal-kicker">MB 304L offerings</span><h1>My Sections</h1><p>One course is reused across semesters while each section keeps its own roster, assignments, and results.</p></div>
       <div id="classesContent"></div>
@@ -208,6 +216,11 @@
     <section class="portal-page" data-portal-panel="manager" hidden>
       <div class="portal-page-title"><span class="portal-kicker">Controlled content lifecycle</span><h1>Species Manager</h1><p>Import data-only .aqpack files, review immutable versions, and publish approved content.</p></div>
       <div id="speciesManagerContent"></div>
+    </section>
+
+    <section class="portal-page" data-portal-panel="prompt-studio" hidden>
+      <div class="portal-page-title"><span class="portal-kicker">Staff-only media workflow</span><h1>Media Prompt Studio</h1><p>Create text prompts for draft 2.5D illustrations or short-loop videos, then copy them into the approved media workflow.</p></div>
+      <div id="mediaPromptStudioContent"></div>
     </section>
 
     <section class="portal-page" data-portal-panel="access" hidden>

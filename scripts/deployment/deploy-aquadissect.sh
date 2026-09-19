@@ -71,6 +71,7 @@ npm run build
 
 "$PHP_BIN" artisan migrate --force
 "$PHP_BIN" artisan db:seed --class='Database\Seeders\SpeciesCatalogSeeder' --force
+"$PHP_BIN" artisan db:seed --class='Database\Seeders\LearningModuleSeeder' --force
 
 clone_initialized=0
 if [[ ! -f "$CLONE_DB_PATH" ]]; then

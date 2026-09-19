@@ -1,0 +1,448 @@
+{
+  "schemaVersion": "1.0",
+  "moduleVersion": "0.1.0",
+  "minimumApplicationVersion": "1.0.0",
+  "module": {
+    "slug": "lab-safety-tools",
+    "title": "Safety and Laboratory Tools",
+    "category": "pre-laboratory",
+    "description": "A required MB 304L pre-laboratory orientation to safety, PPE, tool familiarization, handling, and waste preparation before guided anatomy activities."
+  },
+  "statusNotice": "Awaiting MB 304L faculty validation. General guidance does not replace the institution-approved laboratory SOP or instructor direction.",
+  "illustrationProfile": "interactive-2.5d",
+  "requiredStepIds": [
+    "orientation",
+    "ppe",
+    "workspace",
+    "cutting-tools",
+    "handling-tools",
+    "measurement-and-specimen",
+    "cleanup-and-waste",
+    "tool-selection"
+  ],
+  "steps": [
+    {
+      "id": "orientation",
+      "title": "Begin with risk awareness",
+      "caption": "Review the planned activity, known hazards, emergency directions, and the local laboratory SOP before handling a specimen or tool.",
+      "toolKeys": []
+    },
+    {
+      "id": "ppe",
+      "title": "Prepare personal protection",
+      "caption": "Use the protective equipment selected by the instructor for the specimen, procedure, and local risk assessment.",
+      "toolKeys": [
+        "lab-coat",
+        "nitrile-gloves",
+        "safety-goggles"
+      ]
+    },
+    {
+      "id": "workspace",
+      "title": "Prepare the work area",
+      "caption": "Stabilize the tray, keep absorbent material available, and position disposal containers before work begins.",
+      "toolKeys": [
+        "dissecting-tray",
+        "absorbent-material",
+        "biological-waste-container",
+        "sharps-container"
+      ]
+    },
+    {
+      "id": "cutting-tools",
+      "title": "Recognize cutting hazards",
+      "caption": "Cutting tools remain under instructor control. Use the least hazardous suitable tool and direct cutting motion away from hands and nearby people.",
+      "toolKeys": [
+        "scalpel",
+        "dissecting-scissors"
+      ]
+    },
+    {
+      "id": "handling-tools",
+      "title": "Handle and position structures",
+      "caption": "Use forceps, probes, and pins for observation and positioning while minimizing tissue damage and puncture risk.",
+      "toolKeys": [
+        "forceps",
+        "blunt-probe",
+        "pointed-probe",
+        "dissecting-pins"
+      ]
+    },
+    {
+      "id": "measurement-and-specimen",
+      "title": "Observe and measure",
+      "caption": "Keep the specimen contained and use the approved measurement method without contaminating shared surfaces.",
+      "toolKeys": [
+        "ruler-board",
+        "specimen-container"
+      ]
+    },
+    {
+      "id": "cleanup-and-waste",
+      "title": "Separate cleanup and waste",
+      "caption": "Place sharps and biological material only in their designated containers, clean the work surface using the local procedure, and remove PPE as instructed.",
+      "toolKeys": [
+        "absorbent-material",
+        "biological-waste-container",
+        "sharps-container",
+        "nitrile-gloves"
+      ]
+    },
+    {
+      "id": "tool-selection",
+      "title": "Complete the formative tool check",
+      "caption": "Choose the safest suitable tool or preparation for each scenario. The score supports practice and does not determine completion.",
+      "toolKeys": []
+    }
+  ],
+  "tools": [
+    {
+      "key": "dissecting-tray",
+      "name": "Dissecting tray",
+      "category": "workspace",
+      "icon": "panel-top",
+      "purpose": "Provides a stable, contained work surface for the specimen.",
+      "handling": "Place it on a level surface and keep the working area within the tray.",
+      "applicableStep": "Workspace preparation and the supervised dissection sequence.",
+      "safety": "Keep the tray stable, organized, and clear of unused sharps.",
+      "validationStatus": "awaiting_faculty_validation",
+      "sourceIds": [
+        "cdc-bmbl",
+        "local-sop-pending"
+      ],
+      "licence": "Project-original educational text; source references are linked in this manifest."
+    },
+    {
+      "key": "scalpel",
+      "name": "Scalpel and disposable blade",
+      "category": "cutting",
+      "icon": "slice",
+      "purpose": "Makes a controlled incision when a scalpel is required by the approved procedure.",
+      "handling": "The instructor controls blade fitting, use, transfer, and removal; hold only by the handle and keep the cutting edge directed away from the body.",
+      "applicableStep": "Instructor-supervised incision or tissue separation specified by the local SOP.",
+      "safety": "Treat every blade as a sharp. Never leave it loose or place it in biological-waste containers.",
+      "validationStatus": "awaiting_faculty_validation",
+      "sourceIds": [
+        "cdc-bmbl",
+        "osha-biological-hazards",
+        "local-sop-pending"
+      ],
+      "licence": "Project-original educational text; source references are linked in this manifest."
+    },
+    {
+      "key": "dissecting-scissors",
+      "name": "Dissecting scissors",
+      "category": "cutting",
+      "icon": "scissors",
+      "purpose": "Opens tissue along a controlled path when scissors are safer or more appropriate than a blade.",
+      "handling": "Keep the lower blade shallow and lift tissue away from underlying organs as directed by the instructor.",
+      "applicableStep": "Opening the body wall under faculty supervision.",
+      "safety": "Keep fingers outside the cutting path and close the scissors when carrying or setting them down.",
+      "validationStatus": "awaiting_faculty_validation",
+      "sourceIds": [
+        "bu-fish-dissection",
+        "local-sop-pending"
+      ],
+      "licence": "Project-original educational text; source references are linked in this manifest."
+    },
+    {
+      "key": "forceps",
+      "name": "Forceps",
+      "category": "handling",
+      "icon": "grab",
+      "purpose": "Grasps or lifts small structures without direct hand contact.",
+      "handling": "Use light pressure and hold the structure only as firmly as observation requires.",
+      "applicableStep": "Lifting tissue, positioning structures, and handling small items.",
+      "safety": "Do not use forceps as a cutting tool; keep pointed tips directed toward the work area.",
+      "validationStatus": "awaiting_faculty_validation",
+      "sourceIds": [
+        "cdc-bmbl",
+        "local-sop-pending"
+      ],
+      "licence": "Project-original educational text; source references are linked in this manifest."
+    },
+    {
+      "key": "blunt-probe",
+      "name": "Blunt probe",
+      "category": "handling",
+      "icon": "move-diagonal-2",
+      "purpose": "Separates or traces structures with reduced puncture risk.",
+      "handling": "Use the rounded end with gentle pressure to trace spaces and connections.",
+      "applicableStep": "Exploration of gills, organs, and body-system pathways.",
+      "safety": "Use the blunt probe before a pointed instrument when it can achieve the learning task.",
+      "validationStatus": "awaiting_faculty_validation",
+      "sourceIds": [
+        "bu-fish-dissection",
+        "local-sop-pending"
+      ],
+      "licence": "Project-original educational text; source references are linked in this manifest."
+    },
+    {
+      "key": "pointed-probe",
+      "name": "Pointed probe",
+      "category": "handling",
+      "icon": "pipette",
+      "purpose": "Indicates or separates a small structure when a blunt probe is insufficient.",
+      "handling": "Use only under instructor direction and apply minimal pressure at the selected point.",
+      "applicableStep": "Detailed identification or positioning specified by the instructor.",
+      "safety": "Treat the pointed end as a sharp and never direct it toward yourself or another person.",
+      "validationStatus": "awaiting_faculty_validation",
+      "sourceIds": [
+        "cdc-bmbl",
+        "local-sop-pending"
+      ],
+      "licence": "Project-original educational text; source references are linked in this manifest."
+    },
+    {
+      "key": "dissecting-pins",
+      "name": "Dissecting pins",
+      "category": "handling",
+      "icon": "map-pin",
+      "purpose": "Secures the specimen or reflected tissue to the tray.",
+      "handling": "Insert and remove pins one at a time using the approved angle and placement.",
+      "applicableStep": "Specimen positioning and controlled exposure of structures.",
+      "safety": "Account for every pin and dispose of damaged or contaminated pins according to the local sharps procedure.",
+      "validationStatus": "awaiting_faculty_validation",
+      "sourceIds": [
+        "cdc-bmbl",
+        "local-sop-pending"
+      ],
+      "licence": "Project-original educational text; source references are linked in this manifest."
+    },
+    {
+      "key": "ruler-board",
+      "name": "Ruler or measuring board",
+      "category": "measurement",
+      "icon": "ruler",
+      "purpose": "Records length or position using a consistent measurement reference.",
+      "handling": "Place the specimen and scale on the approved surface without transferring contamination to clean equipment.",
+      "applicableStep": "External orientation and morphometric observation.",
+      "safety": "Clean or isolate reusable measurement equipment according to the local SOP.",
+      "validationStatus": "awaiting_faculty_validation",
+      "sourceIds": [
+        "local-sop-pending"
+      ],
+      "licence": "Project-original educational text; source references are linked in this manifest."
+    },
+    {
+      "key": "specimen-container",
+      "name": "Specimen container",
+      "category": "containment",
+      "icon": "box",
+      "purpose": "Holds or transports the specimen in a controlled, labeled container.",
+      "handling": "Keep the container closed when it is not being accessed and follow the instructor's labeling and transfer directions.",
+      "applicableStep": "Specimen receipt, orientation, storage, and return or disposal.",
+      "safety": "Do not use an unlabeled, leaking, damaged, or unauthorized container.",
+      "validationStatus": "awaiting_faculty_validation",
+      "sourceIds": [
+        "cdc-bmbl",
+        "local-sop-pending"
+      ],
+      "licence": "Project-original educational text; source references are linked in this manifest."
+    },
+    {
+      "key": "lab-coat",
+      "name": "Laboratory coat or apron",
+      "category": "ppe",
+      "icon": "shirt",
+      "purpose": "Protects clothing and skin from incidental contact or splashes identified by the risk assessment.",
+      "handling": "Fasten it before work and remove it using the local procedure before leaving the designated area.",
+      "applicableStep": "Preparation, supervised specimen work, and cleanup.",
+      "safety": "Use the garment type and replacement schedule selected by the instructor and local SOP.",
+      "validationStatus": "awaiting_faculty_validation",
+      "sourceIds": [
+        "osha-laboratories",
+        "cdc-bmbl",
+        "local-sop-pending"
+      ],
+      "licence": "Project-original educational text; source references are linked in this manifest."
+    },
+    {
+      "key": "nitrile-gloves",
+      "name": "Nitrile gloves",
+      "category": "ppe",
+      "icon": "hand",
+      "purpose": "Provides a disposable hand barrier when required by the risk assessment.",
+      "handling": "Inspect before use, change when damaged or contaminated, and remove without touching the outer surface with bare skin.",
+      "applicableStep": "Specimen handling and cleanup when directed.",
+      "safety": "Gloves do not replace hand hygiene and must not be used to touch clean personal items.",
+      "validationStatus": "awaiting_faculty_validation",
+      "sourceIds": [
+        "osha-biological-hazards",
+        "cdc-bmbl",
+        "local-sop-pending"
+      ],
+      "licence": "Project-original educational text; source references are linked in this manifest."
+    },
+    {
+      "key": "safety-goggles",
+      "name": "Safety goggles",
+      "category": "ppe",
+      "icon": "glasses",
+      "purpose": "Protects the eyes when the risk assessment identifies splash or particle hazards.",
+      "handling": "Adjust for a secure fit and keep the lenses clean and unobstructed.",
+      "applicableStep": "Preparation and procedures with a potential eye hazard.",
+      "safety": "Use the eye protection type required by the instructor; ordinary eyewear may not provide equivalent protection.",
+      "validationStatus": "awaiting_faculty_validation",
+      "sourceIds": [
+        "osha-laboratories",
+        "local-sop-pending"
+      ],
+      "licence": "Project-original educational text; source references are linked in this manifest."
+    },
+    {
+      "key": "absorbent-material",
+      "name": "Absorbent material",
+      "category": "cleanup",
+      "icon": "layers",
+      "purpose": "Contains small amounts of liquid and supports the approved cleanup procedure.",
+      "handling": "Position it where directed and replace it when saturated or contaminated.",
+      "applicableStep": "Workspace preparation, spill response, and cleanup.",
+      "safety": "Do not handle a spill without the training, PPE, and disinfectant specified by the local procedure.",
+      "validationStatus": "awaiting_faculty_validation",
+      "sourceIds": [
+        "cdc-bmbl",
+        "local-sop-pending"
+      ],
+      "licence": "Project-original educational text; source references are linked in this manifest."
+    },
+    {
+      "key": "biological-waste-container",
+      "name": "Biological-waste container",
+      "category": "waste",
+      "icon": "trash-2",
+      "purpose": "Separates biological material from ordinary waste for approved treatment or disposal.",
+      "handling": "Place only authorized biological waste inside and keep the container identified and closed as required.",
+      "applicableStep": "Specimen disposal and workspace cleanup.",
+      "safety": "Follow institutional and local requirements for segregation, decontamination, storage, and disposal.",
+      "validationStatus": "awaiting_faculty_validation",
+      "sourceIds": [
+        "cdc-bmbl",
+        "local-sop-pending"
+      ],
+      "licence": "Project-original educational text; source references are linked in this manifest."
+    },
+    {
+      "key": "sharps-container",
+      "name": "Sharps container",
+      "category": "waste",
+      "icon": "shield-alert",
+      "purpose": "Receives used or contaminated sharp items in a puncture-resistant container.",
+      "handling": "Keep it upright, accessible, and close to the point of use; place sharps inside promptly without reaching into the opening.",
+      "applicableStep": "Preparation, tool exchange, and immediate post-use disposal.",
+      "safety": "Do not overfill, force items through the opening, or place loose sharps in ordinary or biological waste.",
+      "validationStatus": "awaiting_faculty_validation",
+      "sourceIds": [
+        "osha-biological-hazards",
+        "cdc-bmbl",
+        "local-sop-pending"
+      ],
+      "licence": "Project-original educational text; source references are linked in this manifest."
+    }
+  ],
+  "activity": {
+    "formative": true,
+    "unlimitedRetries": true,
+    "questions": [
+      {
+        "id": "tool-q1",
+        "question": "Which item receives a used disposable scalpel blade?",
+        "options": [
+          "Sharps container",
+          "Biological-waste container",
+          "Specimen container"
+        ],
+        "answer": "Sharps container"
+      },
+      {
+        "id": "tool-q2",
+        "question": "Which tool should be preferred for gently tracing a structure when puncture is unnecessary?",
+        "options": [
+          "Blunt probe",
+          "Pointed probe",
+          "Scalpel"
+        ],
+        "answer": "Blunt probe"
+      },
+      {
+        "id": "tool-q3",
+        "question": "What must happen before selecting PPE for the activity?",
+        "options": [
+          "Review the activity risks and local procedure",
+          "Choose the most colorful equipment",
+          "Open every specimen container"
+        ],
+        "answer": "Review the activity risks and local procedure"
+      },
+      {
+        "id": "tool-q4",
+        "question": "Which setup action should occur before specimen work begins?",
+        "options": [
+          "Position the required waste containers",
+          "Place loose blades beside the tray",
+          "Remove eye protection"
+        ],
+        "answer": "Position the required waste containers"
+      },
+      {
+        "id": "tool-q5",
+        "question": "What does completing this formative activity establish?",
+        "options": [
+          "Practice completion only",
+          "Faculty validation of the module",
+          "Permission for unsupervised dissection"
+        ],
+        "answer": "Practice completion only"
+      }
+    ]
+  },
+  "references": [
+    {
+      "id": "cdc-bmbl",
+      "title": "Biosafety in Microbiological and Biomedical Laboratories, 6th Edition",
+      "publisher": "Centers for Disease Control and Prevention and National Institutes of Health",
+      "url": "https://www.cdc.gov/labs/bmbl/index.html",
+      "scope": "General risk assessment, sharps, containment, decontamination, and waste guidance."
+    },
+    {
+      "id": "osha-biological-hazards",
+      "title": "Laboratory Biological Hazards",
+      "publisher": "Occupational Safety and Health Administration",
+      "url": "https://www.osha.gov/etools/hospitals/laboratory/biological-hazards",
+      "scope": "General PPE, exposure control, and sharps-disposal guidance."
+    },
+    {
+      "id": "osha-laboratories",
+      "title": "Laboratories Overview",
+      "publisher": "Occupational Safety and Health Administration",
+      "url": "https://www.osha.gov/laboratories",
+      "scope": "General laboratory safety and PPE reference."
+    },
+    {
+      "id": "bu-fish-dissection",
+      "title": "Fish Dissection Instructions",
+      "publisher": "Boston University GK-12 Project",
+      "url": "https://www.bu.edu/gk12/adam/Fish_Dissection_instr.htm",
+      "scope": "Educational fish-dissection sequence and tool context; local procedure still requires confirmation."
+    },
+    {
+      "id": "local-sop-pending",
+      "title": "Institution-approved MB 304L laboratory SOP",
+      "publisher": "Pending faculty confirmation",
+      "url": null,
+      "scope": "Required before content publication; not yet supplied or verified."
+    }
+  ],
+  "licences": [
+    {
+      "scope": "2.5D interface",
+      "name": "Project-original code-rendered educational illustration",
+      "status": "draft"
+    },
+    {
+      "scope": "reference links",
+      "name": "Linked for review; no third-party media copied",
+      "status": "documented"
+    }
+  ]
+}

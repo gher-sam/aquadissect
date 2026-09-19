@@ -58,6 +58,11 @@ class User extends Authenticatable
         return $this->hasOne(LessonResult::class)->latestOfMany('completed_at');
     }
 
+    public function learningModuleProgress(): HasMany
+    {
+        return $this->hasMany(LearningModuleProgress::class);
+    }
+
     public function classEnrollments(): HasMany
     {
         return $this->hasMany(ClassEnrollment::class);

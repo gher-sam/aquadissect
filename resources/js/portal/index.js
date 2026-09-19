@@ -1,7 +1,12 @@
 import { request } from './api.js';
 import { adminDashboard, adminRosterView, classCards, instructorDashboard, managerView, speciesLibrary, studentDashboard } from './dashboards.js';
 import { escapeHtml, titleCase } from './format.js';
-import { downloadedVersionFor, downloadPackage, isDownloaded, listDownloadedPackages, removeDownloadedPackage, submitOrQueueAttempt, synchronizeQueuedAttempts } from '../offlinePackages.js';
+import { createModuleExperience, promptStudio, safetyWorkspace } from './safetyTools.js';
+import {
+  downloadedVersionFor, downloadLearningModule, downloadPackage, isDownloaded, isLearningModuleDownloaded,
+  listDownloadedLearningModules, listDownloadedPackages, removeDownloadedLearningModule, removeDownloadedPackage,
+  submitOrQueueAttempt, submitOrQueueModuleProgress, synchronizeQueuedAttempts, synchronizeQueuedModuleProgress,
+} from '../offlinePackages.js';
 import { setupProgressiveWebApp } from '../pwa.js';
 
 const bootstrap = window.AQUADISSECT_BOOTSTRAP || {};
@@ -12,7 +17,7 @@ const dashboardCopy = {
 };
 const pageLabels = {
   home: 'Dashboard', library: 'Species Library', classes: 'My Sections', roster: 'Roster & Sections', assignments: 'Assignments',
-  downloads: 'Downloads', manager: 'Species Manager', access: 'User access', about: 'How it works',
+  safety: 'Safety & Tools', downloads: 'Downloads', manager: 'Species Manager', 'prompt-studio': 'Media Prompt Studio', access: 'User access', about: 'How it works',
 };
 
 function requireElement(root, selector) {
@@ -55,6 +60,9 @@ export function setupAquaPortal({ app, onOpenPackage }) {
     assignments: requireElement(portal, '#assignmentsContent'),
     downloads: requireElement(portal, '#downloadsContent'),
     manager: requireElement(portal, '#speciesManagerContent'),
+    safety: requireElement(portal, '#safetyToolsContent'),
+    safetyExperience: requireElement(portal, '#safetyModuleExperience'),
+    promptStudio: requireElement(portal, '#mediaPromptStudioContent'),
     sidebarSpeciesCount: requireElement(portal, '#sidebarSpeciesCount'),
     systemStatus: requireElement(portal, '#dashboardSystemStatus'),
     toast: requireElement(portal, '#portalToast'),
@@ -66,6 +74,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
     pendingUsers: Array.isArray(bootstrap.pendingUsers) ? [...bootstrap.pendingUsers] : [],
     species: Array.isArray(bootstrap.species) ? [...bootstrap.species] : [],
     classes: Array.isArray(bootstrap.classes) ? [...bootstrap.classes] : [],
+    learningModules: Array.isArray(bootstrap.learningModules) ? [...bootstrap.learningModules] : [],
     adminRoster: null,
     rosterPreview: [],
     rosterFile: null,
@@ -193,13 +202,18 @@ export function setupAquaPortal({ app, onOpenPackage }) {
           : adminDashboard(state.pendingUsers, state.species, state.classes);
     }
     if (name === 'library') elements.library.innerHTML = speciesLibrary(state.species);
+    if (name === 'safety') {
+      elements.safety.hidden = false;
+      elements.safetyExperience.hidden = true;
+      elements.safety.innerHTML = safetyWorkspace(state.learningModules, state.currentUser?.role, state.currentUser);
+    }
     if (name === 'classes') {
       elements.classes.innerHTML = classCards(state.classes, state.currentUser?.role);
     }
     if (name === 'roster') elements.roster.innerHTML = adminRosterView(state.adminRoster, state.rosterPreview, state.activationCodes);
     if (name === 'assignments') elements.assignments.innerHTML = assignmentView();
     if (name === 'downloads') {
-      elements.downloads.innerHTML = `<div class="download-summary"><strong>${listDownloadedPackages().length}</strong><span>package version(s) stored on this device</span></div><div class="species-library-grid">${speciesLibrary(state.species.filter((item) => item.status === 'published'), { offline: true })}</div>`;
+      elements.downloads.innerHTML = `<div class="download-summary"><strong>${listDownloadedPackages().length + listDownloadedLearningModules().length}</strong><span>verified learning version(s) stored on this device</span></div><div class="portal-page-title portal-page-title--compact"><span class="portal-kicker">Prerequisite</span><h2>Safety &amp; Tools</h2></div>${safetyWorkspace(state.learningModules, state.currentUser?.role, state.currentUser, { offline: true })}<div class="portal-page-title portal-page-title--compact"><span class="portal-kicker">Assigned anatomy</span><h2>Species lessons</h2></div><div class="species-library-grid">${speciesLibrary(state.species.filter((item) => item.status === 'published'), { offline: true })}</div>`;
       state.species.forEach((item) => {
         const button = elements.downloads.querySelector(`[data-offline-toggle="${item.id}"]`);
         if (button) {
@@ -209,8 +223,13 @@ export function setupAquaPortal({ app, onOpenPackage }) {
             : downloadedVersion ? `Update offline copy · v${downloadedVersion} → v${item.version}` : 'Download for offline use';
         }
       });
+      state.learningModules.forEach((module) => {
+        const button = elements.downloads.querySelector(`[data-offline-module-toggle="${module.id}"]`);
+        if (button) button.textContent = isLearningModuleDownloaded(module.id, module.version) ? 'Remove download' : 'Download for offline use';
+      });
     }
     if (name === 'manager') elements.manager.innerHTML = managerView(state.species, state.currentUser?.role);
+    if (name === 'prompt-studio') elements.promptStudio.innerHTML = promptStudio(state.learningModules);
 
     const activePanel = portal.querySelector(`[data-portal-panel="${name}"]`);
     import('../portalMotion.js')
@@ -221,6 +240,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
   function showPage(name) {
     if (!state.currentUser && !['login', 'register', 'activate', 'access', 'about'].includes(name)) name = 'login';
     if (name === 'roster' && state.currentUser?.role !== 'admin') name = state.currentUser ? 'home' : 'login';
+    if (name === 'prompt-studio' && !['instructor', 'admin'].includes(state.currentUser?.role)) name = state.currentUser ? 'home' : 'login';
     state.currentPage = name;
     portal.querySelectorAll('[data-portal-panel]').forEach((panel) => { panel.hidden = panel.dataset.portalPanel !== name; });
     portal.querySelectorAll('.portal-nav [data-portal-page]').forEach((button) => {
@@ -241,6 +261,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
     state.pendingUsers = payload.pendingUsers || [];
     state.species = payload.species || [];
     state.classes = payload.classes || [];
+    state.learningModules = payload.learningModules || [];
     state.adminRoster = null;
     state.activationCodes = [];
     updateSession();
@@ -249,9 +270,10 @@ export function setupAquaPortal({ app, onOpenPackage }) {
   }
 
   async function refreshData() {
-    const [speciesResponse, classesResponse] = await Promise.all([request('/api/species'), request('/api/classes')]);
+    const [speciesResponse, classesResponse, modulesResponse] = await Promise.all([request('/api/species'), request('/api/classes'), request('/api/learning-modules')]);
     state.species = speciesResponse.species || [];
     state.classes = classesResponse.classes || [];
+    state.learningModules = modulesResponse.learningModules || [];
     updateSession();
     renderPage();
   }
@@ -273,6 +295,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
       state.pendingUsers = [];
       state.species = [];
       state.classes = [];
+      state.learningModules = [];
       state.adminRoster = null;
       state.activationCodes = [];
       state.rosterPreview = [];
@@ -297,13 +320,52 @@ export function setupAquaPortal({ app, onOpenPackage }) {
     }
     state.activeClassId = selectedClassId || matchingClasses[0]?.id || null;
     try {
-      const response = await request(`/api/species/${record.slug}/packages/${record.id}/manifest`);
+      const classQuery = state.activeClassId ? `?classId=${state.activeClassId}` : '';
+      const response = await request(`/api/species/${record.slug}/packages/${record.id}/manifest${classQuery}`);
       await onOpenPackage(response.package, record, { viewerType });
       portal.hidden = true;
       app.hidden = false;
       document.body.classList.add('lesson-is-open');
       window.scrollTo({ top: 0, behavior: 'instant' });
       window.dispatchEvent(new Event('resize'));
+    } catch (error) { showToast(error.message); }
+  }
+
+  async function openLearningModule(id) {
+    const record = state.learningModules.find((item) => String(item.id) === String(id));
+    if (!record) return;
+    try {
+      const classQuery = state.currentUser?.role === 'student' ? `?classId=${record.classId}` : '';
+      const response = await request(`/api/learning-modules/${record.id}/manifest${classQuery}`);
+      elements.safety.hidden = true;
+      elements.safetyExperience.hidden = false;
+      createModuleExperience(elements.safetyExperience, response.module, record, {
+        onProgress: state.currentUser?.role === 'student' ? async (progress) => {
+          const result = await submitOrQueueModuleProgress(record.id, {
+            ...progress,
+            classId: record.classId,
+            totalSteps: response.module.requiredStepIds?.length || 0,
+          });
+          record.progress = { ...record.progress, ...result.progress };
+          if (result.progress?.completed) {
+            state.species.forEach((species) => {
+              if (species.locked) {
+                species.locked = false;
+                species.availableClassId = record.classId;
+                species.lockReason = null;
+              }
+            });
+          }
+          if (result.queued) showToast('Progress saved offline and queued for synchronization');
+          return result;
+        } : undefined,
+        onComplete: async () => {
+          showToast('Safety & Tools completed. Assigned anatomy lessons are now available.');
+          if (navigator.onLine) await refreshData();
+        },
+        onError: (error) => showToast(error.message),
+      });
+      window.scrollTo({ top: 0, behavior: 'instant' });
     } catch (error) { showToast(error.message); }
   }
 
@@ -320,6 +382,16 @@ export function setupAquaPortal({ app, onOpenPackage }) {
       await request(`${prefix}/species-packages/${packageId}/${action}`, { method: 'POST' });
       await refreshData();
       showToast(`Package ${action} completed`);
+    } catch (error) { showToast(error.message); }
+  }
+
+  async function moduleLifecycleAction(action, versionId) {
+    const prefix = action === 'publish' || action === 'archive' ? '/api/admin' : '/api/staff';
+    try {
+      const response = await request(`${prefix}/learning-module-versions/${versionId}/${action}`, { method: 'POST' });
+      await refreshData();
+      const detail = action === 'publish' ? ` ${response.assignments || 0} section assignment(s) updated; ${response.legacyOverrides || 0} legacy exception(s) retained.` : '';
+      showToast(`Learning module ${action} completed.${detail}`);
     } catch (error) { showToast(error.message); }
   }
 
@@ -346,6 +418,13 @@ export function setupAquaPortal({ app, onOpenPackage }) {
     const openButton = event.target.closest('[data-open-package]');
     const openId = openButton?.dataset.openPackage;
     if (openId) await openPackage(openId, openButton.dataset.viewerMode || 'auto', openButton.dataset.classId ? Number(openButton.dataset.classId) : null);
+    const openModuleButton = event.target.closest('[data-open-learning-module]');
+    if (openModuleButton) await openLearningModule(openModuleButton.dataset.openLearningModule);
+    if (event.target.closest('[data-close-learning-module]')) {
+      elements.safetyExperience.hidden = true;
+      elements.safety.hidden = false;
+      renderPage('safety');
+    }
     const approvalId = event.target.closest('[data-approve-account]')?.dataset.approveAccount;
     if (approvalId && state.currentUser?.role === 'admin') {
       try {
@@ -388,7 +467,26 @@ export function setupAquaPortal({ app, onOpenPackage }) {
       const id = event.target.closest(`[data-${action}-package]`)?.dataset[`${action}Package`];
       if (id) await lifecycleAction(action, id);
     }
-    const offlineId = event.target.closest('[data-offline-toggle]')?.dataset.offlineToggle;
+    for (const action of ['submit', 'publish', 'archive']) {
+      const button = event.target.closest(`[data-${action}-learning-module]`);
+      if (button) await moduleLifecycleAction(action, button.dataset[`${action}LearningModule`]);
+    }
+    const revokeOverride = event.target.closest('[data-revoke-module-override]');
+    if (revokeOverride) {
+      try {
+        await request(`/api/staff/learning-module-overrides/${revokeOverride.dataset.revokeModuleOverride}`, { method: 'DELETE' });
+        await refreshData();
+        showToast('Prerequisite exception revoked with its history retained');
+      } catch (error) { showToast(error.message); }
+    }
+    const copyPrompt = event.target.closest('[data-copy-media-prompt]');
+    if (copyPrompt) {
+      const output = requireElement(portal, '#mediaPromptOutput');
+      try { await navigator.clipboard.writeText(output.value); showToast('Media prompt copied'); }
+      catch { output.select(); document.execCommand('copy'); showToast('Media prompt copied'); }
+    }
+    const offlineButton = event.target.closest('[data-offline-toggle]');
+    const offlineId = offlineButton?.dataset.offlineToggle;
     if (offlineId) {
       const record = state.species.find((item) => String(item.id) === offlineId);
       try {
@@ -396,10 +494,26 @@ export function setupAquaPortal({ app, onOpenPackage }) {
           await removeDownloadedPackage(record.id);
           showToast('Offline package removed from this device');
         } else {
-          event.target.disabled = true;
-          event.target.textContent = 'Verifying download…';
+          offlineButton.disabled = true;
+          offlineButton.textContent = 'Verifying download…';
           await downloadPackage(record);
           showToast('Package verified and ready offline');
+        }
+        renderPage('downloads');
+      } catch (error) { showToast(error.message); renderPage('downloads'); }
+    }
+    const offlineModuleButton = event.target.closest('[data-offline-module-toggle]');
+    if (offlineModuleButton) {
+      const record = state.learningModules.find((item) => String(item.id) === offlineModuleButton.dataset.offlineModuleToggle);
+      try {
+        if (isLearningModuleDownloaded(record.id, record.version)) {
+          await removeDownloadedLearningModule(record.id);
+          showToast('Offline Safety & Tools module removed from this device');
+        } else {
+          offlineModuleButton.disabled = true;
+          offlineModuleButton.textContent = 'Verifying download…';
+          await downloadLearningModule(record);
+          showToast('Safety & Tools verified and ready offline');
         }
         renderPage('downloads');
       } catch (error) { showToast(error.message); renderPage('downloads'); }
@@ -449,6 +563,76 @@ export function setupAquaPortal({ app, onOpenPackage }) {
         showPage('login');
         showToast(response.message);
       } catch (error) { setMessage(elements.activationMessage, error.message); }
+      return;
+    }
+    if (event.target.matches('[data-module-review]')) {
+      event.preventDefault();
+      const data = new FormData(event.target);
+      try {
+        await request(`/api/staff/learning-module-versions/${event.target.dataset.moduleReview}/review`, {
+          method: 'POST',
+          body: {
+            decision: data.get('decision'),
+            notes: data.get('notes'),
+            evidenceReference: data.get('evidenceReference') || null,
+            localSopConfirmed: data.get('localSopConfirmed') === 'on',
+          },
+        });
+        await refreshData();
+        showToast('Faculty decision recorded in the module audit history');
+      } catch (error) { showToast(error.message); }
+      return;
+    }
+    if (event.target.matches('[data-module-asset]')) {
+      event.preventDefault();
+      const body = new FormData(event.target);
+      body.set('aiGenerated', body.get('aiGenerated') ? '1' : '0');
+      try {
+        await request(`/api/staff/learning-module-versions/${event.target.dataset.moduleAsset}/assets`, { method: 'POST', body });
+        await refreshData();
+        showToast('Media sanitized and attached for faculty review');
+      } catch (error) { showToast(error.message); }
+      return;
+    }
+    if (event.target.id === 'mediaPromptForm') {
+      event.preventDefault();
+      const data = new FormData(event.target);
+      try {
+        const response = await request('/api/staff/media-prompts/preview', {
+          method: 'POST',
+          body: {
+            versionId: Number(data.get('versionId')),
+            toolKey: data.get('toolKey'),
+            mediaType: data.get('mediaType'),
+            view: data.get('view'),
+            action: data.get('action'),
+            ppe: data.get('ppe'),
+            attach: data.get('attach') === 'on',
+          },
+        });
+        const output = requireElement(portal, '#mediaPromptOutput');
+        output.value = response.prompt;
+        requireElement(portal, '[data-copy-media-prompt]').disabled = false;
+        requireElement(portal, '#mediaPromptStatus').textContent = response.recordId ? 'Prompt attached to the draft audit record.' : 'Preview only; this prompt was not retained.';
+      } catch (error) { showToast(error.message); }
+      return;
+    }
+    if (event.target.matches('[data-section-override], [data-learner-override]')) {
+      event.preventDefault();
+      const data = new FormData(event.target);
+      const classId = event.target.dataset.sectionOverride || event.target.dataset.learnerOverride;
+      const moduleId = event.target.dataset.moduleId;
+      try {
+        await request(`/api/staff/classes/${classId}/learning-modules/${moduleId}/overrides`, {
+          method: 'POST',
+          body: {
+            reason: data.get('reason'),
+            studentId: event.target.dataset.studentId ? Number(event.target.dataset.studentId) : null,
+          },
+        });
+        await refreshData();
+        showToast('Documented prerequisite exception granted');
+      } catch (error) { showToast(error.message); }
       return;
     }
     if (event.target.id === 'packageImportForm') {
@@ -528,8 +712,16 @@ export function setupAquaPortal({ app, onOpenPackage }) {
     });
   }
 
+  function handlePortalChange(event) {
+    if (!event.target.matches('[data-prompt-version]')) return;
+    const module = state.learningModules.find((item) => String(item.id) === String(event.target.value));
+    const toolSelect = portal.querySelector('[data-prompt-tool]');
+    if (toolSelect && module) toolSelect.innerHTML = module.tools.map((tool) => `<option value="${escapeHtml(tool.key)}">${escapeHtml(tool.name)}</option>`).join('');
+  }
+
   portal.addEventListener('click', handlePortalClick);
   portal.addEventListener('submit', handlePortalSubmit);
+  portal.addEventListener('change', handlePortalChange);
   elements.menuButton.addEventListener('click', () => setSidebarOpen(!portal.classList.contains('is-sidebar-open')));
   elements.sidebarScrim.addEventListener('click', () => setSidebarOpen(false));
   document.addEventListener('keydown', handleSidebarKeydown);
@@ -539,9 +731,12 @@ export function setupAquaPortal({ app, onOpenPackage }) {
   window.addEventListener('online', async () => {
     updateNetworkStatus();
     try {
-      const count = await synchronizeQueuedAttempts();
-      if (count) showToast(`${count} offline attempt${count === 1 ? '' : 's'} synchronized`);
-    } catch { showToast('Offline attempts will retry when the connection is stable.'); }
+      const [attempts, modules] = await Promise.all([synchronizeQueuedAttempts(), synchronizeQueuedModuleProgress()]);
+      if (attempts || modules) {
+        await refreshData();
+        showToast(`${attempts + modules} offline learning record${attempts + modules === 1 ? '' : 's'} synchronized`);
+      }
+    } catch { showToast('Offline learning records will retry when the connection is stable.'); }
   });
   window.addEventListener('offline', updateNetworkStatus);
 

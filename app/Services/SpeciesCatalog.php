@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 class SpeciesCatalog
 {
+    public function __construct(private readonly LearningModuleGate $gate) {}
+
     /** @return array<int, array<string, mixed>> */
     public function for(User $user): array
     {
@@ -53,6 +55,16 @@ class SpeciesCatalog
             ->published()
             ->where('is_current', true)
             ->value('id');
+        $classIds = collect();
+        $availableClassId = null;
+        if ($user?->role === User::ROLE_STUDENT) {
+            $classIds = $user->classEnrollments()->where('class_enrollments.status', 'active')
+                ->whereHas('learningClass.assignments', fn ($query) => $query
+                    ->where('species_package_id', $package->id)->where('active', true))
+                ->pluck('class_id')->map(fn ($id) => (int) $id)->unique()->values();
+            $availableClassId = $classIds->first(fn (int $classId) => $this->gate->status($user, $classId)['satisfied']);
+        }
+        $locked = $user?->role === User::ROLE_STUDENT && $classIds->isNotEmpty() && $availableClassId === null;
 
         return [
             'id' => $package->id,
@@ -75,21 +87,25 @@ class SpeciesCatalog
             'draftNotice' => $manifest['draftNotice'] ?? null,
             'lessonKey' => $manifest['lessonKey'],
             'duration' => $this->lessonDuration($package),
-            'naturalImageUrl' => $this->assetUrl($package, 'natural'),
-            'videoUrl' => $this->assetUrl($package, 'video'),
+            'naturalImageUrl' => $locked ? null : $this->assetUrl($package, 'natural', $availableClassId),
+            'videoUrl' => $locked ? null : $this->assetUrl($package, 'video', $availableClassId),
             'manifestUrl' => url("/api/species/{$package->species->slug}/packages/{$package->id}/manifest"),
             'downloadUrl' => url("/api/species-packages/{$package->id}/download"),
             'sizeBytes' => $package->size_bytes,
             'resultsCount' => $package->results_count ?? $package->results()->count(),
             'progress' => $result?->portalPayload(),
+            'locked' => $locked,
+            'availableClassId' => $availableClassId,
+            'lockReason' => $locked
+                ? 'Complete Safety & Tools or use an instructor-approved exception.' : null,
         ];
     }
 
-    private function assetUrl(SpeciesPackage $package, string $key): ?string
+    private function assetUrl(SpeciesPackage $package, string $key, ?int $classId = null): ?string
     {
         $asset = $package->assets->firstWhere('asset_key', $key);
 
-        return $asset ? url("/api/species-packages/{$package->id}/assets/{$asset->id}") : null;
+        return $asset ? url("/api/species-packages/{$package->id}/assets/{$asset->id}").($classId ? '?classId='.$classId : '') : null;
     }
 
     private function lessonDuration(SpeciesPackage $package): ?string

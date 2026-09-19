@@ -95,6 +95,16 @@ Subject to faculty and laboratory SOP confirmation, images and animations should
 
 Each tool should provide its name, purpose, proper handling, applicable step, and safety precaution. Animations should support play, pause, replay, captions, keyboard operation, and reduced-motion preferences. The activity is formative unless separately validated as a research instrument.
 
+Enhancement decisions confirmed September 19, 2026:
+
+- The first shared learning-module enhancement is the versioned `Safety and Laboratory Tools` module.
+- Its draft uses interactive 2.5D illustrations and may include faculty-reviewed short clips.
+- Student completion requires finishing every required content step and submitting the formative tool-selection activity once; its score does not gate completion and retries remain available.
+- After a reviewed version is published and assigned, it is a prerequisite for species anatomy lessons. Instructors may grant a documented, reversible exception to a section or individual learner.
+- Draft content and media remain staff-only until an independent faculty review is recorded and an administrator publishes the version.
+- A staff-only Media Prompt Studio prepares copyable prompts for draft illustrations and videos. The studio runs without an external media service or API key. Generated media must retain an AI-generation declaration, source and licence information, and review status.
+- These implementation decisions do not establish content validation, research-instrument validation, research participation, or learning effectiveness.
+
 ## Development methodology
 
 Use the wording: `An Agile software development approach using an adapted Scrum framework.`

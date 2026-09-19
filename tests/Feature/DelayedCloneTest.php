@@ -4,9 +4,18 @@ namespace Tests\Feature;
 
 use App\Models\ClassEnrollment;
 use App\Models\ClassInstructor;
+use App\Models\ClassModuleAssignment;
 use App\Models\CloneOutbox;
 use App\Models\LearningClass;
+use App\Models\LearningModule;
+use App\Models\LearningModuleAsset;
+use App\Models\LearningModuleAttempt;
+use App\Models\LearningModuleOverride;
+use App\Models\LearningModuleProgress;
+use App\Models\LearningModuleReview;
+use App\Models\LearningModuleVersion;
 use App\Models\LessonResult;
+use App\Models\MediaPromptRecord;
 use App\Models\Species;
 use App\Models\SpeciesAssignment;
 use App\Models\SpeciesPackage;
@@ -205,6 +214,121 @@ class DelayedCloneTest extends TestCase
         $this->assertSame(0, app(DelayedCloneApplier::class)->applyEligible()['applied']);
 
         Carbon::setTestNow('2026-09-13 20:00:00');
+        $report = app(DelayedCloneApplier::class)->applyEligible();
+        $this->assertSame(0, $report['failed']);
+        foreach ($records as $table => $ids) {
+            foreach ($ids as $id) {
+                $this->assertTrue(DB::connection('sqlite_clone')->table($table)->where('id', $id)->exists());
+            }
+        }
+    }
+
+    public function test_complete_learning_module_graph_is_cloned_after_the_delay(): void
+    {
+        Carbon::setTestNow('2026-09-19 08:00:00');
+        $records = app(DelayedCloneWrite::class)->transaction(function (): array {
+            $staff = User::factory()->create(['role' => User::ROLE_INSTRUCTOR, 'email' => 'module-staff@example.test']);
+            $student = User::factory()->create(['role' => User::ROLE_STUDENT, 'email' => 'module-student@example.test']);
+            $class = LearningClass::query()->create(['code' => 'MODULE-CLONE', 'name' => 'Module Clone Section', 'status' => 'active']);
+            $module = LearningModule::query()->create([
+                'slug' => 'clone-safety-module',
+                'title' => 'Clone Safety Module',
+                'category' => 'pre-laboratory',
+                'description' => 'Clone verification record.',
+            ]);
+            $version = LearningModuleVersion::query()->create([
+                'learning_module_id' => $module->id,
+                'version' => '0.1.0',
+                'status' => LearningModuleVersion::STATUS_DRAFT,
+                'manifest' => ['requiredStepIds' => ['orientation'], 'tools' => []],
+                'is_current' => false,
+                'imported_by' => $staff->id,
+            ]);
+            $asset = LearningModuleAsset::query()->create([
+                'learning_module_version_id' => $version->id,
+                'asset_key' => 'orientation-image',
+                'relative_path' => 'learning-modules/clone/asset.webp',
+                'mime_type' => 'image/webp',
+                'size_bytes' => 128,
+                'sha256' => str_repeat('b', 64),
+                'metadata' => ['source' => 'test', 'licence' => 'test', 'caption' => 'Clone verification image'],
+            ]);
+            $assignment = ClassModuleAssignment::query()->create([
+                'class_id' => $class->id,
+                'learning_module_id' => $module->id,
+                'learning_module_version_id' => $version->id,
+                'assigned_by' => $staff->id,
+                'required' => true,
+                'active' => true,
+                'assigned_at' => now(),
+            ]);
+            $progress = LearningModuleProgress::query()->create([
+                'user_id' => $student->id,
+                'class_id' => $class->id,
+                'learning_module_version_id' => $version->id,
+                'completed_step_ids' => ['orientation'],
+                'source' => 'offline',
+                'completed_at' => now(),
+                'synced_at' => now(),
+            ]);
+            $attempt = LearningModuleAttempt::query()->create([
+                'user_id' => $student->id,
+                'class_id' => $class->id,
+                'learning_module_version_id' => $version->id,
+                'attempt_uuid' => (string) Str::uuid(),
+                'score' => 0,
+                'total' => 1,
+                'source' => 'offline',
+                'completed_at' => now(),
+                'submitted_at' => now(),
+                'synced_at' => now(),
+            ]);
+            $review = LearningModuleReview::query()->create([
+                'learning_module_version_id' => $version->id,
+                'reviewer_id' => $staff->id,
+                'reviewer_role' => 'Faculty Reviewer',
+                'decision' => 'changes_requested',
+                'notes' => 'Clone verification review record.',
+            ]);
+            $override = LearningModuleOverride::query()->create([
+                'class_id' => $class->id,
+                'user_id' => $student->id,
+                'learning_module_id' => $module->id,
+                'reason' => 'Clone verification exception record.',
+                'granted_by' => $staff->id,
+                'granted_at' => now(),
+            ]);
+            $prompt = MediaPromptRecord::query()->create([
+                'learning_module_version_id' => $version->id,
+                'actor_id' => $staff->id,
+                'tool_key' => 'probe',
+                'media_type' => 'illustration',
+                'prompt_text' => 'Clone verification media prompt.',
+                'options' => ['view' => 'side'],
+                'attached_at' => now(),
+            ]);
+
+            return [
+                'learning_modules' => [$module->id],
+                'learning_module_versions' => [$version->id],
+                'learning_module_assets' => [$asset->id],
+                'class_module_assignments' => [$assignment->id],
+                'learning_module_progress' => [$progress->id],
+                'learning_module_attempts' => [$attempt->id],
+                'learning_module_reviews' => [$review->id],
+                'learning_module_overrides' => [$override->id],
+                'media_prompt_records' => [$prompt->id],
+            ];
+        });
+
+        foreach ($records as $table => $ids) {
+            foreach ($ids as $id) {
+                $this->assertFalse(DB::connection('sqlite_clone')->table($table)->where('id', $id)->exists());
+            }
+        }
+        $this->assertSame(0, app(DelayedCloneApplier::class)->applyEligible()['applied']);
+
+        Carbon::setTestNow('2026-09-19 20:00:00');
         $report = app(DelayedCloneApplier::class)->applyEligible();
         $this->assertSame(0, $report['failed']);
         foreach ($records as $table => $ids) {

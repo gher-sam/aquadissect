@@ -6,11 +6,18 @@ use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ClassController;
 use App\Http\Controllers\InstructorSpeciesPackageController;
+use App\Http\Controllers\LearningModuleAssetController;
+use App\Http\Controllers\LearningModuleAssignmentController;
+use App\Http\Controllers\LearningModuleController;
+use App\Http\Controllers\LearningModuleOverrideController;
+use App\Http\Controllers\LearningModuleProgressController;
 use App\Http\Controllers\LessonAttemptController;
 use App\Http\Controllers\LessonResultController;
+use App\Http\Controllers\MediaPromptController;
 use App\Http\Controllers\PortalController;
 use App\Http\Controllers\SpeciesAssignmentController;
 use App\Http\Controllers\SpeciesController;
+use App\Http\Controllers\StaffLearningModuleController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', PortalController::class);
@@ -28,7 +35,21 @@ Route::prefix('api')->group(function (): void {
         Route::get('/species-packages/{package}/assets/{asset}', [SpeciesController::class, 'asset']);
         Route::get('/species-packages/{package}/download', [SpeciesController::class, 'download']);
         Route::get('/classes', [ClassController::class, 'index']);
+        Route::get('/learning-modules', [LearningModuleController::class, 'index']);
+        Route::get('/learning-modules/{version}/manifest', [LearningModuleController::class, 'manifest']);
+        Route::get('/learning-module-versions/{version}/assets/{asset}', [LearningModuleController::class, 'asset']);
+        Route::post('/learning-module-versions/{version}/progress', [LearningModuleProgressController::class, 'store']);
         Route::post('/lessons/{lessonKey}/attempts', [LessonAttemptController::class, 'store']);
+
+        Route::middleware('role:instructor,admin')->prefix('staff')->group(function (): void {
+            Route::post('/learning-module-versions/{version}/submit', [StaffLearningModuleController::class, 'submit']);
+            Route::post('/learning-module-versions/{version}/review', [StaffLearningModuleController::class, 'review']);
+            Route::post('/learning-module-versions/{version}/assets', [LearningModuleAssetController::class, 'store']);
+            Route::post('/media-prompts/preview', [MediaPromptController::class, 'preview']);
+            Route::post('/classes/{class}/learning-modules', [LearningModuleAssignmentController::class, 'store']);
+            Route::post('/classes/{class}/learning-modules/{module}/overrides', [LearningModuleOverrideController::class, 'store']);
+            Route::delete('/learning-module-overrides/{override}', [LearningModuleOverrideController::class, 'destroy']);
+        });
 
         Route::middleware('role:instructor')->prefix('instructor')->group(function (): void {
             Route::post('/species-packages', [InstructorSpeciesPackageController::class, 'store']);
@@ -50,6 +71,8 @@ Route::prefix('api')->group(function (): void {
             Route::post('/species-packages/{package}/activate', [AdminSpeciesPackageController::class, 'activate']);
             Route::post('/species-packages/{package}/archive', [AdminSpeciesPackageController::class, 'archive']);
             Route::post('/species-packages/{package}/restore', [AdminSpeciesPackageController::class, 'restore']);
+            Route::post('/learning-module-versions/{version}/publish', [StaffLearningModuleController::class, 'publish']);
+            Route::post('/learning-module-versions/{version}/archive', [StaffLearningModuleController::class, 'archive']);
         });
 
         Route::post('/lesson-results', [LessonResultController::class, 'store']);

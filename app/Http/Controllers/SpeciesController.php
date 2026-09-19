@@ -22,15 +22,16 @@ class SpeciesController extends Controller
     public function manifest(Request $request, Species $species, SpeciesPackage $package, SpeciesPackageContent $content): JsonResponse
     {
         abort_unless($package->species_id === $species->id, 404);
-        $content->authorize($request->user(), $package);
+        $classId = $request->integer('classId') ?: null;
+        $content->authorize($request->user(), $package, $classId);
 
-        return response()->json(['package' => $content->manifest($package->load('assets'))]);
+        return response()->json(['package' => $content->manifest($package->load('assets'), $classId)]);
     }
 
     public function asset(Request $request, SpeciesPackage $package, SpeciesPackageAsset $asset, SpeciesPackageContent $content): BinaryFileResponse
     {
         abort_unless($asset->species_package_id === $package->id, 404);
-        $content->authorize($request->user(), $package);
+        $content->authorize($request->user(), $package, $request->integer('classId') ?: null);
         $path = $content->absolutePath($package, $asset->relative_path);
 
         return response()->file($path, [

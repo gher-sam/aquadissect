@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use App\Models\LearningModuleVersion;
 use App\Models\SpeciesPackage;
+use Database\Seeders\LearningModuleSeeder;
 use Database\Seeders\SpeciesCatalogSeeder;
 use Illuminate\Database\Migrations\Migrator;
 use Illuminate\Support\Facades\File;
@@ -48,6 +50,10 @@ class AutomaticDatabaseSetup
                 ->exists();
             if ($tilapiaVideoPackageMissing || $rabbitfishPackageMissing) {
                 app(SpeciesCatalogSeeder::class)->run();
+            }
+            if (! LearningModuleVersion::query()->where('version', '0.1.0')
+                ->whereHas('module', fn ($query) => $query->where('slug', 'lab-safety-tools'))->exists()) {
+                app(LearningModuleSeeder::class)->run();
             }
         } finally {
             flock($lock, LOCK_UN);

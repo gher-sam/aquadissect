@@ -10,7 +10,9 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class SpeciesPackageContent
 {
-    public function authorize(User $user, SpeciesPackage $package): void
+    public function __construct(private readonly LearningModuleGate $gate) {}
+
+    public function authorize(User $user, SpeciesPackage $package, ?int $classId = null): void
     {
         if ($user->isAdministrator()) {
             return;
@@ -23,23 +25,16 @@ class SpeciesPackageContent
         }
 
         if ($user->role === User::ROLE_STUDENT && $package->status === SpeciesPackage::STATUS_PUBLISHED) {
-            $assigned = $user->classEnrollments()
-                ->where('class_enrollments.status', 'active')
-                ->whereHas('learningClass', fn ($class) => $class->where('status', 'active')
-                    ->whereHas('assignments', fn ($query) => $query
-                        ->where('species_package_id', $package->id)
-                        ->where('active', true)))
-                ->exists();
-            if ($assigned) {
-                return;
-            }
+            $this->gate->resolveSpeciesClass($user, $package, $classId);
+
+            return;
         }
 
         throw new AccessDeniedHttpException('This species package is not available to this account.');
     }
 
     /** @return array<string, mixed> */
-    public function manifest(SpeciesPackage $package): array
+    public function manifest(SpeciesPackage $package, ?int $classId = null): array
     {
         $manifest = $package->manifest;
         $manifest['id'] = $package->id;
@@ -53,7 +48,7 @@ class SpeciesPackageContent
         $manifest['assetRecords'] = $package->assets->mapWithKeys(fn ($asset) => [
             $asset->asset_key => [
                 'id' => $asset->id,
-                'url' => url("/api/species-packages/{$package->id}/assets/{$asset->id}"),
+                'url' => url("/api/species-packages/{$package->id}/assets/{$asset->id}").($classId ? '?classId='.$classId : ''),
                 'mimeType' => $asset->mime_type,
                 'sizeBytes' => $asset->size_bytes,
                 'sha256' => $asset->sha256,

@@ -1,0 +1,283 @@
+import { escapeHtml, titleCase } from './format.js';
+
+function statusLabel(status) {
+  return status === 'review' ? 'In faculty review' : titleCase(status);
+}
+
+function progressLabel(module) {
+  if (module.progress?.completed) return 'Complete';
+  if (module.progress?.overrideActive) return 'Access exception active';
+  return `${module.progress?.completedSteps || 0} of ${module.progress?.totalSteps || 0} steps`;
+}
+
+function studentCard(module, { offline = false } = {}) {
+  const complete = Boolean(module.progress?.completed);
+  const progress = module.progress?.totalSteps
+    ? Math.round(((module.progress?.completedSteps || 0) / module.progress.totalSteps) * 100)
+    : 0;
+
+  return `<article class="learning-module-card" data-learning-module-card="${module.id}">
+    <div class="learning-module-card__visual" aria-hidden="true">
+      <span class="module-depth-plane module-depth-plane--back"></span>
+      <i data-lucide="shield-check"></i>
+      <span class="module-depth-plane module-depth-plane--front"></span>
+    </div>
+    <div class="learning-module-card__body">
+      <div class="species-card-topline"><span class="status-badge ${complete ? 'is-online' : ''}">${escapeHtml(progressLabel(module))}</span><small>v${escapeHtml(module.version)}</small></div>
+      <h2>${escapeHtml(module.title)}</h2>
+      <p>${escapeHtml(module.description)}</p>
+      ${module.pinned ? '<p class="module-version-note"><i data-lucide="pin" aria-hidden="true"></i> Your started version remains pinned.</p>' : ''}
+      <div class="module-progress-track" role="progressbar" aria-label="Module progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${progress}"><span style="width:${progress}%"></span></div>
+      <div class="package-actions">
+        <button class="portal-primary" type="button" data-open-learning-module="${module.id}">${complete ? 'Review module' : module.progress?.completedSteps ? 'Resume module' : 'Start module'}</button>
+        ${offline ? `<button class="portal-secondary" type="button" data-offline-module-toggle="${module.id}"></button>` : ''}
+      </div>
+    </div>
+  </article>`;
+}
+
+function reviewForm(module, currentUser) {
+  if (module.status !== 'review' || module.approvalCurrent || String(module.importedBy) === String(currentUser?.id)) return '';
+
+  return `<form class="module-review-form" data-module-review="${module.id}">
+    <h3>Independent faculty review</h3>
+    <label class="portal-field">Decision<select name="decision" required><option value="approved">Approve</option><option value="changes_requested">Request changes</option></select></label>
+    <label class="portal-field">Review notes<textarea name="notes" rows="3" minlength="10" maxlength="3000" required></textarea></label>
+    <label class="portal-field">Procedure evidence reference<input name="evidenceReference" maxlength="500" placeholder="Controlled SOP title, version, or faculty record"></label>
+    <label class="portal-check"><input name="localSopConfirmed" type="checkbox"><span>I confirmed the content against the current faculty-approved laboratory procedure.</span></label>
+    <button class="portal-secondary" type="submit">Record faculty decision</button>
+  </form>`;
+}
+
+function assetForm(module) {
+  if (!['draft', 'review'].includes(module.status)) return '';
+
+  return `<form class="module-asset-form" data-module-asset="${module.id}">
+    <h3>Attach reviewed media candidate</h3>
+    <div class="module-form-grid">
+      <label class="portal-field">Asset key<input name="assetKey" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="scalpel-side-view" required></label>
+      <label class="portal-field">Image or short video<input name="asset" type="file" accept="image/png,image/jpeg,image/webp,video/mp4,video/webm" required></label>
+      <label class="portal-field">Source<input name="source" maxlength="500" required></label>
+      <label class="portal-field">Licence<input name="licence" maxlength="300" required></label>
+      <label class="portal-field module-form-wide">Accessible caption<textarea name="caption" rows="2" maxlength="1000" required></textarea></label>
+      <label class="portal-check module-form-wide"><input name="aiGenerated" type="checkbox" value="1"><span>Declare that this media was generated with an AI tool.</span></label>
+    </div>
+    <button class="portal-secondary" type="submit">Sanitize and attach media</button>
+    <small>Uploaded images are re-encoded to remove metadata. Video upload requires the configured server sanitizer.</small>
+  </form>`;
+}
+
+function staffCard(module, role, currentUser) {
+  const validated = module.tools.filter((tool) => tool.validationStatus === 'faculty_validated').length;
+  return `<article class="learning-module-manager-card">
+    <div class="learning-module-manager-card__heading">
+      <div><span class="portal-kicker">${escapeHtml(module.slug)} · v${escapeHtml(module.version)}</span><h2>${escapeHtml(module.title)}</h2></div>
+      <span class="status-badge ${module.status === 'published' ? 'is-online' : ''}">${escapeHtml(statusLabel(module.status))}</span>
+    </div>
+    <p>${escapeHtml(module.description)}</p>
+    <dl class="module-audit-grid"><div><dt>Tools</dt><dd>${module.toolCount}</dd></div><div><dt>Validated</dt><dd>${validated}</dd></div><div><dt>Assets</dt><dd>${module.assetCount}</dd></div><div><dt>Reviews</dt><dd>${module.reviewCount}</dd></div></dl>
+    ${module.latestReview ? `<div class="module-review-summary"><strong>${escapeHtml(titleCase(module.latestReview.decision.replace('_', ' ')))}</strong><span>${escapeHtml(module.latestReview.reviewerRole)}</span><p>${escapeHtml(module.latestReview.notes)}</p>${module.latestReview.evidenceReference ? `<small>Evidence: ${escapeHtml(module.latestReview.evidenceReference)}</small>` : ''}</div>` : ''}
+    <div class="package-actions">
+      <button class="portal-secondary" type="button" data-open-learning-module="${module.id}">Preview module</button>
+      ${module.status === 'draft' ? `<button class="portal-primary" type="button" data-submit-learning-module="${module.id}">Submit for faculty review</button>` : ''}
+      ${role === 'admin' && module.status === 'review' && module.approvalCurrent ? `<button class="portal-primary" type="button" data-publish-learning-module="${module.id}">Publish approved version</button>` : ''}
+      ${role === 'admin' && module.status === 'published' ? `<button class="portal-secondary" type="button" data-archive-learning-module="${module.id}">Archive version</button>` : ''}
+    </div>
+    <details class="module-tool-audit"><summary>Tool validation register</summary><ul>${module.tools.map((tool) => `<li><span>${escapeHtml(tool.name)}</span><small>${escapeHtml(titleCase(tool.validationStatus.replaceAll('_', ' ')))}</small></li>`).join('')}</ul></details>
+    ${reviewForm(module, currentUser)}
+    ${assetForm(module)}
+  </article>`;
+}
+
+export function safetyWorkspace(modules, role, currentUser, options = {}) {
+  if (!modules.length) {
+    return '<div class="empty-state"><strong>No Safety &amp; Tools module is assigned</strong><span>Students receive only an independently reviewed and administrator-published version.</span></div>';
+  }
+  if (role === 'student') return `<div class="learning-module-grid">${modules.map((module) => studentCard(module, options)).join('')}</div>`;
+  return `<div class="learning-module-manager-grid">${modules.map((module) => staffCard(module, role, currentUser)).join('')}</div>`;
+}
+
+export function promptStudio(modules) {
+  const editable = modules.filter((module) => ['draft', 'review'].includes(module.status));
+  if (!editable.length) return '<div class="empty-state"><strong>No editable module version</strong><span>Create a draft version before preparing media prompts.</span></div>';
+  const initial = editable[0];
+
+  return `<div class="prompt-studio-layout">
+    <form class="prompt-studio-form" id="mediaPromptForm">
+      <div class="module-form-grid">
+        <label class="portal-field">Draft version<select name="versionId" data-prompt-version>${editable.map((module) => `<option value="${module.id}">${escapeHtml(module.title)} · v${escapeHtml(module.version)}</option>`).join('')}</select></label>
+        <label class="portal-field">Tool<select name="toolKey" data-prompt-tool>${initial.tools.map((tool) => `<option value="${escapeHtml(tool.key)}">${escapeHtml(tool.name)}</option>`).join('')}</select></label>
+        <label class="portal-field">Media<select name="mediaType"><option value="illustration">2.5D illustration</option><option value="video">Short-loop video</option></select></label>
+        <label class="portal-field">View<select name="view"><option value="side">Side</option><option value="three-quarter">Three-quarter</option><option value="top">Top</option></select></label>
+        <label class="portal-field">Handling focus<select name="action"><option value="identification">Identification</option><option value="proper-handling">Proper handling</option><option value="storage-and-disposal">Storage and disposal</option></select></label>
+        <label class="portal-field">PPE context<select name="ppe"><option value="gloved-hands">Gloved hands</option><option value="full-ppe-context">Full PPE context</option><option value="tool-only">Tool only</option></select></label>
+        <label class="portal-check module-form-wide"><input name="attach" type="checkbox"><span>Attach this prompt to the draft audit record.</span></label>
+      </div>
+      <button class="portal-primary" type="submit">Create media prompt</button>
+      <p class="portal-muted">The studio prepares text without connecting to an external media service.</p>
+    </form>
+    <section class="prompt-output" aria-live="polite">
+      <div><span class="portal-kicker">Copyable output</span><h2>Media prompt</h2></div>
+      <textarea id="mediaPromptOutput" rows="18" readonly placeholder="Choose the learning objective and create a prompt."></textarea>
+      <button class="portal-secondary" type="button" data-copy-media-prompt disabled>Copy prompt</button>
+      <p id="mediaPromptStatus" class="portal-muted"></p>
+    </section>
+  </div>`;
+}
+
+function toolMarkup(tool, active) {
+  return `<button class="module-hotspot ${active ? 'is-active' : ''}" type="button" data-module-tool="${escapeHtml(tool.key)}" aria-pressed="${active}">
+    <i data-lucide="${escapeHtml(tool.icon || 'wrench')}" aria-hidden="true"></i><span>${escapeHtml(tool.name)}</span>
+  </button>`;
+}
+
+function stepContent(step, manifest, selectedKey) {
+  const tools = (step.toolKeys || []).map((key) => manifest.tools.find((tool) => tool.key === key)).filter(Boolean);
+  const selected = tools.find((tool) => tool.key === selectedKey) || tools[0] || null;
+  return {
+    tools,
+    selected,
+    html: `<span class="portal-kicker">Required step</span><h2>${escapeHtml(step.title)}</h2><p>${escapeHtml(step.caption)}</p>
+      ${selected ? `<div class="handling-callout"><strong>${escapeHtml(selected.name)}</strong><p>${escapeHtml(selected.purpose)}</p><dl><div><dt>Proper handling</dt><dd>${escapeHtml(selected.handling)}</dd></div><div><dt>Safety precaution</dt><dd>${escapeHtml(selected.safety)}</dd></div><div><dt>Procedure use</dt><dd>${escapeHtml(selected.applicableStep)}</dd></div></dl></div>` : '<div class="handling-callout"><strong>Faculty-directed preparation</strong><p>Review this step before continuing. The current instructor direction and approved local procedure remain authoritative.</p></div>'}`,
+  };
+}
+
+function activityMarkup(activity) {
+  return `<form class="module-activity" data-module-activity>
+    <div class="module-activity-heading"><span class="portal-kicker">Unlimited retries</span><h2>Tool-selection check</h2><p>Submit once to complete this required step. Your score is retained for feedback and does not control completion.</p></div>
+    ${(activity.questions || []).map((question, index) => `<fieldset><legend><span>${index + 1}</span>${escapeHtml(question.question)}</legend>${question.options.map((option) => `<label><input type="radio" name="${escapeHtml(question.id)}" value="${escapeHtml(option)}" required><span>${escapeHtml(option)}</span></label>`).join('')}</fieldset>`).join('')}
+    <button class="portal-primary" type="submit">Submit formative activity</button>
+    <p class="module-activity-result" role="status"></p>
+  </form>`;
+}
+
+export function createModuleExperience(container, manifest, record, callbacks = {}) {
+  const steps = manifest.steps || [];
+  const completed = new Set(record.progress?.completedStepIds || []);
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let index = Math.max(0, steps.findIndex((step) => !completed.has(step.id)));
+  if (index < 0) index = 0;
+  let selectedKey = steps[index]?.toolKeys?.[0] || null;
+
+  container.innerHTML = `<section class="safety-experience" tabindex="-1">
+    <header class="safety-experience__header"><button class="portal-secondary" type="button" data-close-learning-module><i data-lucide="arrow-left" aria-hidden="true"></i> Back to Safety &amp; Tools</button><div><span class="portal-kicker">${escapeHtml(manifest.module?.category || 'Pre-laboratory')} · v${escapeHtml(manifest.moduleVersion)}</span><h1>${escapeHtml(manifest.module?.title || record.title)}</h1><p>${escapeHtml(manifest.statusNotice || '')}</p></div></header>
+    <div class="module-step-progress" aria-label="Required module steps">${steps.map((step, stepIndex) => `<button type="button" data-module-step="${stepIndex}" aria-label="Open step ${stepIndex + 1}: ${escapeHtml(step.title)}" class="${completed.has(step.id) ? 'is-complete' : ''}"><span>${stepIndex + 1}</span><small>${escapeHtml(step.title)}</small></button>`).join('')}</div>
+    <div class="module-learning-layout">
+      <figure class="module-25d-viewer ${reducedMotion ? 'is-reduced-motion' : 'is-playing'}" tabindex="0" aria-label="Interactive 2.5D laboratory tool viewer. Use the left and right arrow keys to move between steps.">
+        <div class="module-scene" data-module-scene>
+          <span class="module-scene__plane module-scene__plane--back" data-depth="1"></span>
+          <span class="module-scene__tray" data-depth="2"></span>
+          <div class="module-scene__tool" data-depth="4"></div>
+          <span class="module-scene__highlight" data-depth="5"></span>
+        </div>
+        <div class="module-viewer-controls"><button type="button" data-module-play aria-label="Play motion"><i data-lucide="play"></i></button><button type="button" data-module-pause aria-label="Pause motion"><i data-lucide="pause"></i></button><button type="button" data-module-replay aria-label="Replay motion"><i data-lucide="rotate-ccw"></i></button><span>${reducedMotion ? 'Reduced motion view' : 'Subtle depth motion'}</span></div>
+        <figcaption data-module-caption></figcaption>
+      </figure>
+      <article class="module-step-copy" data-module-step-copy></article>
+    </div>
+    <div class="module-hotspots" data-module-hotspots></div>
+    <div class="module-step-actions"><button class="portal-secondary" type="button" data-module-previous>Previous</button><button class="portal-primary" type="button" data-module-complete-step>Mark step complete &amp; continue</button></div>
+    <div data-module-activity-slot></div>
+  </section>`;
+
+  const experience = container.querySelector('.safety-experience');
+  const viewer = container.querySelector('.module-25d-viewer');
+  const scene = container.querySelector('[data-module-scene]');
+  const stepCopy = container.querySelector('[data-module-step-copy]');
+  const hotspots = container.querySelector('[data-module-hotspots]');
+  const activitySlot = container.querySelector('[data-module-activity-slot]');
+
+  function renderStep() {
+    const step = steps[index];
+    selectedKey = step.toolKeys?.includes(selectedKey) ? selectedKey : step.toolKeys?.[0] || null;
+    const content = stepContent(step, manifest, selectedKey);
+    stepCopy.innerHTML = content.html;
+    hotspots.innerHTML = content.tools.map((tool) => toolMarkup(tool, tool.key === content.selected?.key)).join('');
+    scene.querySelector('.module-scene__tool').innerHTML = content.selected
+      ? `<i data-lucide="${escapeHtml(content.selected.icon || 'wrench')}" aria-hidden="true"></i><span>${escapeHtml(content.selected.name)}</span>`
+      : '<i data-lucide="shield-check" aria-hidden="true"></i><span>Safety first</span>';
+    container.querySelector('[data-module-caption]').textContent = content.selected
+      ? `${content.selected.name}: ${content.selected.purpose}`
+      : step.caption;
+    container.querySelector('[data-module-previous]').disabled = index === 0;
+    const completionButton = container.querySelector('[data-module-complete-step]');
+    completionButton.textContent = completed.has(step.id) ? (index === steps.length - 1 ? 'Step viewed' : 'Continue') : 'Mark step complete & continue';
+    completionButton.disabled = step.id === 'tool-selection';
+    activitySlot.innerHTML = step.id === 'tool-selection' ? activityMarkup(manifest.activity || {}) : '';
+    container.querySelectorAll('[data-module-step]').forEach((button, stepIndex) => {
+      button.classList.toggle('is-current', stepIndex === index);
+      button.classList.toggle('is-complete', completed.has(steps[stepIndex].id));
+      if (stepIndex === index) button.setAttribute('aria-current', 'step'); else button.removeAttribute('aria-current');
+    });
+    window.lucide?.createIcons();
+  }
+
+  async function saveProgress(answers = null) {
+    const result = await callbacks.onProgress?.({
+      completedStepIds: [...completed],
+      ...(answers ? { answers, clientAttemptUuid: crypto.randomUUID() } : {}),
+      completedAt: new Date().toISOString(),
+    });
+    if (result?.progress) {
+      completed.clear();
+      result.progress.completedStepIds.forEach((id) => completed.add(id));
+    }
+    return result;
+  }
+
+  container.addEventListener('click', async (event) => {
+    const stepButton = event.target.closest('[data-module-step]');
+    if (stepButton) { index = Number(stepButton.dataset.moduleStep); selectedKey = null; renderStep(); return; }
+    const toolButton = event.target.closest('[data-module-tool]');
+    if (toolButton) { selectedKey = toolButton.dataset.moduleTool; renderStep(); return; }
+    if (event.target.closest('[data-module-previous]')) { index = Math.max(0, index - 1); selectedKey = null; renderStep(); return; }
+    if (event.target.closest('[data-module-play]') && !reducedMotion) viewer.classList.add('is-playing');
+    if (event.target.closest('[data-module-pause]')) viewer.classList.remove('is-playing');
+    if (event.target.closest('[data-module-replay]')) { viewer.classList.remove('is-playing'); requestAnimationFrame(() => viewer.classList.add('is-playing')); }
+    if (event.target.closest('[data-module-complete-step]')) {
+      const step = steps[index];
+      completed.add(step.id);
+      try {
+        await saveProgress();
+        if (index < steps.length - 1) index += 1;
+        selectedKey = null;
+        renderStep();
+      } catch (error) { callbacks.onError?.(error); }
+    }
+  });
+
+  container.addEventListener('submit', async (event) => {
+    if (!event.target.matches('[data-module-activity]')) return;
+    event.preventDefault();
+    const answers = Object.fromEntries(new FormData(event.target));
+    completed.add('tool-selection');
+    const resultNode = event.target.querySelector('.module-activity-result');
+    try {
+      const result = await saveProgress(answers);
+      renderStep();
+      const score = result?.attempt;
+      const currentResult = activitySlot.querySelector('.module-activity-result');
+      if (currentResult) currentResult.textContent = score ? `Score retained: ${score.score} of ${score.total}. Module complete.` : 'Activity saved. Module complete.';
+      callbacks.onComplete?.(result);
+    } catch (error) {
+      completed.delete('tool-selection');
+      resultNode.textContent = error.message;
+    }
+  });
+
+  viewer.addEventListener('keydown', (event) => {
+    if (event.key === 'ArrowRight' && index < steps.length - 1) { event.preventDefault(); index += 1; selectedKey = null; renderStep(); }
+    if (event.key === 'ArrowLeft' && index > 0) { event.preventDefault(); index -= 1; selectedKey = null; renderStep(); }
+    if (event.key === ' ') { event.preventDefault(); viewer.classList.toggle('is-playing', !viewer.classList.contains('is-playing')); }
+  });
+  if (!reducedMotion) {
+    viewer.addEventListener('pointermove', (event) => {
+      const bounds = viewer.getBoundingClientRect();
+      scene.style.setProperty('--parallax-x', `${((event.clientX - bounds.left) / bounds.width - 0.5) * 10}px`);
+      scene.style.setProperty('--parallax-y', `${((event.clientY - bounds.top) / bounds.height - 0.5) * 8}px`);
+    });
+    viewer.addEventListener('pointerleave', () => { scene.style.setProperty('--parallax-x', '0px'); scene.style.setProperty('--parallax-y', '0px'); });
+  }
+  renderStep();
+  experience.focus();
+}

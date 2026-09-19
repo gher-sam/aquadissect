@@ -34,4 +34,9 @@ class LearningClass extends Model
     {
         return $this->hasMany(SpeciesAssignment::class, 'class_id');
     }
+
+    public function moduleAssignments(): HasMany
+    {
+        return $this->hasMany(ClassModuleAssignment::class, 'class_id');
+    }
 }

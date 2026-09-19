@@ -40,6 +40,7 @@ class DatabaseSeeder extends Seeder
         }
 
         $this->call(SpeciesCatalogSeeder::class);
+        $this->call(LearningModuleSeeder::class);
         app(CourseProvisioner::class)->ensure();
     }
 }
