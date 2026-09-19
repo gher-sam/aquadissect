@@ -1,4 +1,4 @@
-const SHELL_CACHE = 'aquadissect-shell-v6';
+const SHELL_CACHE = 'aquadissect-shell-v7';
 const SHELL_CACHE_PREFIX = 'aquadissect-shell-';
 const scopeUrl = new URL(self.registration.scope);
 const withinScope = (url) => url.origin === scopeUrl.origin && url.pathname.startsWith(scopeUrl.pathname);
@@ -16,8 +16,9 @@ async function cacheResponse(cache, request) {
 
 async function cacheApplicationShell() {
   const cache = await caches.open(SHELL_CACHE);
+  const shellRequest = new Request(scopeUrl.href, { credentials: 'same-origin', cache: 'reload' });
+  const shellResponse = await cacheResponse(cache, shellRequest);
   const fixedUrls = [
-    scopeUrl.href,
     fromScope('manifest.webmanifest'),
     fromScope('pwa-icons/icon-192.png'),
     fromScope('pwa-icons/icon-512.png'),
@@ -25,6 +26,15 @@ async function cacheApplicationShell() {
     fromScope('pwa-icons/apple-touch-icon.png'),
   ];
   await Promise.allSettled(fixedUrls.map((url) => cacheResponse(cache, new Request(url, { credentials: 'same-origin', cache: 'reload' }))));
+
+  if (shellResponse?.ok) {
+    const shellHtml = await shellResponse.text();
+    const embeddedUrls = [...shellHtml.matchAll(/<(?:img|source)\b[^>]*\bsrc=["']([^"']+)["']/gi)]
+      .map((match) => new URL(match[1], scopeUrl).href)
+      .filter((url) => withinScope(new URL(url)));
+    await Promise.allSettled([...new Set(embeddedUrls)]
+      .map((url) => cacheResponse(cache, new Request(url, { credentials: 'same-origin', cache: 'reload' }))));
+  }
 
   const buildManifestUrl = fromScope('build/manifest.json');
   const buildManifestResponse = await cacheResponse(cache, new Request(buildManifestUrl, { credentials: 'same-origin', cache: 'reload' }));
