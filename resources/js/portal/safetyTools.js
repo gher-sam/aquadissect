@@ -163,14 +163,14 @@ export function createModuleExperience(container, manifest, record, callbacks = 
     <header class="safety-experience__header"><button class="portal-secondary" type="button" data-close-learning-module><i data-lucide="arrow-left" aria-hidden="true"></i> Back to Safety &amp; Tools</button><div><span class="portal-kicker">${escapeHtml(manifest.module?.category || 'Pre-laboratory')} · v${escapeHtml(manifest.moduleVersion)}</span><h1>${escapeHtml(manifest.module?.title || record.title)}</h1><p>${escapeHtml(manifest.statusNotice || '')}</p></div></header>
     <div class="module-step-progress" aria-label="Required module steps">${steps.map((step, stepIndex) => `<button type="button" data-module-step="${stepIndex}" aria-label="Open step ${stepIndex + 1}: ${escapeHtml(step.title)}" class="${completed.has(step.id) ? 'is-complete' : ''}"><span>${stepIndex + 1}</span><small>${escapeHtml(step.title)}</small></button>`).join('')}</div>
     <div class="module-learning-layout">
-      <figure class="module-25d-viewer ${reducedMotion ? 'is-reduced-motion' : 'is-playing'}" tabindex="0" aria-label="Interactive 2.5D laboratory tool viewer. Use the left and right arrow keys to move between steps.">
+      <figure class="module-25d-viewer ${reducedMotion ? 'is-reduced-motion' : ''}" tabindex="0" aria-label="Interactive 2.5D laboratory tool viewer. Use the left and right arrow keys to move between steps.">
         <div class="module-scene" data-module-scene>
           <span class="module-scene__plane module-scene__plane--back" data-depth="1"></span>
           <span class="module-scene__tray" data-depth="2"></span>
           <div class="module-scene__tool" data-depth="4"></div>
           <span class="module-scene__highlight" data-depth="5"></span>
         </div>
-        <div class="module-viewer-controls"><button type="button" data-module-play aria-label="Play motion"><i data-lucide="play"></i></button><button type="button" data-module-pause aria-label="Pause motion"><i data-lucide="pause"></i></button><button type="button" data-module-replay aria-label="Replay motion"><i data-lucide="rotate-ccw"></i></button><span>${reducedMotion ? 'Reduced motion view' : 'Subtle depth motion'}</span></div>
+        <div class="module-viewer-controls"><button type="button" data-module-play aria-label="Play motion" ${reducedMotion ? 'disabled' : ''}><i data-lucide="play"></i></button><button type="button" data-module-pause aria-label="Pause motion"><i data-lucide="pause"></i></button><button type="button" data-module-replay aria-label="Replay motion" ${reducedMotion ? 'disabled' : ''}><i data-lucide="rotate-ccw"></i></button><span data-module-motion-status aria-live="polite">${reducedMotion ? 'Reduced motion enabled' : 'Motion paused'}</span></div>
         <figcaption data-module-caption></figcaption>
       </figure>
       <article class="module-step-copy" data-module-step-copy></article>
@@ -183,6 +183,7 @@ export function createModuleExperience(container, manifest, record, callbacks = 
   const experience = container.querySelector('.safety-experience');
   const viewer = container.querySelector('.module-25d-viewer');
   const scene = container.querySelector('[data-module-scene]');
+  const motionStatus = container.querySelector('[data-module-motion-status]');
   const stepCopy = container.querySelector('[data-module-step-copy]');
   const hotspots = container.querySelector('[data-module-hotspots]');
   const activitySlot = container.querySelector('[data-module-activity-slot]');
@@ -231,9 +232,19 @@ export function createModuleExperience(container, manifest, record, callbacks = 
     const toolButton = event.target.closest('[data-module-tool]');
     if (toolButton) { selectedKey = toolButton.dataset.moduleTool; renderStep(); return; }
     if (event.target.closest('[data-module-previous]')) { index = Math.max(0, index - 1); selectedKey = null; renderStep(); return; }
-    if (event.target.closest('[data-module-play]') && !reducedMotion) viewer.classList.add('is-playing');
-    if (event.target.closest('[data-module-pause]')) viewer.classList.remove('is-playing');
-    if (event.target.closest('[data-module-replay]')) { viewer.classList.remove('is-playing'); requestAnimationFrame(() => viewer.classList.add('is-playing')); }
+    if (event.target.closest('[data-module-play]') && !reducedMotion) {
+      viewer.classList.add('is-playing');
+      motionStatus.textContent = 'Motion playing';
+    }
+    if (event.target.closest('[data-module-pause]')) {
+      viewer.classList.remove('is-playing');
+      motionStatus.textContent = reducedMotion ? 'Reduced motion enabled' : 'Motion paused';
+    }
+    if (event.target.closest('[data-module-replay]') && !reducedMotion) {
+      viewer.classList.remove('is-playing');
+      requestAnimationFrame(() => viewer.classList.add('is-playing'));
+      motionStatus.textContent = 'Motion replaying';
+    }
     if (event.target.closest('[data-module-complete-step]')) {
       const step = steps[index];
       completed.add(step.id);
@@ -268,7 +279,12 @@ export function createModuleExperience(container, manifest, record, callbacks = 
   viewer.addEventListener('keydown', (event) => {
     if (event.key === 'ArrowRight' && index < steps.length - 1) { event.preventDefault(); index += 1; selectedKey = null; renderStep(); }
     if (event.key === 'ArrowLeft' && index > 0) { event.preventDefault(); index -= 1; selectedKey = null; renderStep(); }
-    if (event.key === ' ') { event.preventDefault(); viewer.classList.toggle('is-playing', !viewer.classList.contains('is-playing')); }
+    if (event.key === ' ' && !reducedMotion) {
+      event.preventDefault();
+      const playing = !viewer.classList.contains('is-playing');
+      viewer.classList.toggle('is-playing', playing);
+      motionStatus.textContent = playing ? 'Motion playing' : 'Motion paused';
+    }
   });
   if (!reducedMotion) {
     viewer.addEventListener('pointermove', (event) => {

@@ -46,7 +46,7 @@ class AutomaticDatabaseSetup
                 ->exists();
             $rabbitfishPackageMissing = ! SpeciesPackage::query()
                 ->whereHas('species', fn ($query) => $query->where('slug', 'rabbitfish'))
-                ->where('version', '1.0.0')
+                ->where('version', '1.1.0')
                 ->exists();
             if ($tilapiaVideoPackageMissing || $rabbitfishPackageMissing) {
                 app(SpeciesCatalogSeeder::class)->run();

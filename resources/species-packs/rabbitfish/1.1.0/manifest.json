@@ -1,0 +1,46 @@
+{
+  "schemaVersion":"1.0",
+  "packageVersion":"1.1.0",
+  "minimumApplicationVersion":"1.0.0",
+  "species":{
+    "slug":"rabbitfish",
+    "commonName":"Goldspotted Rabbitfish",
+    "scientificName":"Siganus guttatus",
+    "taxonomicGroup":"Actinopterygii"
+  },
+  "lessonKey":"rabbitfish-guided-dissection",
+  "activityMode":"virtual_dissection",
+  "viewer":{"profile":"layered-2d"},
+  "draftNotice":"Educational illustrations and a locally authored swimming reference for administrator and subject-matter review. This package remains unavailable to students until independently approved and published.",
+  "safetyNotices":[
+    "Rabbitfish dorsal, pelvic, and anal fin spines can cause a painful venomous puncture.",
+    "A physical specimen may only be handled or dissected under trained supervision using an institution-approved safety protocol.",
+    "This virtual activity demonstrates orientation and sequence; it does not authorize unsupervised physical dissection."
+  ],
+  "references":[
+    {"title":"Biology and culture of siganids","publisher":"SEAFDEC Aquaculture Department","year":1998,"url":"https://repository.seafdec.org.ph/handle/10862/535"},
+    {"title":"Nursery and grow-out culture of rabbitfish Siganus guttatus in brackishwater ponds","publisher":"SEAFDEC Aquaculture Department","year":2022,"url":"https://repository.seafdec.org.ph/handle/10862/6396"},
+    {"title":"Morphological development of the swimming and feeding apparatus in larval rabbit fish, Siganus guttatus","publisher":"Asian Fisheries Society / FAO AGRIS","year":1986,"url":"https://agris.fao.org/search/en/providers/122430/records/6471d3b32a40512c710e7b5e"},
+    {"title":"Occurrence of a stonefish toxin-like toxin in the venom of the rabbitfish Siganus fuscescens","publisher":"Toxicon","year":2017,"url":"https://pubmed.ncbi.nlm.nih.gov/29055787/","scopeNote":"Genus-level evidence for the venom hazard; not a claim of species-specific toxin equivalence."},
+    {"title":"Anatomy of a Fish","publisher":"University of Florida IFAS Extension","url":"https://ask.ifas.ufl.edu/publication/FA173"}
+  ],
+  "licenses":[
+    {"scope":"package content","name":"AquaDissect project-use terms","usageTerms":"Internal educational development and faculty review only while this package is unpublished. Publication or redistribution requires project authorization."},
+    {"scope":"natural, external, and internal visuals","name":"AquaDissect project-use terms","usageTerms":"Internal educational development and faculty review only while this package is unpublished. Publication or redistribution requires project authorization.","notice":"Do not treat the illustrations as diagnostic specimen evidence."},
+    {"scope":"assets/natural-swimming.mp4","name":"AquaDissect project-use terms","usageTerms":"Internal educational development and faculty review only while this package is unpublished. Publication or redistribution requires project authorization.","source":"Derived locally from assets/natural.webp","aiGenerated":false,"externalMediaUsed":false,"reviewStatus":"awaiting_faculty_review","notice":"No AI service, generation API, or external media was used. Independent faculty review is required before publication."}
+  ],
+  "assetProvenance":{
+    "video":{"asset":"assets/natural-swimming.mp4","creationMethod":"Locally authored frame animation derived from the package natural illustration","sourceAsset":"assets/natural.webp","aiGenerated":false,"externalMediaUsed":false,"reviewStatus":"awaiting_faculty_review","reviewStatusMeaning":"Status recorded when this immutable package manifest was authored; current review and publication state is held in lifecycle records.","personalMetadataRemoved":true,"technicalMetadataRetained":["container","codec","duration","dimensions","frameRate"]}
+  },
+  "assets":{"natural":"assets/natural.webp","external":"assets/external.webp","internal":"assets/internal.webp","video":"assets/natural-swimming.mp4"},
+  "content":{"anatomy":"content/anatomy.json","lesson":"content/lesson.json","quiz":"content/quiz.json"},
+  "files":{
+    "assets/natural.webp":"1a3ec0c2c9d48b802e9c8353bca2ae80a7d935d78f0bfe7bb6e853dbe579fbf0",
+    "assets/external.webp":"9252b0437801ffe277de8e0646e01a0bc6316ed56173b976c9e31d37534e8968",
+    "assets/internal.webp":"ad34a530487e5155de9286079320d0a2b3c00ba2656cd9b6c1392fb79d805567",
+    "assets/natural-swimming.mp4":"3932c2199e133229c6827a4d92957376a5dfbea553e4530319533c8e09488d59",
+    "content/anatomy.json":"dd36bc2d0b9f619781f40d19b7b1572250900c1734488d721f65a4b2b10c2c59",
+    "content/lesson.json":"71acbc84bc73e6acd8800c6f0a4755d040eee1c6407ecfe819252e30a35bde42",
+    "content/quiz.json":"2529c62906fd8e6043c87504270fd379ba71e215a1cc8ed95f1caf8a9fd90ead"
+  }
+}

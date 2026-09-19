@@ -1,6 +1,6 @@
 # AquaDissect Laravel application
 
-AquaDissect is a Laravel 13, package-driven aquatic-vertebrate learning platform. Tilapia is the published flagship package, with layered 2.5D imagery and its existing procedural 3D viewer. Goldspotted Rabbitfish (*Siganus guttatus*) remains a staff-only draft. The versioned Safety and Laboratory Tools module adds faculty-reviewed pre-laboratory preparation, prerequisite controls, offline progress, and a staff-only media prompt workflow.
+AquaDissect is a Laravel 13, package-driven aquatic-vertebrate learning platform. Tilapia is the published flagship package, with layered 2.5D imagery and its existing procedural 3D viewer. Goldspotted Rabbitfish (*Siganus guttatus*) version `1.1.0` adds a locally authored swimming reference and remains an unpublished, staff-only faculty-review package. The versioned Safety and Laboratory Tools module adds faculty-reviewed pre-laboratory preparation, prerequisite controls, offline progress, and a staff-only media prompt workflow.
 
 ## Technology
 

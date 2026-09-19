@@ -1,8 +1,6 @@
 .image-scene {
   overflow: hidden;
-  background:
-    radial-gradient(circle at 50% 50%, rgb(255 255 255 / 12%), transparent 55%),
-    #073642;
+  background: #0e315b;
 }
 
 .layered-anatomy-viewer,
@@ -17,7 +15,7 @@
   display: grid;
   padding: clamp(72px, 9vw, 104px) clamp(16px, 4vw, 48px) 62px;
   place-items: center;
-  background: #e7e9e8;
+  background: #eaf4ff;
 }
 
 .species-swimming-video {
@@ -26,21 +24,15 @@
   max-height: 100%;
   aspect-ratio: 16 / 9;
   border-radius: 16px;
-  background: #e7e9e8;
-  box-shadow: 0 18px 45px rgb(4 40 49 / 22%);
+  background: #eaf4ff;
+  box-shadow: 0 18px 45px rgb(13 20 66 / 20%);
   object-fit: contain;
   pointer-events: none;
   user-select: none;
-  animation: specimen-float 5.4s ease-in-out infinite;
 }
 
 .species-swimming-video::-webkit-media-controls {
   display: none !important;
-}
-
-@keyframes specimen-float {
-  0%, 100% { transform: translate3d(0, 0, 0); }
-  50% { transform: translate3d(0, -5px, 0); }
 }
 
 @media (max-width: 560px) {
@@ -53,16 +45,10 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .species-swimming-video {
-    animation: none;
-  }
-}
-
 .layered-anatomy-viewer {
   z-index: 1;
   overflow: hidden;
-  background: #f7fbfa;
+  background: #f5f9ff;
 }
 
 .layered-image-frame {
@@ -113,15 +99,15 @@
 }
 
 .layered-anatomy-viewer .image-incision-guide.is-visible { opacity: 1; }
-.layered-anatomy-viewer .image-incision-guide.is-traced path { stroke-dashoffset: 0; transition: stroke-dashoffset 650ms ease; }
+.layered-anatomy-viewer .image-incision-guide.is-traced path { stroke-dashoffset: 0; transition: stroke-dashoffset 300ms ease; }
 
 .viewer-mode-control select {
   min-height: 44px;
   padding: 0 34px 0 12px;
-  border: 1px solid rgb(165 243 252 / 30%);
+  border: 1px solid rgb(154 223 239 / 30%);
   border-radius: 10px;
   color: white;
-  background: rgb(4 40 49 / 82%);
+  background: rgb(13 20 66 / 82%);
   font: inherit;
 }
 
@@ -153,7 +139,7 @@
   display: grid;
   place-items: center;
   overflow: hidden;
-  background: #f7fbfa;
+  background: #f5f9ff;
 }
 
 .anatomy-image-layer {
@@ -196,12 +182,12 @@
   display: none;
   align-items: center;
   gap: 7px;
-  min-width: 34px;
-  min-height: 34px;
+  min-width: 44px;
+  min-height: 44px;
   padding: 5px;
   border: 0;
   border-radius: 999px;
-  color: #073642;
+  color: #0d1442;
   background: transparent;
   transform: translate(-50%, -50%);
   pointer-events: auto;
@@ -217,20 +203,20 @@
   height: 17px;
   border: 3px solid white;
   border-radius: 50%;
-  background: #0891b2;
-  box-shadow: 0 3px 10px rgb(4 52 64 / 30%);
-  transition: transform 160ms ease, background 160ms ease;
+  background: #0140c1;
+  box-shadow: 0 3px 10px rgb(13 20 66 / 28%);
+  transition: transform 180ms ease, background 180ms ease;
 }
 
 .image-hotspot:hover .image-hotspot-dot,
 .image-hotspot:focus-visible .image-hotspot-dot,
 .image-hotspot.is-highlighted .image-hotspot-dot {
-  background: #f2b84b;
+  background: #1594e3;
   transform: scale(1.2);
 }
 
 .image-hotspot.is-selected .image-hotspot-dot {
-  background: #059669;
+  background: #0140c1;
   transform: scale(1.25);
 }
 
@@ -238,11 +224,11 @@
   display: none;
   max-width: 150px;
   padding: 5px 8px;
-  border: 1px solid rgb(8 113 131 / 18%);
+  border: 1px solid rgb(1 64 193 / 18%);
   border-radius: 8px;
-  color: #123f4c;
-  background: rgb(248 255 255 / 94%);
-  box-shadow: 0 5px 14px rgb(4 52 64 / 12%);
+  color: #0d1442;
+  background: rgb(255 255 255 / 96%);
+  box-shadow: 0 5px 14px rgb(13 20 66 / 12%);
   font-size: 11px;
   font-weight: 700;
   white-space: nowrap;
@@ -260,11 +246,11 @@
   width: 36%;
   height: 4px;
   border-radius: 99px;
-  background: repeating-linear-gradient(90deg, #f2b84b 0 10px, transparent 10px 16px);
+  background: transparent;
   opacity: 0;
   transform: scaleX(0);
   transform-origin: right;
-  transition: opacity 180ms ease, transform 650ms ease;
+  transition: opacity 180ms ease, transform 300ms ease;
   pointer-events: none;
 }
 
@@ -283,18 +269,18 @@
 
 .image-scene .mode-badge {
   color: white;
-  background: rgb(7 54 66 / 88%);
-  box-shadow: 0 4px 18px rgb(4 39 49 / 18%);
+  background: rgb(14 49 91 / 88%);
+  box-shadow: 0 4px 18px rgb(13 20 66 / 18%);
 }
 
 .image-scene .scene-button {
   color: white;
-  background: rgb(7 54 66 / 84%);
+  background: rgb(14 49 91 / 84%);
 }
 
 .image-scene .interaction-hint {
   color: white;
-  background: rgb(7 54 66 / 86%);
+  background: rgb(14 49 91 / 86%);
 }
 
 .image-scene .mouse-glyph::before {

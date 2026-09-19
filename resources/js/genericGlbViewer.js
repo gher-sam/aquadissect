@@ -14,7 +14,7 @@ export class GenericGlbViewer {
     this.actions = [];
     this.floatTimeline = null;
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color('#edf8f6');
+    this.scene.background = new THREE.Color('#eaf4ff');
     this.camera = new THREE.PerspectiveCamera(35, 1, 0.01, 1000);
     this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
     this.renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
@@ -25,7 +25,7 @@ export class GenericGlbViewer {
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.enableDamping = true;
     this.controls.enablePan = false;
-    this.scene.add(new THREE.HemisphereLight('#ffffff', '#78969a', 3));
+    this.scene.add(new THREE.HemisphereLight('#ffffff', '#607ea7', 3));
     const key = new THREE.DirectionalLight('#ffffff', 4);
     key.position.set(5, 8, 7);
     this.scene.add(key);

@@ -1,18 +1,13 @@
 .three-scene {
   overflow: hidden;
-  background:
-    radial-gradient(circle at 48% 42%, rgb(255 255 255 / 92%), rgb(232 247 244 / 86%) 48%, rgb(211 236 232 / 94%));
+  background: #eaf4ff;
 }
 
 .three-scene::after {
   position: absolute;
   inset: 0;
   z-index: 1;
-  background:
-    linear-gradient(90deg, rgb(13 103 112 / 4%) 1px, transparent 1px),
-    linear-gradient(rgb(13 103 112 / 4%) 1px, transparent 1px);
-  background-size: 32px 32px;
-  mask-image: linear-gradient(to bottom, transparent, black 35%, transparent 92%);
+  background: transparent;
   content: '';
   pointer-events: none;
 }
@@ -29,15 +24,15 @@
 }
 
 .three-scene .model-label {
-  border-color: rgb(8 113 131 / 24%);
-  color: #123f4c;
-  background: rgb(250 255 255 / 94%);
-  box-shadow: 0 8px 20px rgb(4 52 64 / 16%);
+  border-color: rgb(1 64 193 / 24%);
+  color: #0d1442;
+  background: rgb(255 255 255 / 96%);
+  box-shadow: 0 8px 20px rgb(13 20 66 / 16%);
 }
 
 .three-scene .model-label span {
-  background: #0aa48c;
-  box-shadow: 0 0 0 3px rgb(10 164 140 / 15%);
+  background: #0140c1;
+  box-shadow: 0 0 0 3px rgb(1 64 193 / 15%);
 }
 
 .three-scene .scene-topbar,
@@ -47,15 +42,15 @@
 
 .three-scene .mode-badge,
 .three-scene .scene-button {
-  border-color: rgb(8 113 131 / 18%);
-  color: #164b56;
-  background: rgb(255 255 255 / 88%);
-  box-shadow: 0 5px 18px rgb(4 52 64 / 10%);
+  border-color: rgb(1 64 193 / 18%);
+  color: #0e315b;
+  background: rgb(255 255 255 / 92%);
+  box-shadow: 0 5px 18px rgb(13 20 66 / 10%);
 }
 
 .three-scene .mode-badge > span {
-  background: #059669;
-  box-shadow: 0 0 0 4px rgb(5 150 105 / 12%);
+  background: #0140c1;
+  box-shadow: 0 0 0 4px rgb(1 64 193 / 12%);
 }
 
 .three-scene .mode-badge.is-internal > span {
@@ -65,9 +60,9 @@
 
 .three-scene .scene-button:hover,
 .three-scene .scene-button.is-active {
-  border-color: rgb(5 150 105 / 36%);
-  color: #075f55;
-  background: rgb(235 252 247 / 96%);
+  border-color: rgb(1 64 193 / 36%);
+  color: #002c83;
+  background: rgb(234 244 255 / 96%);
 }
 
 .scene-button--icon {
@@ -77,23 +72,23 @@
 }
 
 .three-scene .interaction-hint {
-  border-color: rgb(8 113 131 / 15%);
-  color: #315f67;
-  background: rgb(255 255 255 / 86%);
-  box-shadow: 0 6px 20px rgb(4 52 64 / 10%);
+  border-color: rgb(1 64 193 / 15%);
+  color: #2f405c;
+  background: rgb(255 255 255 / 90%);
+  box-shadow: 0 6px 20px rgb(13 20 66 / 10%);
 }
 
 .three-scene .mouse-glyph {
-  border-color: #38737b;
+  border-color: #5b6f92;
 }
 
 .three-scene .mouse-glyph::before {
-  background: #0891b2;
+  background: #0140c1;
 }
 
 .viewer-panel {
-  border: 1px solid rgb(8 113 131 / 14%);
-  background: #edf8f6;
+  border: 1px solid rgb(1 64 193 / 14%);
+  background: #eaf4ff;
 }
 
 .viewer-panel::before,
@@ -103,47 +98,47 @@
 
 .viewer-panel .viewer-dock {
   z-index: 12;
-  border-top-color: rgb(8 113 131 / 14%);
-  color: #184f59;
-  background: rgb(248 255 254 / 92%);
-  box-shadow: 0 -10px 28px rgb(4 52 64 / 6%);
+  border-top-color: rgb(1 64 193 / 14%);
+  color: #0e315b;
+  background: rgb(255 255 255 / 94%);
+  box-shadow: 0 -10px 28px rgb(13 20 66 / 6%);
 }
 
 .viewer-panel .dock-button {
-  color: #35666e;
+  color: #5b6f92;
 }
 
 .viewer-panel .dock-button:hover,
 .viewer-panel .dock-button.is-active {
-  color: #075f55;
-  background: rgb(5 150 105 / 10%);
+  color: #002c83;
+  background: rgb(1 64 193 / 10%);
 }
 
 .viewer-panel .dock-divider {
-  background: rgb(8 113 131 / 18%);
+  background: rgb(1 64 193 / 18%);
 }
 
 .viewer-panel .explode-control {
-  color: #315f67;
+  color: #2f405c;
 }
 
 .viewer-panel .explode-control input {
-  background: linear-gradient(#9fc9c6, #9fc9c6) center / 100% 4px no-repeat;
+  background: #5b6f92;
 }
 
 .viewer-panel .explode-control output {
-  color: #087a70;
+  color: #0140c1;
 }
 
 .three-scene .scene-loader {
   z-index: 15;
-  color: #245965;
-  background: #edf8f6;
+  color: #0e315b;
+  background: #eaf4ff;
 }
 
 .three-scene .scene-loader span {
-  border-color: rgb(8 113 131 / 15%);
-  border-top-color: #059669;
+  border-color: rgb(1 64 193 / 15%);
+  border-top-color: #0140c1;
 }
 
 .viewer-panel:fullscreen {

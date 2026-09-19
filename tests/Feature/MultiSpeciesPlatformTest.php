@@ -9,10 +9,13 @@ use App\Models\SpeciesPackage;
 use App\Models\User;
 use App\Services\SpeciesPackageLifecycle;
 use Database\Seeders\DatabaseSeeder;
+use Database\Seeders\SpeciesCatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use RuntimeException;
 use Tests\TestCase;
 use ZipArchive;
 
@@ -49,7 +52,9 @@ class MultiSpeciesPlatformTest extends TestCase
         $this->assertCount(7, $tilapia->assets);
         $this->assertNotNull($tilapia->assets->firstWhere('asset_key', 'video'));
         $this->assertSame(SpeciesPackage::STATUS_REVIEW, $rabbitfish->status);
-        $this->assertCount(6, $rabbitfish->assets);
+        $this->assertSame('1.1.0', $rabbitfish->version);
+        $this->assertCount(7, $rabbitfish->assets);
+        $this->assertSame('video/mp4', $rabbitfish->assets->firstWhere('asset_key', 'video')?->mime_type);
         $this->assertSame('Siganus guttatus', $rabbitfish->species->scientific_name);
         $this->assertDatabaseHas('class_enrollments', ['user_id' => User::query()->where('role', 'student')->value('id')]);
     }
@@ -76,7 +81,10 @@ class MultiSpeciesPlatformTest extends TestCase
             ->getJson("/api/species/rabbitfish/packages/{$rabbitfish->id}/manifest")
             ->assertOk()
             ->assertJsonPath('package.contentData.quiz.formative', true)
-            ->assertJsonCount(6, 'package.assetRecords');
+            ->assertJsonPath('package.assetRecords.video.mimeType', 'video/mp4')
+            ->assertJsonPath('package.assetProvenance.video.aiGenerated', false)
+            ->assertJsonPath('package.assetProvenance.video.reviewStatus', 'awaiting_faculty_review')
+            ->assertJsonCount(7, 'package.assetRecords');
     }
 
     public function test_versioned_attempt_is_scored_by_server_and_client_uuid_is_idempotent(): void
@@ -303,6 +311,169 @@ class MultiSpeciesPlatformTest extends TestCase
         ]);
     }
 
+    public function test_bundled_seeding_preserves_published_lifecycle_and_review_records(): void
+    {
+        $admin = User::query()->where('role', 'admin')->firstOrFail();
+        $rabbitfish = SpeciesPackage::query()->whereHas('species', fn ($query) => $query->where('slug', 'rabbitfish'))->firstOrFail();
+        $lifecycle = app(SpeciesPackageLifecycle::class);
+
+        $lifecycle->review(
+            $rabbitfish,
+            $admin,
+            'approved',
+            'The current anatomy, movement reference, and specimen safety directions were independently reviewed.',
+            'Faculty review evidence',
+            true,
+            true,
+        );
+        $published = $lifecycle->publish($rabbitfish->fresh(), $admin)['package']->fresh();
+        $publishedAt = $published->published_at?->toIso8601String();
+        $reviewedBy = $published->reviewed_by;
+
+        $this->seed(SpeciesCatalogSeeder::class);
+
+        $reseeded = $published->fresh(['assets', 'reviews']);
+        $this->assertSame(SpeciesPackage::STATUS_PUBLISHED, $reseeded->status);
+        $this->assertTrue($reseeded->is_current);
+        $this->assertSame($publishedAt, $reseeded->published_at?->toIso8601String());
+        $this->assertSame($reviewedBy, $reseeded->reviewed_by);
+        $this->assertCount(1, $reseeded->reviews);
+        $this->assertCount(7, $reseeded->assets);
+        $this->assertTrue($lifecycle->approvalIsCurrent($reseeded));
+    }
+
+    public function test_bundled_seeding_rejects_checksum_changes_to_an_existing_version(): void
+    {
+        $rabbitfish = SpeciesPackage::query()->whereHas('species', fn ($query) => $query->where('slug', 'rabbitfish'))->firstOrFail();
+        $rabbitfish->update(['checksum' => str_repeat('0', 64)]);
+
+        try {
+            $this->seed(SpeciesCatalogSeeder::class);
+            $this->fail('The seeder accepted changed content under an existing bundled version.');
+        } catch (RuntimeException $exception) {
+            $this->assertStringContainsString('differs from the installed immutable version', $exception->getMessage());
+        }
+
+        $this->assertSame(SpeciesPackage::STATUS_REVIEW, $rabbitfish->fresh()->status);
+        $this->assertDatabaseCount('species_package_reviews', 0);
+    }
+
+    public function test_bundled_seeding_rejects_declared_source_file_drift(): void
+    {
+        $sourceRoot = storage_path('framework/testing/species-source-'.Str::uuid());
+        $sourcePath = $sourceRoot.DIRECTORY_SEPARATOR.'content'.DIRECTORY_SEPARATOR.'quiz.json';
+        File::ensureDirectoryExists(dirname($sourcePath));
+        File::put($sourcePath, '{"formative":true}');
+        $expectedHash = hash_file('sha256', $sourcePath);
+        File::put($sourcePath, '{"formative":false}');
+        $this->cleanupPaths[] = $sourceRoot;
+
+        $seeder = new class extends SpeciesCatalogSeeder
+        {
+            /** @param array<string, mixed> $manifest */
+            public function validateSource(string $sourceRoot, array $manifest): void
+            {
+                $this->validateBundledFiles($sourceRoot, $manifest, 'test-species', '1.0.0');
+            }
+        };
+
+        try {
+            $seeder->validateSource($sourceRoot, [
+                'files' => ['content/quiz.json' => $expectedHash],
+            ]);
+            $this->fail('The seeder accepted a source file that no longer matched its declared checksum.');
+        } catch (RuntimeException $exception) {
+            $this->assertStringContainsString('source checksum mismatch', $exception->getMessage());
+            $this->assertStringContainsString('content/quiz.json', $exception->getMessage());
+        }
+    }
+
+    public function test_bundled_seeding_rejects_drift_in_versioned_storage(): void
+    {
+        $rabbitfish = SpeciesPackage::query()->whereHas('species', fn ($query) => $query->where('slug', 'rabbitfish'))->firstOrFail();
+        $asset = $rabbitfish->assets()->where('asset_key', 'content.quiz')->firstOrFail();
+        $disk = Storage::disk(config('species-packages.disk'));
+        $storedPath = trim($rabbitfish->archive_path, '/').'/'.$asset->relative_path;
+        $original = $disk->get($storedPath);
+
+        try {
+            $disk->put($storedPath, $original."\n");
+            $this->seed(SpeciesCatalogSeeder::class);
+            $this->fail('The seeder accepted changed bytes in immutable versioned storage.');
+        } catch (RuntimeException $exception) {
+            $this->assertStringContainsString('stored file differs from its immutable source', $exception->getMessage());
+            $this->assertStringContainsString($asset->relative_path, $exception->getMessage());
+        } finally {
+            $disk->put($storedPath, $original);
+        }
+
+        $this->assertSame(SpeciesPackage::STATUS_REVIEW, $rabbitfish->fresh()->status);
+    }
+
+    public function test_approval_fingerprint_detects_changed_storage_bytes(): void
+    {
+        $admin = User::query()->where('role', 'admin')->firstOrFail();
+        $rabbitfish = SpeciesPackage::query()->whereHas('species', fn ($query) => $query->where('slug', 'rabbitfish'))->firstOrFail();
+        $asset = $rabbitfish->assets()->where('asset_key', 'content.quiz')->firstOrFail();
+        $lifecycle = app(SpeciesPackageLifecycle::class);
+        $lifecycle->review(
+            $rabbitfish,
+            $admin,
+            'approved',
+            'The stored package bytes and safety guidance were independently reviewed.',
+            'Faculty review evidence',
+            true,
+            true,
+        );
+        $this->assertTrue($lifecycle->approvalIsCurrent($rabbitfish->fresh()));
+
+        $disk = Storage::disk(config('species-packages.disk'));
+        $storedPath = trim($rabbitfish->archive_path, '/').'/'.$asset->relative_path;
+        $original = $disk->get($storedPath);
+        try {
+            $disk->put($storedPath, $original."\n");
+            $this->assertFalse($lifecycle->approvalIsCurrent($rabbitfish->fresh()));
+            $this->actingAs($admin)->postJson("/api/admin/species-packages/{$rabbitfish->id}/publish")
+                ->assertUnprocessable()
+                ->assertJsonValidationErrors('review');
+        } finally {
+            $disk->put($storedPath, $original);
+        }
+
+        $this->assertSame(SpeciesPackage::STATUS_REVIEW, $rabbitfish->fresh()->status);
+    }
+
+    public function test_staff_catalog_orders_newer_review_versions_first(): void
+    {
+        $instructor = User::query()->where('role', 'instructor')->firstOrFail();
+        $newer = SpeciesPackage::query()->whereHas('species', fn ($query) => $query->where('slug', 'rabbitfish'))->firstOrFail();
+        $olderManifest = $newer->manifest;
+        $olderManifest['packageVersion'] = '1.0.0';
+        SpeciesPackage::query()->create([
+            'species_id' => $newer->species_id,
+            'version' => '1.0.0',
+            'schema_version' => '1.0',
+            'status' => SpeciesPackage::STATUS_REVIEW,
+            'viewer_profile' => 'layered-2d',
+            'minimum_app_version' => '1.0.0',
+            'manifest' => $olderManifest,
+            'archive_path' => $newer->archive_path,
+            'checksum' => str_repeat('1', 64),
+            'size_bytes' => $newer->size_bytes,
+            'imported_by' => $instructor->id,
+            'review_round' => 1,
+        ]);
+
+        $response = $this->actingAs($instructor)->getJson('/api/species')->assertOk();
+        $rabbitfishVersions = collect($response->json('species'))
+            ->where('slug', 'rabbitfish')
+            ->pluck('version')
+            ->values()
+            ->all();
+
+        $this->assertSame(['1.1.0', '1.0.0'], $rabbitfishVersions);
+    }
+
     public function test_published_package_content_is_immutable_and_export_is_available_to_instructors(): void
     {
         $instructor = User::query()->where('role', 'instructor')->firstOrFail();
@@ -316,9 +487,32 @@ class MultiSpeciesPlatformTest extends TestCase
         $package->update(['manifest' => [...$package->manifest, 'lessonKey' => 'changed']]);
     }
 
+    public function test_published_package_asset_records_reject_updates_and_deletes(): void
+    {
+        $package = SpeciesPackage::query()->whereHas('species', fn ($query) => $query->where('slug', 'tilapia'))->where('is_current', true)->firstOrFail();
+        $asset = $package->assets()->where('asset_key', 'natural')->firstOrFail();
+        $originalMime = $asset->mime_type;
+
+        try {
+            $asset->update(['mime_type' => 'application/octet-stream']);
+            $this->fail('A published package asset record was updated.');
+        } catch (\LogicException $exception) {
+            $this->assertStringContainsString('published species package', $exception->getMessage());
+        }
+        $this->assertSame($originalMime, $asset->fresh()->mime_type);
+
+        try {
+            $asset->fresh()->delete();
+            $this->fail('A published package asset record was deleted.');
+        } catch (\LogicException $exception) {
+            $this->assertStringContainsString('published species package', $exception->getMessage());
+        }
+        $this->assertDatabaseHas('species_package_assets', ['id' => $asset->id]);
+    }
+
     private function makeRabbitfishArchive(string $version): string
     {
-        $source = resource_path('species-packs/rabbitfish/1.0.0');
+        $source = resource_path('species-packs/rabbitfish/1.1.0');
         $archive = storage_path('framework/testing/rabbitfish-'.$version.'.aqpack');
         File::ensureDirectoryExists(dirname($archive));
         $manifest = json_decode((string) File::get($source.'/manifest.json'), true, flags: JSON_THROW_ON_ERROR);

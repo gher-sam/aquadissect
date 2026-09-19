@@ -23,8 +23,8 @@ export class Tilapia3DViewer {
     this.pointer = new THREE.Vector2();
 
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color('#edf8f6');
-    this.scene.fog = new THREE.Fog('#edf8f6', 13, 23);
+    this.scene.background = new THREE.Color('#eaf4ff');
+    this.scene.fog = new THREE.Fog('#eaf4ff', 13, 23);
 
     this.camera = new THREE.PerspectiveCamera(32, 1, 0.1, 80);
     this.defaultCameraZ = 14.5;
@@ -84,10 +84,10 @@ export class Tilapia3DViewer {
   }
 
   buildStudio() {
-    const hemisphere = new THREE.HemisphereLight('#f8ffff', '#8bb8ae', 2.65);
+    const hemisphere = new THREE.HemisphereLight('#f5f9ff', '#607ea7', 2.65);
     this.scene.add(hemisphere);
 
-    const key = new THREE.DirectionalLight('#fffaf1', 4.1);
+    const key = new THREE.DirectionalLight('#ffffff', 4.1);
     key.position.set(-4.5, 7.5, 8);
     key.castShadow = true;
     key.shadow.mapSize.set(2048, 2048);
@@ -98,18 +98,18 @@ export class Tilapia3DViewer {
     key.shadow.bias = -0.0002;
     this.scene.add(key);
 
-    const fill = new THREE.DirectionalLight('#bceff0', 2.1);
+    const fill = new THREE.DirectionalLight('#8bd8f0', 2.1);
     fill.position.set(6, 1.5, 5);
     this.scene.add(fill);
 
-    const rim = new THREE.SpotLight('#8ee9d5', 22, 24, Math.PI * 0.24, 0.75, 1.2);
+    const rim = new THREE.SpotLight('#1594e3', 22, 24, Math.PI * 0.24, 0.75, 1.2);
     rim.position.set(1, 5, -5);
     rim.target.position.set(0, 0, 0);
     this.scene.add(rim, rim.target);
 
     const platform = new THREE.Mesh(
       new THREE.CylinderGeometry(5.2, 5.35, 0.2, 96),
-      new THREE.MeshStandardMaterial({ color: '#d9efec', roughness: 0.72, metalness: 0.03 }),
+      new THREE.MeshStandardMaterial({ color: '#c9d9ea', roughness: 0.72, metalness: 0.03 }),
     );
     platform.position.y = -1.9;
     platform.receiveShadow = true;
@@ -117,7 +117,7 @@ export class Tilapia3DViewer {
 
     const ring = new THREE.Mesh(
       new THREE.TorusGeometry(4.85, 0.025, 12, 160),
-      new THREE.MeshBasicMaterial({ color: '#5fc6bd', transparent: true, opacity: 0.62 }),
+      new THREE.MeshBasicMaterial({ color: '#0140c1', transparent: true, opacity: 0.62 }),
     );
     ring.rotation.x = Math.PI / 2;
     ring.position.y = -1.785;
@@ -129,23 +129,18 @@ export class Tilapia3DViewer {
     canvas.width = 1024;
     canvas.height = 512;
     const context = canvas.getContext('2d');
-    const gradient = context.createLinearGradient(0, 0, 0, canvas.height);
-    gradient.addColorStop(0, '#303936');
-    gradient.addColorStop(0.38, '#5f6862');
-    gradient.addColorStop(0.72, '#959a92');
-    gradient.addColorStop(1, '#c8c4b8');
-    context.fillStyle = gradient;
+    context.fillStyle = '#7f91ad';
     context.fillRect(0, 0, canvas.width, canvas.height);
 
     context.globalAlpha = 0.24;
-    ['#121a19', '#1a2523', '#24302d', '#303b37', '#1a2422'].forEach((color, index) => {
+    ['#0d1442', '#0e315b', '#174a7d', '#1c5a91', '#0e315b'].forEach((color, index) => {
       context.fillStyle = color;
       const x = 105 + index * 158;
       context.fillRect(x, 0, 42, canvas.height);
     });
 
     context.globalAlpha = 0.38;
-    context.strokeStyle = '#263735';
+    context.strokeStyle = '#183f68';
     context.lineWidth = 2.3;
     const scaleWidth = 36;
     const scaleHeight = 25;
@@ -160,7 +155,7 @@ export class Tilapia3DViewer {
     }
 
     context.globalAlpha = 0.18;
-    context.fillStyle = '#f5efe0';
+    context.fillStyle = '#eaf4ff';
     context.fillRect(0, canvas.height * 0.76, canvas.width, canvas.height * 0.24);
     context.globalAlpha = 1;
 
@@ -175,7 +170,7 @@ export class Tilapia3DViewer {
   enhanceMaterials() {
     const scaleTexture = this.createScaleTexture();
     this.model.bodyMaterial.map = scaleTexture;
-    this.model.bodyMaterial.color.set('#89948c');
+    this.model.bodyMaterial.color.set('#8799b3');
     this.model.bodyMaterial.roughness = 0.54;
     this.model.bodyMaterial.metalness = 0.01;
     this.model.bodyMaterial.needsUpdate = true;

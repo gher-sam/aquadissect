@@ -8,7 +8,10 @@ use App\Models\SpeciesPackage;
 use App\Models\SpeciesPackageReview;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
+use RuntimeException;
+use Throwable;
 
 class SpeciesPackageLifecycle
 {
@@ -65,11 +68,19 @@ class SpeciesPackageLifecycle
             $curriculumAlignmentConfirmed,
             $safetyReviewConfirmed,
         ): SpeciesPackage {
+            try {
+                $contentFingerprint = $this->contentFingerprint($package);
+            } catch (RuntimeException $exception) {
+                throw ValidationException::withMessages([
+                    'assets' => 'The stored package files failed integrity verification. Restore the reviewed files or import a new version.',
+                ]);
+            }
+
             $review = $package->reviews()->create([
                 'reviewer_id' => $reviewer->id,
                 'reviewer_role' => 'Faculty Reviewer',
                 'review_round' => (int) $package->review_round,
-                'content_fingerprint' => $this->contentFingerprint($package),
+                'content_fingerprint' => $contentFingerprint,
                 'decision' => $decision,
                 'notes' => $notes,
                 'evidence_reference' => $evidenceReference,
@@ -212,26 +223,44 @@ class SpeciesPackageLifecycle
     {
         $review ??= $package->reviews()->latest('id')->first();
 
-        return $review
-            && $review->decision === 'approved'
-            && $review->reviewer_id !== $package->imported_by
-            && $review->review_round === (int) $package->review_round
-            && $review->curriculum_alignment_confirmed
-            && $review->safety_review_confirmed
-            && $review->evidence_reference
-            && hash_equals($review->content_fingerprint, $this->contentFingerprint($package));
+        if (! $review
+            || $review->decision !== 'approved'
+            || $review->reviewer_id === $package->imported_by
+            || $review->review_round !== (int) $package->review_round
+            || ! $review->curriculum_alignment_confirmed
+            || ! $review->safety_review_confirmed
+            || ! $review->evidence_reference) {
+            return false;
+        }
+
+        try {
+            return hash_equals($review->content_fingerprint, $this->contentFingerprint($package));
+        } catch (RuntimeException) {
+            return false;
+        }
     }
 
     public function contentFingerprint(SpeciesPackage $package): string
     {
         $package->loadMissing('assets');
-        $assets = $package->assets->sortBy('asset_key')->map(fn ($asset) => [
-            'key' => $asset->asset_key,
-            'path' => $asset->relative_path,
-            'mime' => $asset->mime_type,
-            'size' => $asset->size_bytes,
-            'sha256' => $asset->sha256,
-        ])->values()->all();
+        $storedFiles = $this->verifiedStoredFiles($package);
+        $assets = $package->assets->sortBy('asset_key')->map(function ($asset) use ($storedFiles): array {
+            $stored = $storedFiles[$asset->relative_path] ?? null;
+            if (! $stored
+                || (int) $asset->size_bytes !== $stored['size']
+                || ! is_string($asset->sha256)
+                || ! hash_equals(strtolower($asset->sha256), $stored['sha256'])) {
+                throw new RuntimeException("Stored package asset metadata does not match {$asset->relative_path}.");
+            }
+
+            return [
+                'key' => $asset->asset_key,
+                'path' => $asset->relative_path,
+                'mime' => $asset->mime_type,
+                'size' => $stored['size'],
+                'sha256' => $stored['sha256'],
+            ];
+        })->values()->all();
 
         return hash('sha256', json_encode([
             'speciesId' => $package->species_id,
@@ -243,6 +272,76 @@ class SpeciesPackageLifecycle
             'archiveChecksum' => $package->checksum,
             'sizeBytes' => $package->size_bytes,
             'assets' => $assets,
+            'storedFiles' => $storedFiles,
         ], JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));
+    }
+
+    /** @return array<string, array{size: int, sha256: string}> */
+    private function verifiedStoredFiles(SpeciesPackage $package): array
+    {
+        $archivePath = trim((string) $package->archive_path, '/');
+        $declaredFiles = $package->manifest['files'] ?? null;
+        if ($archivePath === '' || ! is_array($declaredFiles) || $declaredFiles === []) {
+            throw new RuntimeException('The species package does not declare readable stored files.');
+        }
+
+        ksort($declaredFiles);
+        $verified = [];
+        foreach ($declaredFiles as $relativePath => $expectedHash) {
+            if (! is_string($relativePath)
+                || ! $this->isSafeRelativePath($relativePath)
+                || ! is_string($expectedHash)
+                || ! preg_match('/^[a-f0-9]{64}$/i', $expectedHash)) {
+                throw new RuntimeException('The species package contains an invalid file declaration.');
+            }
+
+            $storedPath = $archivePath.'/'.ltrim($relativePath, '/');
+            [$size, $actualHash] = $this->storedFileState($storedPath);
+            if (! hash_equals(strtolower($expectedHash), $actualHash)) {
+                throw new RuntimeException("Stored package file checksum mismatch: {$relativePath}.");
+            }
+            $verified[$relativePath] = ['size' => $size, 'sha256' => $actualHash];
+        }
+
+        return $verified;
+    }
+
+    /** @return array{int, string} */
+    private function storedFileState(string $path): array
+    {
+        $disk = Storage::disk(config('species-packages.disk'));
+
+        try {
+            if (! $disk->exists($path)) {
+                throw new RuntimeException("Stored package file is missing: {$path}.");
+            }
+            $size = $disk->size($path);
+            $stream = $disk->readStream($path);
+            if (! is_resource($stream)) {
+                throw new RuntimeException("Stored package file is unreadable: {$path}.");
+            }
+            try {
+                $hash = hash_init('sha256');
+                hash_update_stream($hash, $stream);
+                $sha256 = hash_final($hash);
+            } finally {
+                fclose($stream);
+            }
+        } catch (RuntimeException $exception) {
+            throw $exception;
+        } catch (Throwable $exception) {
+            throw new RuntimeException("Stored package file could not be verified: {$path}.", previous: $exception);
+        }
+
+        return [(int) $size, $sha256];
+    }
+
+    private function isSafeRelativePath(string $path): bool
+    {
+        if ($path === '' || str_contains($path, '\\') || str_starts_with($path, '/') || preg_match('/^[A-Za-z]:/', $path)) {
+            return false;
+        }
+
+        return collect(explode('/', $path))->every(fn (string $segment) => $segment !== '' && $segment !== '.' && $segment !== '..');
     }
 }

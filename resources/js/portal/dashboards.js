@@ -106,8 +106,8 @@ function motionFeature(item) {
       </div>
       <div class="motion-feature-stage">
         <span class="motion-orbit motion-orbit-one"></span><span class="motion-orbit motion-orbit-two"></span>
-        <video class="motion-feature-video" src="${item.videoUrl}" poster="${item.naturalImageUrl || ''}" muted loop playsinline autoplay disablepictureinpicture controlslist="nodownload noplaybackrate noremoteplayback" preload="metadata" aria-hidden="true" tabindex="-1"></video>
-        <span class="motion-feature-label">10-second observation</span>
+        <video class="motion-feature-video" src="${item.videoUrl}" poster="${item.naturalImageUrl || ''}" muted loop playsinline disablepictureinpicture controlslist="nodownload noplaybackrate noremoteplayback" preload="metadata" aria-hidden="true" tabindex="-1"></video>
+        <span class="motion-feature-label">Short observation</span>
       </div>
     </section>`;
 }

@@ -38,7 +38,7 @@
 
   <button class="portal-sidebar-scrim" id="portalSidebarScrim" type="button" aria-label="Close navigation" tabindex="-1"></button>
 
-  <main class="portal-main" id="portal-main">
+  <main class="portal-main" id="portal-main" tabindex="-1">
     <div class="dashboard-topbar">
       <button class="dashboard-menu-button" id="dashboardMenuButton" type="button" aria-label="Open navigation" aria-controls="portalSidebar" aria-expanded="false"><i data-lucide="menu"></i></button>
       <div class="dashboard-breadcrumb"><span id="dashboardRoleLabel">AquaDissect</span><strong id="dashboardPageLabel">Overview</strong></div>
@@ -127,11 +127,7 @@
           <p>Instructor requests require administrator approval. Students receive accounts from the administrator.</p>
         </div>
 
-        <ol class="registration-progress" aria-label="Registration process">
-          <li class="is-active"><span>1</span><small>Account</small></li>
-          <li><span>2</span><small>Academic access</small></li>
-          <li><span>3</span><small>Review</small></li>
-        </ol>
+        <p class="registration-process-note"><strong>One form</strong> Complete your account and academic details, then submit them for administrator review.</p>
 
         <div class="registration-grid">
           <label class="portal-field" for="registrationFirstName"><span>First name</span><span class="portal-input-control"><i data-lucide="user" aria-hidden="true"></i><input id="registrationFirstName" name="firstName" required autocomplete="given-name"></span></label>
@@ -186,7 +182,7 @@
     </section>
 
     <section class="portal-page" data-portal-panel="library" hidden>
-      <div class="portal-page-title"><span class="portal-kicker">Guided anatomy lessons</span><h1>Choose a species lesson</h1><p>Open a lesson card to begin. Staff can also preview content that is still being reviewed.</p><div class="page-guidance"><i data-lucide="arrow-right" aria-hidden="true"></i><span><strong>Start here</strong>Select a species, then choose <b>Open lesson</b>.</span></div></div>
+      <div class="portal-page-title"><span class="portal-kicker">Guided anatomy lessons</span><h1>Choose a species lesson</h1><p>Open an assigned lesson card to begin. Content under review is visible only to authorized staff.</p><div class="page-guidance"><i data-lucide="arrow-right" aria-hidden="true"></i><span><strong>Start here</strong>Select a species, then choose <b>Open lesson</b>.</span></div></div>
       <div id="speciesLibraryContent" class="species-library-grid"></div>
     </section>
 

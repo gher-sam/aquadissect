@@ -5,8 +5,6 @@ export class SpeciesVideoViewer {
     this.playing = false;
     this.externalIds = Object.values(anatomy).filter((item) => item.layer === 'external').map((item) => item.id);
     this.internalIds = Object.values(anatomy).filter((item) => item.layer === 'internal').map((item) => item.id);
-    this.reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    this.saveData = Boolean(navigator.connection?.saveData);
     this.onPlaybackChange = onPlaybackChange;
 
     const videoAsset = manifest.assetRecords?.video;
@@ -46,10 +44,6 @@ export class SpeciesVideoViewer {
         this.video.addEventListener('error', () => reject(new Error('The swimming video could not be loaded.')), { once: true });
       });
 
-    if (!this.reduceMotion && !this.saveData) {
-      this.video.autoplay = true;
-      this.video.play().catch(() => undefined);
-    }
   }
 
   setStep() {}

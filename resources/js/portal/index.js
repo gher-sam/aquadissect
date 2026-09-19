@@ -29,6 +29,7 @@ function requireElement(root, selector) {
 export function setupAquaPortal({ app, onOpenPackage }) {
   const portal = requireElement(document, '#aquaPortal');
   const elements = {
+    skipLink: requireElement(document, '#primarySkipLink'),
     signIn: requireElement(portal, '#portalSignIn'),
     userCard: requireElement(portal, '#portalUserCard'),
     userInitials: requireElement(portal, '#portalUserInitials'),
@@ -96,6 +97,22 @@ export function setupAquaPortal({ app, onOpenPackage }) {
   function setMessage(element, message = '') {
     element.textContent = message;
     element.hidden = !message;
+  }
+
+  function setSkipDestination(destination) {
+    const lessonOpen = destination === 'lesson';
+    elements.skipLink.href = lessonOpen ? '#lesson-content' : '#portal-main';
+    elements.skipLink.textContent = lessonOpen ? 'Skip to lesson' : 'Skip to main content';
+  }
+
+  function focusActivePage(name) {
+    requestAnimationFrame(() => {
+      const panel = portal.querySelector(`[data-portal-panel="${name}"]`);
+      const heading = panel?.querySelector('h1, h2');
+      if (!heading) return;
+      heading.setAttribute('tabindex', '-1');
+      heading.focus({ preventScroll: true });
+    });
   }
 
   function updateNetworkStatus() {
@@ -253,10 +270,12 @@ export function setupAquaPortal({ app, onOpenPackage }) {
       if (active) button.setAttribute('aria-current', 'page'); else button.removeAttribute('aria-current');
     });
     elements.pageLabel.textContent = pageLabels[name] || 'AquaDissect';
+    setSkipDestination('portal');
     setSidebarOpen(false);
     renderPage(name);
     if (name === 'roster' && !state.adminRoster) void refreshRoster();
     window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
+    focusActivePage(name);
   }
 
   function signIn(payload) {
@@ -329,8 +348,14 @@ export function setupAquaPortal({ app, onOpenPackage }) {
       await onOpenPackage(response.package, record, { viewerType });
       portal.hidden = true;
       app.hidden = false;
+      setSkipDestination('lesson');
       document.body.classList.add('lesson-is-open');
       window.scrollTo({ top: 0, behavior: 'instant' });
+      requestAnimationFrame(() => {
+        const heading = app.querySelector('#stepTitle');
+        heading?.setAttribute('tabindex', '-1');
+        heading?.focus({ preventScroll: true });
+      });
       window.dispatchEvent(new Event('resize'));
     } catch (error) { showToast(error.message); }
   }
@@ -369,6 +394,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
         },
         onError: (error) => showToast(error.message),
       });
+      setSkipDestination('portal');
       window.scrollTo({ top: 0, behavior: 'instant' });
     } catch (error) { showToast(error.message); }
   }

@@ -36,11 +36,34 @@ class SpeciesCatalog
                 ->orWhere('status', SpeciesPackage::STATUS_REVIEW));
         }
 
-        return $query
-            ->orderByRaw("CASE status WHEN 'published' THEN 1 WHEN 'review' THEN 2 WHEN 'draft' THEN 3 ELSE 4 END")
-            ->orderByDesc('is_current')
-            ->orderBy('species_id')
-            ->get()
+        $statusOrder = [
+            SpeciesPackage::STATUS_PUBLISHED => 1,
+            SpeciesPackage::STATUS_REVIEW => 2,
+            SpeciesPackage::STATUS_DRAFT => 3,
+            SpeciesPackage::STATUS_ARCHIVED => 4,
+        ];
+
+        return $query->get()
+            ->sort(function (SpeciesPackage $left, SpeciesPackage $right) use ($statusOrder): int {
+                $comparison = ($statusOrder[$left->status] ?? 5) <=> ($statusOrder[$right->status] ?? 5);
+                if ($comparison !== 0) {
+                    return $comparison;
+                }
+
+                $comparison = ((int) $right->is_current) <=> ((int) $left->is_current);
+                if ($comparison !== 0) {
+                    return $comparison;
+                }
+
+                $comparison = $left->species_id <=> $right->species_id;
+                if ($comparison !== 0) {
+                    return $comparison;
+                }
+
+                $comparison = version_compare($right->version, $left->version);
+
+                return $comparison !== 0 ? $comparison : $right->id <=> $left->id;
+            })
             ->map(fn (SpeciesPackage $package) => $this->packagePayload($package, $user))
             ->values()
             ->all();

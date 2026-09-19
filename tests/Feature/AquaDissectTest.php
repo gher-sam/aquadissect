@@ -34,7 +34,7 @@ class AquaDissectTest extends TestCase
         $this->assertSame('./', $manifest['start_url']);
         $this->assertSame('./', $manifest['scope']);
         $this->assertSame('standalone', $manifest['display']);
-        $this->assertSame('#073642', $manifest['theme_color']);
+        $this->assertSame('#0e315b', $manifest['theme_color']);
         $this->assertCount(3, $manifest['icons']);
 
         foreach ($manifest['icons'] as $icon) {
@@ -47,7 +47,7 @@ class AquaDissectTest extends TestCase
         $this->assertFileExists(public_path('pwa-icons/apple-touch-icon.png'));
 
         $worker = (string) File::get(public_path('aquadissect-sw.js'));
-        $this->assertStringContainsString('aquadissect-shell-v7', $worker);
+        $this->assertStringContainsString('aquadissect-shell-v9', $worker);
         $this->assertStringContainsString('self.registration.scope', $worker);
         $this->assertStringContainsString('manifest.webmanifest', $worker);
         $this->assertStringContainsString('caches.delete', $worker);

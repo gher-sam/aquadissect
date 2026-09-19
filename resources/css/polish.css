@@ -4,36 +4,28 @@
  */
 
 :root {
-  --color-primary: #087f91;
-  --color-primary-deep: #075466;
-  --color-secondary: #2f9fac;
-  --color-accent: #078a66;
-  --color-accent-hover: #066e55;
-  --color-background: #edf5f4;
+  --color-primary: #0140c1;
+  --color-primary-deep: #0e315b;
+  --color-secondary: #1594e3;
+  --color-accent: #0140c1;
+  --color-accent-hover: #002c83;
+  --color-background: #f5f9ff;
   --color-surface: #ffffff;
-  --color-surface-soft: #f4f9f8;
-  --color-foreground: #113d49;
-  --color-muted-text: #54717a;
-  --color-border: #c9dfdd;
-  --color-focus: #d89514;
-  --shadow-sm: 0 2px 8px rgb(4 52 64 / 7%);
-  --shadow-md: 0 10px 28px rgb(4 52 64 / 9%);
-  --shadow-lg: 0 22px 54px rgb(4 38 48 / 15%);
+  --color-surface-soft: #eaf4ff;
+  --color-foreground: #0d1442;
+  --color-muted-text: #5b6f92;
+  --color-border: #c9d9ea;
+  --color-focus: #0f40cb;
+  --color-warning: #a35b00;
+  --color-warning-soft: #fff6df;
+  --color-danger: #b42318;
+  --color-danger-soft: #fff0ee;
+  --shadow-sm: 0 2px 8px rgb(13 20 66 / 7%);
+  --shadow-md: 0 10px 28px rgb(13 20 66 / 9%);
+  --shadow-lg: 0 22px 54px rgb(13 20 66 / 15%);
 }
 
-/* The interface intentionally uses solid colors throughout. */
-body,
-#aquaPortal,
-#aquaPortal *,
-#aquaPortal *::before,
-#aquaPortal *::after,
-.app-shell,
-.app-shell *,
-.app-shell *::before,
-.app-shell *::after {
-  background-image: none !important;
-  mask-image: none !important;
-}
+/* The interface intentionally uses authored solid colors throughout. */
 
 html,
 body,
@@ -48,7 +40,7 @@ input,
 select,
 textarea,
 summary {
-  transition: color 170ms ease-out, background-color 170ms ease-out, border-color 170ms ease-out, box-shadow 170ms ease-out, transform 170ms ease-out;
+  transition: color 180ms ease-out, background-color 180ms ease-out, border-color 180ms ease-out, box-shadow 180ms ease-out, transform 180ms ease-out;
 }
 
 button:not(:disabled):active,
@@ -63,7 +55,7 @@ summary:active {
   border-color: var(--color-accent);
   color: #ffffff;
   background-color: var(--color-accent);
-  box-shadow: 0 8px 18px rgb(7 138 102 / 18%);
+  box-shadow: 0 8px 18px rgb(0 44 131 / 18%);
 }
 
 .portal-primary:hover,
@@ -88,15 +80,15 @@ summary:active {
 .dock-button:hover,
 .icon-button:hover,
 .button-link:hover {
-  border-color: #8dbbb8;
-  background-color: #eaf4f2;
+  border-color: #c9d9ea;
+  background-color: #f5f9ff;
 }
 
 .portal-brand-mark,
 .brand-mark,
 .dialog-icon,
 .completion-mark {
-  background-color: #0b8fa0;
+  background-color: #0140c1;
 }
 
 .progress-track span,
@@ -109,24 +101,24 @@ summary:active {
   overflow-x: hidden;
   overflow-y: auto;
   border-right-color: rgb(255 255 255 / 12%);
-  background-color: #073e49;
-  box-shadow: 12px 0 32px rgb(4 38 48 / 13%);
+  background-color: #0e315b;
+  box-shadow: 12px 0 32px rgb(13 20 66 / 13%);
 }
 
 .is-authenticated .portal-brand-mark {
-  background-color: #0b8fa0;
+  background-color: #0140c1;
 }
 
 .is-authenticated .portal-sidebar-label {
   margin: 22px 10px 7px;
-  color: #9bc7ca;
+  color: #c9d9ea;
 }
 
 .portal-nav-section {
   display: block;
   padding: 12px 12px 4px;
-  color: #84b4b9;
-  font-size: 9px;
+  color: #c9d9ea;
+  font-size: 10px;
   font-weight: 800;
   letter-spacing: .15em;
   text-transform: uppercase;
@@ -144,7 +136,7 @@ summary:active {
   min-height: 44px;
   padding: 9px 12px;
   border-radius: 11px;
-  color: #c9e5e7;
+  color: #eaf4ff;
 }
 
 .is-authenticated .portal-nav button:hover {
@@ -155,8 +147,8 @@ summary:active {
 
 .is-authenticated .portal-nav button.is-active {
   color: #ffffff;
-  background-color: #0c8f9e;
-  box-shadow: 0 8px 18px rgb(1 24 30 / 20%);
+  background-color: #0140c1;
+  box-shadow: 0 8px 18px rgb(13 20 66 / 20%);
 }
 
 .is-authenticated .portal-sidebar-note {
@@ -205,7 +197,7 @@ summary:active {
 .portal-page-title--compact h2 {
   margin: 4px 0 0;
   color: var(--color-primary-deep);
-  font-family: 'Lora', Georgia, serif;
+  font-family: 'Figtree', system-ui, sans-serif;
   font-size: clamp(23px, 3vw, 30px);
 }
 
@@ -217,10 +209,10 @@ summary:active {
   gap: 11px;
   padding: 11px 14px;
   margin-top: 17px;
-  border: 1px solid #bcdad6;
+  border: 1px solid #c9d9ea;
   border-radius: 13px;
-  color: #315d64;
-  background-color: #e4f2ef;
+  color: #2f405c;
+  background-color: #eaf4ff;
   font-size: 12px;
   line-height: 1.5;
 }
@@ -303,7 +295,7 @@ summary:active {
   padding: 10px 12px 10px 50px;
   border: 1px solid var(--color-border);
   border-radius: 13px;
-  background-color: #f7faf9;
+  background-color: #f5f9ff;
   counter-increment: milestone;
 }
 
@@ -316,8 +308,8 @@ summary:active {
   height: 30px;
   place-items: center;
   border-radius: 50%;
-  color: #38676d;
-  background-color: #dcebea;
+  color: #2f405c;
+  background-color: #eaf4ff;
   content: counter(milestone);
   font-size: 12px;
   font-weight: 800;
@@ -325,13 +317,13 @@ summary:active {
 
 .species-milestone li.is-complete::before {
   color: #ffffff;
-  background-color: #197164;
+  background-color: #002c83;
   content: '✓';
 }
 
 .species-milestone li.is-current {
-  border-color: #73aaa5;
-  background-color: #eef7f5;
+  border-color: #c9d9ea;
+  background-color: #f5f9ff;
 }
 
 .species-milestone li.is-current::before {
@@ -388,8 +380,8 @@ summary:active {
   .access-card:hover,
   .flow-grid > article:hover,
   .learning-module-card:hover {
-    border-color: #9bc8c3;
-    box-shadow: 0 14px 32px rgb(4 52 64 / 12%);
+    border-color: #c9d9ea;
+    box-shadow: 0 14px 32px rgb(13 20 66 / 12%);
     transform: translateY(-2px);
   }
 }
@@ -399,14 +391,14 @@ summary:active {
 .resume-card,
 .task-card,
 .selected-card {
-  background-color: #f3f8f7;
+  background-color: #f5f9ff;
 }
 
 .motion-feature {
-  border-color: #247984;
+  border-color: #0140c1;
   border-radius: 22px;
-  background-color: #075866;
-  box-shadow: 0 18px 40px rgb(2 56 70 / 17%);
+  background-color: #0e315b;
+  box-shadow: 0 18px 40px rgb(14 49 91 / 17%);
 }
 
 .motion-feature::before {
@@ -415,14 +407,14 @@ summary:active {
 
 .motion-feature-action {
   border-color: #ffffff;
-  color: #075466;
+  color: #0e315b;
   background-color: #ffffff;
 }
 
 .motion-feature-action:hover {
-  border-color: #d8efec;
-  color: #063f4c;
-  background-color: #eaf5f3;
+  border-color: #eaf4ff;
+  color: #0e315b;
+  background-color: #f5f9ff;
 }
 
 .motion-feature-secondary,
@@ -431,13 +423,31 @@ summary:active {
   background-color: rgb(255 255 255 / 10%);
 }
 
+.motion-feature-secondary {
+  border-color: rgb(255 255 255 / 50%);
+  color: #ffffff;
+}
+
+.motion-feature-secondary:hover {
+  border-color: #ffffff;
+  color: #0e315b;
+  background-color: #ffffff;
+}
+
+/* Keep programmatic page focus invisible while retaining visible controls. */
+[data-portal-panel] h1[tabindex='-1']:focus:not(:focus-visible),
+[data-portal-panel] h2[tabindex='-1']:focus:not(:focus-visible),
+#stepTitle[tabindex='-1']:focus:not(:focus-visible) {
+  outline: none;
+}
+
 .motion-feature-video,
 .motion-feature-fish {
   animation: none;
 }
 
 .motion-feature-video {
-  background-color: #e7efed;
+  background-color: #eaf4ff;
 }
 
 .metric-card > strong {
@@ -455,8 +465,8 @@ summary:active {
   gap: 7px;
   padding: 22px 24px;
   border-style: solid;
-  border-left: 5px solid #61a9a5;
-  background-color: #f5faf9;
+  border-left: 5px solid #5b6f92;
+  background-color: #f5f9ff;
 }
 
 .empty-state strong {
@@ -465,7 +475,7 @@ summary:active {
 
 /* Forms and simple progressive disclosure */
 .portal-field {
-  color: #315d64;
+  color: #2f405c;
   font-size: 12px;
   font-weight: 700;
 }
@@ -477,7 +487,7 @@ summary:active {
 .roster-inline-form select,
 .learner-override-form input {
   min-height: 46px;
-  border-color: #accbc9;
+  border-color: #c9d9ea;
   border-radius: 10px;
   color: var(--color-foreground);
   background-color: #ffffff;
@@ -487,7 +497,7 @@ summary:active {
 .portal-field select:hover,
 .portal-field textarea:hover,
 .prompt-output textarea:hover {
-  border-color: #7faaa7;
+  border-color: #c9d9ea;
 }
 
 .portal-field input:focus,
@@ -495,7 +505,7 @@ summary:active {
 .portal-field textarea:focus,
 .prompt-output textarea:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 4px rgb(8 127 145 / 13%);
+  box-shadow: 0 0 0 4px rgb(1 64 193 / 13%);
   outline: 0;
 }
 
@@ -525,8 +535,8 @@ summary:active {
   align-items: center;
   padding: 5px 9px;
   border-radius: 999px;
-  color: #075466;
-  background-color: #dff1ee;
+  color: #0e315b;
+  background-color: #eaf4ff;
   font-size: 10px;
   font-weight: 800;
   letter-spacing: .08em;
@@ -573,7 +583,7 @@ summary:active {
   place-items: center;
   border-radius: 50%;
   color: var(--color-primary-deep);
-  background-color: #e4f2ef;
+  background-color: #eaf4ff;
   content: '+';
   font-size: 20px;
   line-height: 1;
@@ -581,7 +591,7 @@ summary:active {
 
 .workflow-disclosure[open] > summary {
   border-bottom: 1px solid var(--color-border);
-  background-color: #f3f8f7;
+  background-color: #f5f9ff;
 }
 
 .workflow-disclosure[open] > summary::after {
@@ -623,7 +633,7 @@ summary:active {
 }
 
 .module-review-form {
-  background-color: #f4f9f8;
+  background-color: #f5f9ff;
 }
 
 .module-tool-audit,
@@ -654,8 +664,8 @@ summary:active {
   padding: 10px 13px;
   border: 1px solid var(--color-border);
   border-radius: 13px;
-  color: #315d64;
-  background-color: #f5faf9;
+  color: #2f405c;
+  background-color: #f5f9ff;
   font-size: 12px;
   font-weight: 700;
 }
@@ -672,23 +682,23 @@ summary:active {
 }
 
 .prompt-output textarea {
-  background-color: #f7faf9;
+  background-color: #f5f9ff;
 }
 
 /* Safety viewer and lesson viewer */
 .learning-module-card__visual,
 .module-25d-viewer,
 .image-scene {
-  background-color: #063e51;
+  background-color: #0e315b;
 }
 
 .module-scene__tray {
-  background-color: #b8cfce;
+  background-color: #c9d9ea;
 }
 
 .module-progress-track,
 .progress-track {
-  background-color: #d6e7e5;
+  background-color: #eaf4ff;
 }
 
 .module-step-copy,
@@ -700,11 +710,11 @@ summary:active {
 .class-module-summary,
 .module-activity label {
   color: var(--color-foreground);
-  background-color: #f4f9f8;
+  background-color: #f5f9ff;
 }
 
 .three-scene {
-  background-color: #dfeceb;
+  background-color: #eaf4ff;
 }
 
 .three-scene::after {
@@ -713,7 +723,7 @@ summary:active {
 
 .explode-control input[type='range'],
 .image-scene input[type='range'] {
-  background-color: #9fc9c6;
+  background-color: #c9d9ea;
 }
 
 .task-card,
@@ -725,6 +735,39 @@ summary:active {
   min-width: 44px;
   width: 44px;
   height: 44px;
+}
+
+.module-viewer-controls button:disabled {
+  opacity: .48;
+  cursor: not-allowed;
+}
+
+.module-hotspot,
+.module-activity label,
+.portal-check,
+.prerequisite-notice button,
+.portal-link {
+  min-height: 44px;
+}
+
+/* High-contrast keyboard focus remains visible against navy viewer and sidebar surfaces. */
+.is-authenticated .portal-header button:focus-visible,
+.is-authenticated .portal-header a:focus-visible,
+.image-scene .scene-button:focus-visible,
+.image-scene .image-hotspot:focus-visible,
+.viewer-panel .dock-button:focus-visible,
+.viewer-panel .viewer-mode-control select:focus-visible,
+.viewer-panel .explode-control input:focus-visible,
+.module-25d-viewer .module-viewer-controls button:focus-visible {
+  outline: 3px solid #f5f9ff;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 5px #002c83;
+}
+
+.viewer-panel > .scene:focus-visible,
+.module-25d-viewer:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 3px #f5f9ff, inset 0 0 0 6px #002c83;
 }
 
 /* Smaller screens keep the next action visible and controls easy to tap. */
@@ -740,7 +783,7 @@ summary:active {
 
 @media (max-width: 780px) {
   .is-authenticated .portal-header {
-    background-color: #073e49;
+    background-color: #0e315b;
   }
 
   .portal-nav-section {

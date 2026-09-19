@@ -1,9 +1,8 @@
-import '@fontsource/lora/latin-500.css';
-import '@fontsource/lora/latin-600.css';
-import '@fontsource/raleway/latin-400.css';
-import '@fontsource/raleway/latin-500.css';
-import '@fontsource/raleway/latin-600.css';
-import '@fontsource/raleway/latin-700.css';
+import '@fontsource/figtree/latin-400.css';
+import '@fontsource/figtree/latin-500.css';
+import '@fontsource/figtree/latin-600.css';
+import '@fontsource/figtree/latin-700.css';
+import '@fontsource/figtree/latin-800.css';
 import {
   ArrowLeft, ArrowRight, Badge, BadgeCheck, BookOpen, Check, ChevronRight, Circle, CircleHelp, ClipboardList,
   Download, Eye, Fish, Focus, GraduationCap, Info, KeyRound, Layers3, LayoutDashboard, LockKeyhole, LogOut, Mail,
@@ -36,7 +35,7 @@ app.innerHTML = `
         <button class="text-button compact-label" id="sourcesButton" type="button" aria-label="Open references"><i data-lucide="book-open"></i><span>References</span></button>
       </div>
     </header>
-    <main class="workspace" id="lesson-content">
+    <main class="workspace" id="lesson-content" tabindex="-1">
       <aside class="lesson-panel panel-surface" aria-labelledby="stepTitle">
         <div class="lesson-panel__top"><span class="eyebrow" id="stepEyebrow">Orientation</span><span class="duration" id="lessonDuration"></span></div>
         <h1 id="stepTitle">Select a species</h1><p class="lesson-description" id="stepDescription"></p>
@@ -150,9 +149,12 @@ async function buildViewer(type = '2d') {
   elements.rotateToggle.setAttribute('aria-pressed', 'false');
 
   if (isVideo) {
-    elements.modeBadge.innerHTML = '<span></span>Generated specimen · Video';
+    const observationPrompt = String(state.steps[0]?.prompt || 'Observe the specimen movement')
+      .split(/,\s*then\s+/i)[0]
+      .replace(/[.!?]+$/, '');
+    elements.modeBadge.innerHTML = '<span></span>Swimming reference · Video';
     elements.rotateToggle.querySelector('span').textContent = 'Play video';
-    elements.sceneInstructions.textContent = 'Observe the rhythmic tail, fin, body, and operculum movement. The camera remains fixed.';
+    elements.sceneInstructions.textContent = `${observationPrompt}. The camera remains fixed.`;
     elements.scene.parentElement.setAttribute('aria-label', 'Natural swimming reference video');
   } else if (type === '3d') {
     elements.rotateToggle.querySelector('span').textContent = 'Swim motion';
