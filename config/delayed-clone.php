@@ -22,6 +22,7 @@ return [
         'species_assignments' => 'id',
         'class_module_assignments' => 'id',
         'species_package_events' => 'id',
+        'species_package_reviews' => 'id',
         'lesson_results' => 'id',
         'learning_module_progress' => 'id',
         'learning_module_attempts' => 'id',

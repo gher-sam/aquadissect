@@ -18,6 +18,7 @@ use App\Http\Controllers\PortalController;
 use App\Http\Controllers\SpeciesAssignmentController;
 use App\Http\Controllers\SpeciesController;
 use App\Http\Controllers\StaffLearningModuleController;
+use App\Http\Controllers\StaffSpeciesPackageController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', PortalController::class);
@@ -42,6 +43,7 @@ Route::prefix('api')->group(function (): void {
         Route::post('/lessons/{lessonKey}/attempts', [LessonAttemptController::class, 'store']);
 
         Route::middleware('role:instructor,admin')->prefix('staff')->group(function (): void {
+            Route::post('/species-packages/{package}/review', [StaffSpeciesPackageController::class, 'review']);
             Route::post('/learning-module-versions/{version}/submit', [StaffLearningModuleController::class, 'submit']);
             Route::post('/learning-module-versions/{version}/review', [StaffLearningModuleController::class, 'review']);
             Route::post('/learning-module-versions/{version}/assets', [LearningModuleAssetController::class, 'store']);

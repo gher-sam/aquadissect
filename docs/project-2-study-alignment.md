@@ -59,10 +59,17 @@ Legacy class records and lesson results must be retained. Existing results witho
 The proposed defense scope is Tilapia, Rabbitfish, and Scad.
 
 - Tilapia is the published flagship package with layered 2.5D anatomy, accessible hotspots, guided learning, quiz functionality, and an optional procedural 3D viewer.
-- Goldspotted Rabbitfish (`Siganus guttatus`) is currently a complete 2.5D draft awaiting subject-matter review and publication.
+- Goldspotted Rabbitfish (`Siganus guttatus`) version `1.0.0` is a complete 2.5D package in the staff-only faculty-review stage. No faculty approval or publication is recorded.
 - Scad has not yet been verified as implemented.
 - The exact scientific identities of Tilapia and Scad require MB 304L faculty confirmation.
 - Additional species are deferred until after the defense.
+
+Implementation status recorded September 20, 2026:
+
+- A species-package version must receive a current independent faculty approval before an administrator can publish it. The uploader cannot approve the same version.
+- The review record retains the decision, notes, evidence reference, curriculum-alignment confirmation, safety confirmation, reviewer role, actor, review round, reviewed-content fingerprint, and timestamps.
+- Restoring an archived species-package version returns it to faculty review and requires a new approval round before republication.
+- Rabbitfish is unavailable to students while it remains in review. Scad development remains pending until MB 304L faculty confirm its exact species identity.
 
 ## Required learner experience
 

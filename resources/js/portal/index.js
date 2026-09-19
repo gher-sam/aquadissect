@@ -133,6 +133,10 @@ export function setupAquaPortal({ app, onOpenPackage }) {
     const drawerMode = mobile && portal.classList.contains('is-authenticated');
     const wasOpen = portal.classList.contains('is-sidebar-open');
     const shouldOpen = Boolean(open && drawerMode);
+    const focusInsideSidebar = elements.sidebar.contains(document.activeElement);
+    if (!shouldOpen && drawerMode && focusInsideSidebar) {
+      elements.menuButton.focus({ preventScroll: true });
+    }
     portal.classList.toggle('is-sidebar-open', shouldOpen);
     document.body.classList.toggle('portal-navigation-open', shouldOpen);
     elements.portalMain.inert = shouldOpen;
@@ -228,7 +232,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
         if (button) button.textContent = isLearningModuleDownloaded(module.id, module.version) ? 'Remove download' : 'Download for offline use';
       });
     }
-    if (name === 'manager') elements.manager.innerHTML = managerView(state.species, state.currentUser?.role);
+    if (name === 'manager') elements.manager.innerHTML = managerView(state.species, state.currentUser?.role, state.currentUser);
     if (name === 'prompt-studio') elements.promptStudio.innerHTML = promptStudio(state.learningModules);
 
     const activePanel = portal.querySelector(`[data-portal-panel="${name}"]`);
@@ -381,7 +385,14 @@ export function setupAquaPortal({ app, onOpenPackage }) {
     try {
       await request(`${prefix}/species-packages/${packageId}/${action}`, { method: 'POST' });
       await refreshData();
-      showToast(`Package ${action} completed`);
+      const messages = {
+        submit: 'Species lesson sent for independent faculty review',
+        publish: 'Approved species lesson published',
+        activate: 'Active lesson version updated',
+        archive: 'Species lesson archived with its history retained',
+        restore: 'Species lesson restored and waiting for a fresh faculty review',
+      };
+      showToast(messages[action] || 'Species lesson updated');
     } catch (error) { showToast(error.message); }
   }
 
@@ -563,6 +574,25 @@ export function setupAquaPortal({ app, onOpenPackage }) {
         showPage('login');
         showToast(response.message);
       } catch (error) { setMessage(elements.activationMessage, error.message); }
+      return;
+    }
+    if (event.target.matches('[data-species-review]')) {
+      event.preventDefault();
+      const data = new FormData(event.target);
+      try {
+        await request(`/api/staff/species-packages/${event.target.dataset.speciesReview}/review`, {
+          method: 'POST',
+          body: {
+            decision: data.get('decision'),
+            notes: data.get('notes'),
+            evidenceReference: data.get('evidenceReference') || null,
+            curriculumAlignmentConfirmed: data.get('curriculumAlignmentConfirmed') === 'on',
+            safetyReviewConfirmed: data.get('safetyReviewConfirmed') === 'on',
+          },
+        });
+        await refreshData();
+        showToast('Faculty decision recorded in the species lesson history');
+      } catch (error) { showToast(error.message); }
       return;
     }
     if (event.target.matches('[data-module-review]')) {

@@ -19,7 +19,9 @@ class SpeciesPackageContent
         }
 
         if ($user->role === User::ROLE_INSTRUCTOR) {
-            if ($package->status === SpeciesPackage::STATUS_PUBLISHED || $package->imported_by === $user->id) {
+            if ($package->status === SpeciesPackage::STATUS_PUBLISHED
+                || $package->status === SpeciesPackage::STATUS_REVIEW
+                || $package->imported_by === $user->id) {
                 return;
             }
         }

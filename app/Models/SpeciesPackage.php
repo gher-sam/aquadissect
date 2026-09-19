@@ -13,7 +13,7 @@ use LogicException;
 #[Fillable([
     'species_id', 'version', 'schema_version', 'status', 'viewer_profile', 'minimum_app_version',
     'manifest', 'archive_path', 'checksum', 'size_bytes', 'is_current', 'imported_by', 'reviewed_by',
-    'published_at', 'archived_at',
+    'review_round', 'published_at', 'archived_at',
 ])]
 class SpeciesPackage extends Model
 {
@@ -46,6 +46,7 @@ class SpeciesPackage extends Model
         return [
             'manifest' => 'array',
             'is_current' => 'boolean',
+            'review_round' => 'integer',
             'published_at' => 'datetime',
             'archived_at' => 'datetime',
         ];
@@ -64,6 +65,11 @@ class SpeciesPackage extends Model
     public function events(): HasMany
     {
         return $this->hasMany(SpeciesPackageEvent::class);
+    }
+
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(SpeciesPackageReview::class);
     }
 
     public function results(): HasMany

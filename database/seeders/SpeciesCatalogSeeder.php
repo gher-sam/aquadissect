@@ -28,7 +28,7 @@ class SpeciesCatalogSeeder extends Seeder
             $student = User::query()->where('role', User::ROLE_STUDENT)->first();
 
             $tilapia = $this->installBundledPackage('tilapia', '1.1.0', SpeciesPackage::STATUS_PUBLISHED, $admin, true);
-            $rabbitfish = $this->installBundledPackage('rabbitfish', '1.0.0', SpeciesPackage::STATUS_DRAFT, $instructor ?? $admin, false);
+            $rabbitfish = $this->installBundledPackage('rabbitfish', '1.0.0', SpeciesPackage::STATUS_REVIEW, $instructor ?? $admin, false);
 
             $class = LearningClass::query()->updateOrCreate(
                 ['code' => 'FISHBIO-101'],
@@ -64,8 +64,8 @@ class SpeciesCatalogSeeder extends Seeder
             }
 
             $rabbitfish->events()->firstOrCreate(
-                ['event' => 'draft_created'],
-                ['user_id' => ($instructor ?? $admin)?->id, 'metadata' => ['source' => 'bundled', 'reviewRequired' => true]],
+                ['event' => 'prepared_for_faculty_review'],
+                ['user_id' => null, 'metadata' => ['source' => 'bundled', 'reviewRequired' => true]],
             );
         });
     }
@@ -86,7 +86,7 @@ class SpeciesCatalogSeeder extends Seeder
                 'activity_mode' => $manifest['activityMode'],
                 'description' => $slug === 'tilapia'
                     ? 'The published flagship guided anatomy and virtual-dissection specimen.'
-                    : 'A complete Goldspotted Rabbitfish draft awaiting administrator and subject-matter review.',
+                    : 'A complete Goldspotted Rabbitfish lesson awaiting independent faculty review and administrator publication.',
             ],
         );
 
@@ -133,6 +133,7 @@ class SpeciesCatalogSeeder extends Seeder
                 'is_current' => $current,
                 'imported_by' => $package->imported_by ?: $actor?->id,
                 'reviewed_by' => $status === SpeciesPackage::STATUS_PUBLISHED ? ($package->reviewed_by ?: $actor?->id) : null,
+                'review_round' => $status === SpeciesPackage::STATUS_REVIEW ? max(1, (int) $package->review_round) : (int) $package->review_round,
                 'published_at' => $status === SpeciesPackage::STATUS_PUBLISHED ? ($package->published_at ?: now()) : null,
                 'archived_at' => null,
             ]);

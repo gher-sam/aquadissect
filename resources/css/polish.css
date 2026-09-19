@@ -261,12 +261,111 @@ summary:active {
 .prompt-studio-form,
 .prompt-output,
 .safety-experience,
-.manager-storage-summary {
+.manager-storage-summary,
+.species-milestone {
   border-color: var(--color-border);
   border-radius: 18px;
   color: var(--color-foreground);
   background-color: var(--color-surface);
   box-shadow: var(--shadow-md);
+}
+
+.species-milestone {
+  display: grid;
+  grid-template-columns: minmax(0, .9fr) minmax(360px, 1.1fr);
+  gap: 24px;
+  margin-bottom: 18px;
+  padding: 24px;
+}
+
+.species-milestone h2 {
+  margin: 5px 0 8px;
+  color: var(--color-primary-deep);
+}
+
+.species-milestone p {
+  margin: 0;
+  color: var(--color-muted);
+}
+
+.species-milestone ol {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: milestone;
+}
+
+.species-milestone li {
+  position: relative;
+  min-height: 58px;
+  padding: 10px 12px 10px 50px;
+  border: 1px solid var(--color-border);
+  border-radius: 13px;
+  background-color: #f7faf9;
+  counter-increment: milestone;
+}
+
+.species-milestone li::before {
+  position: absolute;
+  top: 11px;
+  left: 12px;
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: 50%;
+  color: #38676d;
+  background-color: #dcebea;
+  content: counter(milestone);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.species-milestone li.is-complete::before {
+  color: #ffffff;
+  background-color: #197164;
+  content: '✓';
+}
+
+.species-milestone li.is-current {
+  border-color: #73aaa5;
+  background-color: #eef7f5;
+}
+
+.species-milestone li.is-current::before {
+  color: #ffffff;
+  background-color: var(--color-primary);
+}
+
+.species-milestone strong,
+.species-milestone span,
+.review-waiting-note strong,
+.review-waiting-note span {
+  display: block;
+}
+
+.species-milestone span,
+.review-waiting-note span {
+  margin-top: 2px;
+  color: var(--color-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.review-waiting-note {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-left: 4px solid #aa7a22;
+  border-radius: 10px;
+  background-color: #fff9ec;
+}
+
+.species-review-form > p {
+  color: var(--color-muted);
+  font-size: 13px;
+  line-height: 1.55;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -631,6 +730,10 @@ summary:active {
 /* Smaller screens keep the next action visible and controls easy to tap. */
 @media (max-width: 900px) {
   .prompt-studio-steps {
+    grid-template-columns: 1fr;
+  }
+
+  .species-milestone {
     grid-template-columns: 1fr;
   }
 }

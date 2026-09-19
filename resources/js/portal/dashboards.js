@@ -12,7 +12,22 @@ function formatBytes(bytes = 0) {
   return `${value.toFixed(value >= 10 ? 1 : 2)} ${unit}`;
 }
 
-function packageCard(item, { manager = false, offline = false, isAdmin = false } = {}) {
+function speciesReviewForm(item, currentUser) {
+  if (item.status !== 'review' || item.approvalCurrent || String(item.importedBy) === String(currentUser?.id)) return '';
+
+  return `<form class="module-review-form species-review-form" data-species-review="${item.id}">
+    <h3>Independent faculty review</h3>
+    <p>Check the lesson content, specimen identity, procedure sequence, and safety directions before making a decision.</p>
+    <label class="portal-field">Decision<select name="decision" required><option value="approved">Approve for administrator publication</option><option value="changes_requested">Request changes</option></select></label>
+    <label class="portal-field">Review notes<textarea name="notes" rows="3" minlength="10" maxlength="3000" required></textarea></label>
+    <label class="portal-field">Evidence reference<input name="evidenceReference" maxlength="500" placeholder="Faculty record, reviewed reference, or approved procedure"></label>
+    <label class="portal-check"><input name="curriculumAlignmentConfirmed" type="checkbox"><span>I confirmed the anatomy and learning sequence align with the intended MB 304L activity.</span></label>
+    <label class="portal-check"><input name="safetyReviewConfirmed" type="checkbox"><span>I confirmed the handling and safety directions, including specimen-specific hazards.</span></label>
+    <button class="portal-secondary" type="submit">Record faculty decision</button>
+  </form>`;
+}
+
+function packageCard(item, { manager = false, offline = false, isAdmin = false, currentUser = null } = {}) {
   const status = item.status === 'published' ? 'Published' : item.status === 'review' ? 'In review' : titleCase(item.status);
   const score = item.progress ? `${item.progress.score} / ${item.progress.total}` : 'Not started';
   const canOpen = (item.status === 'published' || manager) && !item.locked;
@@ -21,13 +36,16 @@ function packageCard(item, { manager = false, offline = false, isAdmin = false }
     : '';
   const managerActions = manager ? `
     <div class="package-actions">
-      ${item.status === 'draft' ? `<button class="portal-secondary" data-submit-package="${item.id}" type="button">Submit for review</button>` : ''}
-      ${isAdmin && ['draft', 'review'].includes(item.status) ? `<button class="portal-secondary" data-publish-package="${item.id}" type="button">Publish</button>` : ''}
+      ${item.status === 'draft' ? `<button class="portal-primary" data-submit-package="${item.id}" type="button">Send for faculty review</button>` : ''}
+      ${isAdmin && item.status === 'review' && item.approvalCurrent ? `<button class="portal-primary" data-publish-package="${item.id}" type="button">Publish approved version</button>` : ''}
       ${isAdmin && item.status === 'published' && !item.isCurrent ? `<button class="portal-secondary" data-activate-package="${item.id}" type="button">Set active version</button>` : ''}
       ${isAdmin && item.status === 'published' ? `<button class="portal-secondary" data-archive-package="${item.id}" type="button">Archive</button>` : ''}
-      ${isAdmin && item.status === 'archived' ? `<button class="portal-secondary" data-restore-package="${item.id}" type="button">Restore</button>` : ''}
+      ${isAdmin && item.status === 'archived' ? `<button class="portal-secondary" data-restore-package="${item.id}" type="button">Restore for fresh review</button>` : ''}
       <a class="portal-secondary button-link" href="${item.downloadUrl}">Export .aqpack</a>
-    </div>` : '';
+    </div>
+    ${item.latestReview ? `<div class="module-review-summary"><strong>${escapeHtml(titleCase(item.latestReview.decision.replace('_', ' ')))}</strong><span>${escapeHtml(item.latestReview.reviewerRole)}</span><p>${escapeHtml(item.latestReview.notes)}</p>${item.latestReview.evidenceReference ? `<small>Evidence: ${escapeHtml(item.latestReview.evidenceReference)}</small>` : ''}</div>` : ''}
+    ${item.status === 'review' && !item.approvalCurrent && String(item.importedBy) === String(currentUser?.id) ? '<div class="review-waiting-note"><strong>Waiting for an independent reviewer</strong><span>Another authorized faculty member or administrator must record the decision.</span></div>' : ''}
+    ${speciesReviewForm(item, currentUser)}` : '';
   const offlineAction = offline ? `<button class="portal-secondary" type="button" data-offline-toggle="${item.id}" ${item.locked ? 'disabled' : ''}>${item.locked ? 'Prerequisite required' : ''}</button>` : '';
 
   return `
@@ -180,10 +198,14 @@ export function adminRosterView(data, preview = [], activationCodes = []) {
   </div><div class="roster-preview">${previewTable}</div><div class="portal-page-title"><span class="portal-kicker">MB 304L</span><h2>Existing sections</h2><p>Open a section to assign its instructor, view students, or archive it after the semester.</p></div><div class="class-grid">${offeringCards || '<div class="empty-state">No sections yet.</div>'}</div>`;
 }
 
-export function managerView(packages, role) {
+export function managerView(packages, role, currentUser) {
   const importForm = role === 'instructor' ? '<details class="workflow-disclosure workflow-disclosure--advanced"><summary><span><strong>Advanced: import a prepared lesson file</strong><small>For authorized .aqpack files</small></span></summary><form id="packageImportForm" class="package-import-card package-import-card--nested"><p>Select a prepared AquaDissect lesson file. The system checks the file before creating a draft.</p><input type="file" name="package" accept=".aqpack,.zip" required><button class="portal-primary" type="submit">Check and import draft</button><p class="portal-message" data-import-message hidden></p></form></details>' : '';
   const storageSummary = role === 'admin'
     ? `<div class="manager-storage-summary"><strong>${formatBytes(packages.reduce((total, item) => total + Number(item.sizeBytes || 0), 0))}</strong><span>across ${packages.length} protected lesson version${packages.length === 1 ? '' : 's'}</span><small>Archive or restore a version while keeping its history.</small></div>`
     : '';
-  return `${storageSummary}${importForm}<div class="species-library-grid">${speciesLibrary(packages, { manager: true, isAdmin: role === 'admin' })}</div>`;
+  const tilapia = packages.find((item) => item.slug === 'tilapia' && item.isCurrent) || packages.find((item) => item.slug === 'tilapia');
+  const rabbitfish = packages.find((item) => item.slug === 'rabbitfish');
+  const rabbitfishState = rabbitfish?.status === 'published' ? 'Published' : rabbitfish?.status === 'review' ? (rabbitfish.approvalCurrent ? 'Faculty approved; ready for administrator publication' : 'Awaiting independent faculty decision') : 'Draft ready to send for faculty review';
+  const milestone = `<section class="species-milestone" aria-labelledby="speciesMilestoneTitle"><div><span class="portal-kicker">Species expansion milestone</span><h2 id="speciesMilestoneTitle">Review Rabbitfish before preparing Scad</h2><p>Use the recorded review steps below. Students receive only administrator-published versions.</p></div><ol><li class="${tilapia?.status === 'published' ? 'is-complete' : ''}"><strong>Tilapia</strong><span>${tilapia?.status === 'published' ? 'Published flagship lesson' : 'Publication status needs attention'}</span></li><li class="${rabbitfish?.status === 'published' ? 'is-complete' : 'is-current'}"><strong>Goldspotted Rabbitfish</strong><span>${escapeHtml(rabbitfishState)}</span></li><li><strong>Scad</strong><span>Waiting for faculty confirmation of the exact species identity</span></li></ol></section>`;
+  return `${milestone}${storageSummary}${importForm}<div class="species-library-grid">${speciesLibrary(packages, { manager: true, isAdmin: role === 'admin', currentUser })}</div>`;
 }

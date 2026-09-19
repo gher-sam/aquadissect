@@ -38,7 +38,7 @@ class MultiSpeciesPlatformTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_bundled_catalog_has_published_tilapia_and_instructor_owned_rabbitfish_draft(): void
+    public function test_bundled_catalog_has_published_tilapia_and_rabbitfish_ready_for_review(): void
     {
         $tilapia = SpeciesPackage::query()->whereHas('species', fn ($query) => $query->where('slug', 'tilapia'))->where('is_current', true)->firstOrFail();
         $rabbitfish = SpeciesPackage::query()->whereHas('species', fn ($query) => $query->where('slug', 'rabbitfish'))->firstOrFail();
@@ -48,7 +48,7 @@ class MultiSpeciesPlatformTest extends TestCase
         $this->assertSame('1.1.0', $tilapia->version);
         $this->assertCount(7, $tilapia->assets);
         $this->assertNotNull($tilapia->assets->firstWhere('asset_key', 'video'));
-        $this->assertSame(SpeciesPackage::STATUS_DRAFT, $rabbitfish->status);
+        $this->assertSame(SpeciesPackage::STATUS_REVIEW, $rabbitfish->status);
         $this->assertCount(6, $rabbitfish->assets);
         $this->assertSame('Siganus guttatus', $rabbitfish->species->scientific_name);
         $this->assertDatabaseHas('class_enrollments', ['user_id' => User::query()->where('role', 'student')->value('id')]);
@@ -113,6 +113,36 @@ class MultiSpeciesPlatformTest extends TestCase
         $rabbitfish = SpeciesPackage::query()->whereHas('species', fn ($query) => $query->where('slug', 'rabbitfish'))->firstOrFail();
 
         $this->actingAs($student)->postJson("/api/admin/species-packages/{$rabbitfish->id}/publish")->assertForbidden();
+        $this->actingAs($admin)->postJson("/api/admin/species-packages/{$rabbitfish->id}/publish")
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('review');
+        $this->actingAs($instructor)->postJson("/api/staff/species-packages/{$rabbitfish->id}/review", [
+            'decision' => 'approved',
+            'notes' => 'Uploader must not be able to approve the same package.',
+            'evidenceReference' => 'Faculty review evidence',
+            'curriculumAlignmentConfirmed' => true,
+            'safetyReviewConfirmed' => true,
+        ])->assertUnprocessable()->assertJsonValidationErrors('reviewer');
+        $this->actingAs($admin)->postJson("/api/staff/species-packages/{$rabbitfish->id}/review", [
+            'decision' => 'approved',
+            'notes' => 'The anatomy sequence and specimen safety directions are ready for publication.',
+            'evidenceReference' => 'Faculty review evidence',
+            'curriculumAlignmentConfirmed' => true,
+            'safetyReviewConfirmed' => true,
+        ])->assertOk()->assertJsonPath('package.approvalCurrent', true);
+        $updatedManifest = $rabbitfish->fresh()->manifest;
+        $updatedManifest['reviewVerification'] = 'content changed after approval';
+        $rabbitfish->fresh()->update(['manifest' => $updatedManifest]);
+        $this->actingAs($admin)->postJson("/api/admin/species-packages/{$rabbitfish->id}/publish")
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('review');
+        $this->actingAs($admin)->postJson("/api/staff/species-packages/{$rabbitfish->id}/review", [
+            'decision' => 'approved',
+            'notes' => 'The current content fingerprint was checked after the package update.',
+            'evidenceReference' => 'Faculty review evidence revision 2',
+            'curriculumAlignmentConfirmed' => true,
+            'safetyReviewConfirmed' => true,
+        ])->assertOk()->assertJsonPath('package.approvalCurrent', true);
         $this->actingAs($admin)->postJson("/api/admin/species-packages/{$rabbitfish->id}/publish")
             ->assertOk()
             ->assertJsonPath('package.status', 'published');
@@ -211,7 +241,17 @@ class MultiSpeciesPlatformTest extends TestCase
             'assigned_at' => now(),
         ]);
 
-        $result = app(SpeciesPackageLifecycle::class)->publish($new, $admin);
+        $instructor = User::query()->where('role', 'instructor')->firstOrFail();
+        app(SpeciesPackageLifecycle::class)->review(
+            $new,
+            $instructor,
+            'approved',
+            'The new package version matches the reviewed anatomy and safety requirements.',
+            'Faculty review evidence',
+            true,
+            true,
+        );
+        $result = app(SpeciesPackageLifecycle::class)->publish($new->fresh(), $admin);
 
         $this->assertSame(1, $result['upgradedAssignments']);
         $this->assertSame(1, $result['pinnedAssignments']);
@@ -222,6 +262,45 @@ class MultiSpeciesPlatformTest extends TestCase
             ->assertOk()
             ->assertJsonPath('package.isCurrent', true);
         $this->assertFalse($new->fresh()->is_current);
+    }
+
+    public function test_changes_and_restored_packages_require_a_new_independent_review(): void
+    {
+        $admin = User::query()->where('role', 'admin')->firstOrFail();
+        $instructor = User::query()->where('role', 'instructor')->firstOrFail();
+        $rabbitfish = SpeciesPackage::query()->whereHas('species', fn ($query) => $query->where('slug', 'rabbitfish'))->firstOrFail();
+
+        $this->actingAs($admin)->postJson("/api/staff/species-packages/{$rabbitfish->id}/review", [
+            'decision' => 'changes_requested',
+            'notes' => 'Clarify the specimen-specific spine handling instructions before publication.',
+            'evidenceReference' => null,
+            'curriculumAlignmentConfirmed' => false,
+            'safetyReviewConfirmed' => false,
+        ])->assertOk()->assertJsonPath('package.status', 'draft');
+
+        $this->actingAs($instructor)->postJson("/api/instructor/species-packages/{$rabbitfish->id}/submit")->assertOk();
+        $this->actingAs($admin)->postJson("/api/staff/species-packages/{$rabbitfish->id}/review", [
+            'decision' => 'approved',
+            'notes' => 'The revised package meets the anatomy sequence and specimen safety requirements.',
+            'evidenceReference' => 'Faculty review evidence',
+            'curriculumAlignmentConfirmed' => true,
+            'safetyReviewConfirmed' => true,
+        ])->assertOk();
+        $this->actingAs($admin)->postJson("/api/admin/species-packages/{$rabbitfish->id}/publish")->assertOk();
+        $this->actingAs($admin)->postJson("/api/admin/species-packages/{$rabbitfish->id}/archive")->assertOk();
+        $this->actingAs($admin)->postJson("/api/admin/species-packages/{$rabbitfish->id}/restore")
+            ->assertOk()
+            ->assertJsonPath('package.status', 'review')
+            ->assertJsonPath('package.approvalCurrent', false);
+        $this->actingAs($admin)->postJson("/api/admin/species-packages/{$rabbitfish->id}/publish")
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('review');
+
+        $this->assertDatabaseCount('species_package_reviews', 2);
+        $this->assertDatabaseHas('species_package_events', [
+            'species_package_id' => $rabbitfish->id,
+            'event' => 'restored_for_review',
+        ]);
     }
 
     public function test_published_package_content_is_immutable_and_export_is_available_to_instructors(): void

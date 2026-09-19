@@ -8,12 +8,15 @@ use Illuminate\Database\Eloquent\Builder;
 
 class SpeciesCatalog
 {
-    public function __construct(private readonly LearningModuleGate $gate) {}
+    public function __construct(
+        private readonly LearningModuleGate $gate,
+        private readonly SpeciesPackageLifecycle $lifecycle,
+    ) {}
 
     /** @return array<int, array<string, mixed>> */
     public function for(User $user): array
     {
-        $query = SpeciesPackage::query()->with(['species', 'assets'])->withCount('results');
+        $query = SpeciesPackage::query()->with(['species', 'assets', 'reviews'])->withCount(['results', 'reviews']);
 
         if ($user->role === User::ROLE_STUDENT) {
             $packageIds = $user->classEnrollments()
@@ -29,7 +32,8 @@ class SpeciesCatalog
         } elseif ($user->role === User::ROLE_INSTRUCTOR) {
             $query->where(fn (Builder $inner) => $inner
                 ->published()
-                ->orWhere('imported_by', $user->id));
+                ->orWhere('imported_by', $user->id)
+                ->orWhere('status', SpeciesPackage::STATUS_REVIEW));
         }
 
         return $query
@@ -66,6 +70,26 @@ class SpeciesCatalog
         }
         $locked = $user?->role === User::ROLE_STUDENT && $classIds->isNotEmpty() && $availableClassId === null;
 
+        $staffPayload = [];
+        if ($user && $user->role !== User::ROLE_STUDENT) {
+            $latestReview = $package->reviews->sortByDesc('id')->first();
+            $approvalCurrent = $this->lifecycle->approvalIsCurrent($package, $latestReview);
+            $staffPayload = [
+                'importedBy' => $package->imported_by,
+                'reviewCount' => $package->reviews_count ?? $package->reviews->count(),
+                'approvalCurrent' => (bool) $approvalCurrent,
+                'latestReview' => $latestReview ? [
+                    'decision' => $latestReview->decision,
+                    'reviewerRole' => $latestReview->reviewer_role,
+                    'notes' => $latestReview->notes,
+                    'evidenceReference' => $latestReview->evidence_reference,
+                    'curriculumAlignmentConfirmed' => $latestReview->curriculum_alignment_confirmed,
+                    'safetyReviewConfirmed' => $latestReview->safety_review_confirmed,
+                    'recordedAt' => $latestReview->created_at?->toIso8601String(),
+                ] : null,
+            ];
+        }
+
         return [
             'id' => $package->id,
             'speciesId' => $package->species_id,
@@ -98,6 +122,7 @@ class SpeciesCatalog
             'availableClassId' => $availableClassId,
             'lockReason' => $locked
                 ? 'Complete Safety & Tools or use an instructor-approved exception.' : null,
+            ...$staffPayload,
         ];
     }
 

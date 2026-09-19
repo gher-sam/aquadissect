@@ -21,6 +21,7 @@ use App\Models\SpeciesAssignment;
 use App\Models\SpeciesPackage;
 use App\Models\SpeciesPackageAsset;
 use App\Models\SpeciesPackageEvent;
+use App\Models\SpeciesPackageReview;
 use App\Models\User;
 use App\Services\DelayedCloneApplier;
 use App\Services\DelayedCloneWrite;
@@ -180,6 +181,17 @@ class DelayedCloneTest extends TestCase
                 'user_id' => $instructor->id,
                 'event' => 'draft_imported',
             ]);
+            $review = SpeciesPackageReview::query()->create([
+                'species_package_id' => $package->id,
+                'reviewer_id' => $instructor->id,
+                'reviewer_role' => 'Faculty Reviewer',
+                'review_round' => 1,
+                'content_fingerprint' => str_repeat('c', 64),
+                'decision' => 'changes_requested',
+                'notes' => 'Clone verification species review record.',
+                'curriculum_alignment_confirmed' => false,
+                'safety_review_confirmed' => false,
+            ]);
             $result = LessonResult::query()->create([
                 'user_id' => $student->id,
                 'species_package_id' => $package->id,
@@ -202,6 +214,7 @@ class DelayedCloneTest extends TestCase
                 'class_enrollments' => [$enrollment->id],
                 'species_assignments' => [$assignment->id],
                 'species_package_events' => [$event->id],
+                'species_package_reviews' => [$review->id],
                 'lesson_results' => [$result->id],
             ];
         });
