@@ -25,7 +25,7 @@ app.innerHTML = `
         <span class="brand-mark" aria-hidden="true"><i data-lucide="waves"></i></span>
         <span><strong>AquaDissect</strong><small id="lessonBrandSubtitle">Species lesson</small></span>
       </div>
-      <div class="header-progress" aria-label="Lesson progress">
+      <div class="header-progress" role="progressbar" aria-label="Lesson progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
         <div class="progress-copy"><span id="progressLabel">Orientation</span><strong id="progressPercent">0%</strong></div>
         <div class="progress-track" aria-hidden="true"><span id="progressBar"></span></div>
       </div>
@@ -38,7 +38,7 @@ app.innerHTML = `
     <main class="workspace" id="lesson-content" tabindex="-1">
       <aside class="lesson-panel panel-surface" aria-labelledby="stepTitle">
         <div class="lesson-panel__top"><span class="eyebrow" id="stepEyebrow">Orientation</span><span class="duration" id="lessonDuration"></span></div>
-        <h1 id="stepTitle">Select a species</h1><p class="lesson-description" id="stepDescription"></p>
+        <h1 id="stepTitle" tabindex="-1">Select a species</h1><p class="lesson-description" id="stepDescription"></p>
         <section class="task-card" aria-labelledby="taskHeading"><div class="task-card__icon" aria-hidden="true"><i data-lucide="scan-search"></i></div><div><span class="task-label" id="taskHeading">Your task</span><p id="stepPrompt"></p></div></section>
         <div class="target-list" id="targetList" aria-live="polite"></div>
         <form class="quiz" id="quiz" hidden></form>
@@ -75,9 +75,9 @@ app.innerHTML = `
       </aside>
     </main>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
-    <dialog class="info-dialog" id="infoDialog"><button class="dialog-close" data-close-dialog="infoDialog" aria-label="Close information"><i data-lucide="x"></i></button><span class="dialog-icon" aria-hidden="true"><i data-lucide="waves"></i></span><p class="eyebrow">About this lesson</p><h2 id="infoTitle">A safe first look at aquatic anatomy</h2><p id="infoDescription"></p><div class="dialog-callout"><i data-lucide="badge-check"></i><p><strong>Learning goals</strong><span id="learningGoals"></span></p></div><button class="primary-button dialog-action" data-close-dialog="infoDialog">Continue lesson</button></dialog>
-    <dialog class="references-dialog" id="referencesDialog"><button class="dialog-close" data-close-dialog="referencesDialog" aria-label="Close references"><i data-lucide="x"></i></button><p class="eyebrow">Content foundations</p><h2>Educational references</h2><p>Package references support the lesson. Illustrations remain simplified teaching aids.</p><div class="reference-list" id="referenceList"></div></dialog>
-    <dialog class="completion-dialog" id="completionDialog"><span class="completion-mark" aria-hidden="true"><i data-lucide="badge-check"></i></span><p class="eyebrow">Formative activity complete</p><h2 id="completionTitle">Observation recorded</h2><p id="completionCopy"></p><div class="score-card"><span>Your score</span><strong id="scoreValue">0 / 0</strong></div><div class="completion-actions"><button class="primary-button" id="reviewLesson" type="button"><i data-lucide="rotate-ccw"></i><span>Review lesson</span></button><button class="text-button" id="completionDashboard" type="button">Return to dashboard</button><button class="text-button" data-close-dialog="completionDialog" type="button">Keep exploring</button></div></dialog>
+    <dialog class="info-dialog" id="infoDialog" aria-labelledby="infoTitle"><button class="dialog-close" data-close-dialog="infoDialog" aria-label="Close information"><i data-lucide="x"></i></button><span class="dialog-icon" aria-hidden="true"><i data-lucide="waves"></i></span><p class="eyebrow">About this lesson</p><h2 id="infoTitle">A safe first look at aquatic anatomy</h2><p id="infoDescription"></p><div class="dialog-callout"><i data-lucide="badge-check"></i><p><strong>Learning goals</strong><span id="learningGoals"></span></p></div><button class="primary-button dialog-action" data-close-dialog="infoDialog">Continue lesson</button></dialog>
+    <dialog class="references-dialog" id="referencesDialog" aria-labelledby="referencesTitle"><button class="dialog-close" data-close-dialog="referencesDialog" aria-label="Close references"><i data-lucide="x"></i></button><p class="eyebrow">Content foundations</p><h2 id="referencesTitle">Educational references</h2><p>Package references support the lesson. Illustrations remain simplified teaching aids.</p><div class="reference-list" id="referenceList"></div></dialog>
+    <dialog class="completion-dialog" id="completionDialog" aria-labelledby="completionTitle"><span class="completion-mark" aria-hidden="true"><i data-lucide="badge-check"></i></span><p class="eyebrow">Formative activity complete</p><h2 id="completionTitle">Observation recorded</h2><p id="completionCopy"></p><div class="score-card"><span>Your score</span><strong id="scoreValue">0 / 0</strong></div><div class="completion-actions"><button class="primary-button" id="reviewLesson" type="button"><i data-lucide="rotate-ccw"></i><span>Review lesson</span></button><button class="text-button" id="completionDashboard" type="button">Return to dashboard</button><button class="text-button" data-close-dialog="completionDialog" type="button">Keep exploring</button></div></dialog>
   </div>`;
 
 const icons = { ArrowLeft, ArrowRight, Badge, BadgeCheck, BookOpen, Check, ChevronRight, Circle, CircleHelp, ClipboardList, Download, Eye, Fish, Focus, GraduationCap, Info, KeyRound, Layers3, LayoutDashboard, LockKeyhole, LogOut, Mail, Maximize2, Menu, PackageOpen, Pause, Play, RotateCcw, ScanSearch, School, ShieldCheck, Sparkles, User, Users, UsersRound, Waves, X };
@@ -89,7 +89,7 @@ const elements = {
   stepPrompt: query('#stepPrompt'), targetList: query('#targetList'), primaryAction: query('#primaryAction'),
   previousStep: query('#previousStep'), freeExplore: query('#freeExplore'), anatomyList: query('#anatomyList'),
   selectedCard: query('#selectedCard'), partCount: query('#partCount'), foundCount: query('#foundCount'),
-  progressLabel: query('#progressLabel'), progressPercent: query('#progressPercent'), progressBar: query('#progressBar'),
+  progressRegion: query('.header-progress'), progressLabel: query('#progressLabel'), progressPercent: query('#progressPercent'), progressBar: query('#progressBar'),
   modeBadge: query('#modeBadge'), labelsButton: query('#labelsButton'), resetView: query('#resetView'),
   fullscreenView: query('#fullscreenView'), rotateToggle: query('#rotateToggle'), explodeRange: query('#explodeRange'),
   explodeOutput: query('#explodeOutput'), viewerMode: query('#viewerMode'), viewerModeControl: query('#viewerModeControl'),
@@ -101,11 +101,28 @@ const elements = {
 };
 const state = {
   manifest: null, record: null, anatomy: {}, steps: [], questions: [], model: null, viewerType: '2d',
-  step: 0, discoveries: [], selected: null, labels: false, actionCompleted: new Set(), toastTimer: null,
+  step: 0, discoveries: [], selected: null, labels: false, actionCompleted: new Set(), toastTimer: null, stepFocusTimer: null,
   motion: null,
 };
 const escapeHtml = (value = '') => String(value).replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[character]);
 const safeReferenceUrl = (value) => { try { const url = new URL(value); return ['http:', 'https:'].includes(url.protocol) ? url.href : '#'; } catch { return '#'; } };
+
+function capturePartButtonFocus() {
+  const activeElement = document.activeElement;
+  if (!(activeElement instanceof HTMLElement)) return null;
+  const button = activeElement.closest('button[data-part-id]');
+  const container = button?.closest('#targetList, #anatomyList');
+  if (!button || !container) return null;
+  return { containerId: container.id, partId: button.dataset.partId };
+}
+
+function restorePartButtonFocus(focusTarget) {
+  if (!focusTarget) return;
+  const container = query(`#${focusTarget.containerId}`);
+  const button = [...container.querySelectorAll('button[data-part-id]')]
+    .find((candidate) => candidate.dataset.partId === focusTarget.partId);
+  button?.focus({ preventScroll: true });
+}
 
 let portal;
 
@@ -233,6 +250,7 @@ function targetComplete() {
 }
 
 function renderTargets() {
+  const focusTarget = capturePartButtonFocus();
   const definition = state.steps[state.step];
   const targets = definition.targets || [];
   elements.targetList.hidden = targets.length === 0;
@@ -240,6 +258,7 @@ function renderTargets() {
     const complete = state.discoveries[state.step].has(id);
     return `<button class="target-item ${complete ? 'is-complete' : ''}" data-part-id="${id}" type="button"><span class="target-status">${complete ? '<i data-lucide="check"></i>' : index + 1}</span><span>${escapeHtml(state.anatomy[id]?.name || id)}</span><i data-lucide="chevron-right"></i></button>`;
   }).join('');
+  restorePartButtonFocus(focusTarget);
 }
 
 function renderQuiz() {
@@ -260,6 +279,7 @@ function updatePrimaryAction() {
 }
 
 function renderAnatomyList() {
+  const focusTarget = capturePartButtonFocus();
   const visible = availableParts();
   const found = new Set(state.discoveries.flatMap((items) => [...items]));
   elements.partCount.textContent = `${visible.length} ${visible.length === 1 ? 'part' : 'parts'}`;
@@ -268,6 +288,7 @@ function renderAnatomyList() {
     const part = state.anatomy[id];
     return `<button class="anatomy-item ${state.selected === id ? 'is-selected' : ''}" data-part-id="${id}" type="button" aria-pressed="${state.selected === id}"><span class="part-swatch" style="--part-color:${part.color}"></span><span><strong>${escapeHtml(part.name)}</strong><small>${escapeHtml(part.system)}</small></span><i data-lucide="chevron-right"></i></button>`;
   }).join('');
+  restorePartButtonFocus(focusTarget);
 }
 
 function renderSelectedPart(id) {
@@ -298,6 +319,8 @@ function handlePartSelection(id) {
 }
 
 function renderStep(direction = 0) {
+  clearTimeout(state.stepFocusTimer);
+  state.stepFocusTimer = null;
   const definition = state.steps[state.step];
   elements.stepEyebrow.textContent = definition.eyebrow;
   elements.stepTitle.textContent = definition.title;
@@ -306,6 +329,9 @@ function renderStep(direction = 0) {
   const percent = state.steps.length <= 1 ? 100 : Math.round((state.step / (state.steps.length - 1)) * 100);
   elements.progressLabel.textContent = definition.eyebrow;
   elements.progressPercent.textContent = `${percent}%`;
+  elements.progressRegion.setAttribute('aria-valuemin', '0');
+  elements.progressRegion.setAttribute('aria-valuemax', '100');
+  elements.progressRegion.setAttribute('aria-valuenow', String(percent));
   if (state.motion) state.motion.setProgress(elements.progressBar, percent);
   else elements.progressBar.style.width = `${percent}%`;
   elements.previousStep.disabled = state.step === 0;
@@ -324,6 +350,14 @@ function renderStep(direction = 0) {
     elements.targetList.hidden ? null : elements.targetList,
     elements.quiz.hidden ? null : elements.quiz,
   ], direction);
+  if (direction !== 0) {
+    const focusStepTitle = () => {
+      if (![document.body, document.documentElement, elements.primaryAction, elements.previousStep].includes(document.activeElement)) return;
+      elements.stepTitle.focus({ preventScroll: true });
+    };
+    if (state.motion && !state.motion.reduceMotion) state.stepFocusTimer = setTimeout(focusStepTitle, 500);
+    else focusStepTitle();
+  }
 }
 
 async function submitQuiz() {

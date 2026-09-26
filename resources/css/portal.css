@@ -330,7 +330,7 @@
 .roster-preview { margin: 18px 0 26px; }
 .roster-preview .portal-primary { margin-top: 14px; }
 .roster-details { margin-top: 14px; border-top: 1px solid #eaf4ff; padding-top: 12px; }
-.roster-details summary { cursor: pointer; font-weight: 700; color: var(--color-primary); }
+.roster-details summary { display: flex; min-height: 44px; align-items: center; cursor: pointer; font-weight: 700; color: var(--color-primary); }
 .roster-details .admin-table-wrap { margin: 12px 0; max-width: 100%; overflow-x: auto; }
 .roster-details table { min-width: 480px; }
 .roster-inline-form { display: flex; align-items: end; gap: 8px; margin: 16px 0; }
@@ -550,7 +550,7 @@
 .module-review-summary p { margin-bottom: 5px; }
 
 .module-tool-audit { margin-top: 18px; }
-.module-tool-audit summary { cursor: pointer; font-weight: 800; }
+.module-tool-audit summary { display: flex; min-height: 44px; align-items: center; cursor: pointer; font-weight: 800; }
 .module-tool-audit ul,
 .override-panel ul { padding: 0; list-style: none; }
 .module-tool-audit li,
@@ -606,6 +606,45 @@
 .safety-experience__header { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 22px; }
 .safety-experience__header h1 { margin: 6px 0; font-family: 'Figtree', system-ui, sans-serif; font-size: clamp(28px, 4vw, 44px); }
 
+.module-step-summary {
+  display: grid;
+  grid-template-columns: minmax(160px, .55fr) minmax(0, 1.45fr);
+  gap: 16px;
+  padding: 16px 18px;
+  margin-top: 24px;
+  border: 1px solid #c9d9ea;
+  border-radius: 16px;
+  background: #f5f9ff;
+}
+
+.module-step-summary__progress,
+.module-step-summary__titles {
+  display: grid;
+  gap: 6px;
+}
+
+.module-step-summary__progress span,
+.module-step-summary__titles span {
+  color: #5b6f92;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.module-step-summary__progress strong {
+  color: #0140c1;
+  font-size: 20px;
+}
+
+.module-step-summary__titles {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.module-step-summary__titles p {
+  display: grid;
+  gap: 3px;
+  margin: 0;
+}
+
 .module-step-progress {
   display: grid;
   grid-template-columns: repeat(8, minmax(74px, 1fr));
@@ -630,7 +669,7 @@
 }
 
 .module-step-progress button span { display: grid; width: 27px; height: 27px; place-items: center; border-radius: 50%; background: #eaf4ff; font-weight: 800; }
-.module-step-progress button small { font-size: 10px; line-height: 1.25; }
+.module-step-progress button small { font-size: 12px; line-height: 1.3; }
 .module-step-progress button.is-current { border-color: #0140c1; color: #002c83; box-shadow: 0 0 0 3px rgb(1 64 193 / 10%); }
 .module-step-progress button.is-complete span { color: white; background: #0140c1; }
 
@@ -763,6 +802,10 @@
   .prompt-output,
   .safety-experience { color: #eaf4ff; }
   .class-module-summary { color: #eaf4ff; background: #0e315b; }
+  .module-step-summary { border-color: #2f405c; color: #eaf4ff; background: #0e315b; }
+  .module-step-summary__progress span,
+  .module-step-summary__titles span { color: #c9d9ea; }
+  .module-step-summary__progress strong { color: #8be1fc; }
   .prerequisite-notice { border-color: #735f2c; color: #f5d78f; background: #3c3219; }
   .handling-callout > strong,
   .module-audit-grid dd { color: #8be1fc; }
@@ -1940,6 +1983,34 @@
   margin-top: 15px;
 }
 
+.admin-table-wrap caption {
+  padding: 0 0 10px;
+  color: var(--color-muted-text);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: left;
+}
+
+.student-progress-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.student-progress-table th,
+.student-progress-table td {
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.student-progress-table th {
+  color: var(--color-muted-text);
+  font-size: 11px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
 .admin-table-card table {
   width: 100%;
   border-collapse: collapse;
@@ -1985,6 +2056,161 @@
 .portal-toast.is-visible {
   opacity: 1;
   transform: translateY(0);
+}
+
+.portal-toast.is-visible.is-error {
+  border-color: #f8b4ab;
+  background: #7a271a;
+  pointer-events: auto;
+}
+
+.portal-confirm-dialog {
+  width: min(460px, calc(100vw - 28px));
+  padding: 0;
+  border: 1px solid #c9d9ea;
+  border-radius: 20px;
+  color: var(--color-foreground);
+  background: #ffffff;
+  box-shadow: 0 24px 64px rgb(13 20 66 / 24%);
+}
+
+.portal-confirm-dialog[open] {
+  animation: portal-dialog-enter 180ms ease-out;
+}
+
+.portal-confirm-dialog::backdrop {
+  background: rgb(13 20 66 / 56%);
+  backdrop-filter: blur(3px);
+}
+
+.portal-confirm-dialog form {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px;
+  padding: 24px;
+}
+
+.portal-confirm-dialog__icon {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 50%;
+  color: #0140c1;
+  background: #eaf4ff;
+}
+
+.portal-confirm-dialog__icon svg { width: 22px; height: 22px; }
+.portal-confirm-dialog h2 { margin: 4px 0 8px; font-size: 23px; }
+.portal-confirm-dialog p { margin: 0; color: var(--color-muted-text); line-height: 1.55; }
+
+.portal-confirm-dialog__actions {
+  display: flex;
+  grid-column: 1 / -1;
+  gap: 10px;
+  justify-content: flex-end;
+  padding-top: 8px;
+}
+
+@keyframes portal-dialog-enter {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+form[aria-busy='true'] { cursor: progress; }
+
+form[aria-busy='true'] button[type='submit'] {
+  opacity: .7;
+  cursor: progress;
+}
+
+.assignment-current-summary {
+  display: grid;
+  gap: 4px;
+  padding: 13px 14px;
+  margin: 14px 0;
+  border-left: 4px solid #1594e3;
+  border-radius: 10px;
+  background: #f5f9ff;
+}
+
+.assignment-current-summary span,
+.assignment-current-summary small { color: var(--color-muted-text); }
+.assignment-current-summary span { font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.assignment-current-summary ul { display: grid; gap: 8px; padding: 0; margin: 4px 0 0; list-style: none; }
+.assignment-current-summary li { display: flex; align-items: center; gap: 12px; justify-content: space-between; }
+.assignment-current-summary li > span { display: grid; gap: 2px; color: var(--color-foreground); font-size: inherit; font-weight: inherit; letter-spacing: normal; text-transform: none; }
+.assignment-current-summary p { margin: 4px 0 0; color: var(--color-muted-text); }
+.assignment-card > .portal-primary { margin-top: 14px; }
+.assignment-card > small { display: block; margin-top: 12px; }
+.assignment-empty-state .portal-secondary,
+.roster-load-error .portal-secondary { margin-top: 12px; }
+
+@media (max-width: 620px) {
+  .module-step-summary,
+  .module-step-summary__titles {
+    grid-template-columns: 1fr;
+  }
+
+  .student-progress-table {
+    min-width: 0 !important;
+  }
+
+  .student-progress-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .student-progress-table tbody,
+  .student-progress-table tr,
+  .student-progress-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .student-progress-table tr {
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    border: 1px solid #c9d9ea;
+    border-radius: 12px;
+    background: #ffffff;
+  }
+
+  .student-progress-table td {
+    display: grid;
+    grid-template-columns: minmax(112px, .8fr) minmax(0, 1.2fr);
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid #eaf4ff;
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+
+  .student-progress-table td:last-child { border-bottom: 0; }
+  .student-progress-table td::before { color: #5b6f92; content: attr(data-label); font-size: 11px; font-weight: 800; text-transform: uppercase; }
+  .student-progress-table .learner-override-form { grid-column: 1 / -1; }
+
+  .portal-confirm-dialog form { grid-template-columns: 1fr; padding: 20px; }
+  .portal-confirm-dialog__actions { display: grid; }
+  .portal-confirm-dialog__actions button { width: 100%; }
+}
+
+@media (prefers-color-scheme: dark) {
+  .portal-confirm-dialog,
+  .student-progress-table tr { border-color: #2f405c; color: #eaf4ff; background: #0d1442; }
+  .assignment-current-summary { color: #eaf4ff; background: #0e315b; }
+  .portal-confirm-dialog__icon { color: #8be1fc; background: #0e315b; }
+  .portal-confirm-dialog p,
+  .assignment-current-summary span,
+  .assignment-current-summary small,
+  .assignment-current-summary p,
+  .student-progress-table td::before { color: #c9d9ea; }
+  .assignment-current-summary li > span { color: #eaf4ff; }
 }
 
 #portalReturnButton {
@@ -2220,6 +2446,10 @@
   .portal-toast,
   .is-authenticated .portal-header {
     transition: none;
+  }
+
+  .portal-confirm-dialog[open] {
+    animation: none;
   }
 }
 

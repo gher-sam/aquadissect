@@ -6,9 +6,9 @@
 
 ---
 
-**Project:** Tilapia Explorer
-**Generated:** 2026-08-21 02:58:17
-**Category:** Yoga & Stretching Guide
+**Project:** AquaDissect
+**Updated:** 2026-09-27
+**Category:** Accessible virtual pre-laboratory learning
 
 ---
 
@@ -18,29 +18,32 @@
 
 | Role | Hex | CSS Variable |
 |------|-----|--------------|
-| Primary | `#0891B2` | `--color-primary` |
+| Primary | `#0140C1` | `--color-primary` |
 | On Primary | `#FFFFFF` | `--color-on-primary` |
-| Secondary | `#22D3EE` | `--color-secondary` |
-| Accent/CTA | `#059669` | `--color-accent` |
-| Background | `#ECFEFF` | `--color-background` |
-| Foreground | `#164E63` | `--color-foreground` |
-| Muted | `#E8F1F6` | `--color-muted` |
-| Border | `#A5F3FC` | `--color-border` |
-| Destructive | `#DC2626` | `--color-destructive` |
-| Ring | `#0891B2` | `--color-ring` |
+| Primary deep | `#0E315B` | `--color-primary-deep` |
+| Secondary | `#1594E3` | `--color-secondary` |
+| Background | `#F5F9FF` | `--color-background` |
+| Surface | `#FFFFFF` | `--color-surface` |
+| Surface soft | `#EAF4FF` | `--color-surface-soft` |
+| Foreground | `#0D1442` | `--color-foreground` |
+| Muted text | `#5B6F92` | `--color-muted-text` |
+| Border | `#C9D9EA` | `--color-border` |
+| Destructive | `#B42318` | `--color-destructive` |
+| Ring | `#0F40CB` | `--color-ring` |
 
-**Color Notes:** Calm cyan + health green
+**Color Notes:** Flat ocean blue palette. Do not use gradients. Use cyan only as a restrained supporting accent.
 
 ### Typography
 
-- **Heading Font:** Lora
-- **Body Font:** Raleway
-- **Mood:** calm, wellness, health, relaxing, natural, organic
-- **Google Fonts:** [Lora + Raleway](https://fonts.google.com/share?selection.family=Lora:wght@400;500;600;700|Raleway:wght@300;400;500;600;700)
+- **Heading Font:** Figtree
+- **Body Font:** Figtree
+- **Weights:** 400, 500, 600, 700, 800
+- **Mood:** calm, clear, scientific, supportive, approachable
+- **Source:** Bundled through `@fontsource/figtree`; do not depend on a remote font request.
 
 **CSS Import:**
 ```css
-@import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Raleway:wght@300;400;500;600;700&display=swap');
+font-family: 'Figtree', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 ```
 
 ### Spacing Variables
@@ -73,7 +76,7 @@
 ```css
 /* Primary Button */
 .btn-primary {
-  background: #059669;
+  background: #0140C1;
   color: white;
   padding: 12px 24px;
   border-radius: 8px;
@@ -89,9 +92,9 @@
 
 /* Secondary Button */
 .btn-secondary {
-  background: transparent;
-  color: #0891B2;
-  border: 2px solid #0891B2;
+  background: #FFFFFF;
+  color: #0140C1;
+  border: 1px solid #0140C1;
   padding: 12px 24px;
   border-radius: 8px;
   font-weight: 600;
@@ -104,7 +107,8 @@
 
 ```css
 .card {
-  background: #ECFEFF;
+  background: #FFFFFF;
+  border: 1px solid #C9D9EA;
   border-radius: 12px;
   padding: 24px;
   box-shadow: var(--shadow-md);
@@ -130,9 +134,9 @@
 }
 
 .input:focus {
-  border-color: #0891B2;
+  border-color: #0140C1;
   outline: none;
-  box-shadow: 0 0 0 3px #0891B220;
+  box-shadow: 0 0 0 3px rgb(15 64 203 / 20%);
 }
 ```
 
@@ -158,21 +162,21 @@
 
 ## Style Guidelines
 
-**Style:** Organic Biophilic
+**Style:** Accessible editorial marine learning
 
-**Keywords:** Nature, organic shapes, green, sustainable, rounded, flowing, wellness, earthy, natural textures
+**Keywords:** Blue, clear hierarchy, generous spacing, plain language, calm motion, scientific illustration, visible progress
 
-**Best For:** Wellness apps, sustainability brands, eco products, health apps, meditation, organic food brands
+**Best For:** Non-technical students, instructors, and administrators using a virtual laboratory learning system
 
-**Key Effects:** Rounded corners (16-24px), organic curves (border-radius variations), natural shadows, flowing SVG shapes
+**Key Effects:** Rounded cards, restrained shadows, 150-250ms transitions, clear focus rings, and reduced-motion fallbacks
 
 ### Page Pattern
 
 **Pattern Name:** Immersive/Interactive Experience
 
-- **Conversion Strategy:** 40% higher engagement. Performance trade-off. Provide skip option. Mobile fallback essential.
-- **CTA Placement:** After interaction complete + Skip option for impatient users
-- **Section Order:** 1. Full-screen interactive element, 2. Guided product tour, 3. Key benefits revealed, 4. CTA after completion
+- **Learning Strategy:** Show one clear next action, explain locked states, retain progress, and give recovery guidance near errors.
+- **CTA Placement:** Put the primary next action beside the current status or progress summary.
+- **Section Order:** 1. Page purpose and status, 2. Current or required action, 3. Supporting detail, 4. Advanced controls in disclosures.
 
 ---
 
@@ -180,6 +184,9 @@
 
 - ❌ Inconsistent styling
 - ❌ Poor contrast ratios
+- ❌ Gradient fills
+- ❌ Green as the primary product color
+- ❌ Technical labels when plain language is available
 
 ### Additional Forbidden Patterns
 
@@ -206,3 +213,6 @@ Before delivering any UI code, verify:
 - [ ] Responsive: 375px, 768px, 1024px, 1440px
 - [ ] No content hidden behind fixed navbars
 - [ ] No horizontal scroll on mobile
+- [ ] Figtree is the rendered font
+- [ ] Blue motif uses flat fills only; no gradients
+- [ ] Errors remain visible long enough to understand and retry

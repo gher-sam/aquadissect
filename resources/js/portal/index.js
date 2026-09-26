@@ -19,6 +19,13 @@ const pageLabels = {
   home: 'Home', library: 'Species lessons', classes: 'Class sections', roster: 'People & sections', assignments: 'Class activities',
   safety: 'Safety & Tools', downloads: 'Offline access', manager: 'Species content', 'prompt-studio': 'Create media prompts', access: 'Account roles', about: 'Help & guide',
 };
+const rolePageLabels = {
+  student: { library: 'My lessons', classes: 'My class' },
+};
+
+function pageLabel(name, role = null) {
+  return rolePageLabels[role]?.[name] || pageLabels[name] || 'AquaDissect';
+}
 
 function requireElement(root, selector) {
   const element = root.querySelector(selector);
@@ -66,6 +73,10 @@ export function setupAquaPortal({ app, onOpenPackage }) {
     promptStudio: requireElement(portal, '#mediaPromptStudioContent'),
     sidebarSpeciesCount: requireElement(portal, '#sidebarSpeciesCount'),
     systemStatus: requireElement(portal, '#dashboardSystemStatus'),
+    confirmDialog: requireElement(portal, '#portalConfirmDialog'),
+    confirmTitle: requireElement(portal, '#portalConfirmTitle'),
+    confirmDescription: requireElement(portal, '#portalConfirmDescription'),
+    confirmButton: requireElement(portal, '#portalConfirmButton'),
     toast: requireElement(portal, '#portalToast'),
   };
   let sidebarReturnFocus = null;
@@ -82,16 +93,54 @@ export function setupAquaPortal({ app, onOpenPackage }) {
     rosterClassId: null,
     activationCodes: [],
     activeClassId: null,
+    openLearningModuleId: null,
+    rosterError: null,
     toastTimer: null,
+    toastReturnFocus: null,
     currentPage: 'home',
   };
   app.hidden = true;
 
-  function showToast(message) {
+  function dismissToast() {
     clearTimeout(state.toastTimer);
+    const shouldRestoreFocus = document.activeElement === elements.toast;
+    const returnFocus = state.toastReturnFocus;
+    elements.toast.classList.remove('is-visible', 'is-error');
+    elements.toast.setAttribute('role', 'status');
+    elements.toast.setAttribute('aria-live', 'polite');
+    elements.toast.tabIndex = -1;
+    elements.toast.removeAttribute('aria-label');
+    state.toastReturnFocus = null;
+    if (shouldRestoreFocus) {
+      const target = returnFocus?.isConnected && returnFocus.getClientRects().length ? returnFocus : currentPageHeading();
+      if (target && !target.matches('button, a[href], input, select, textarea, [tabindex]')) target.setAttribute('tabindex', '-1');
+      target?.focus({ preventScroll: true });
+    }
+  }
+
+  function showToast(message, { tone = 'status', persistent = false } = {}) {
+    dismissToast();
+    if (tone === 'error' && document.activeElement instanceof HTMLElement) state.toastReturnFocus = document.activeElement;
     elements.toast.textContent = message;
+    elements.toast.classList.toggle('is-error', tone === 'error');
+    elements.toast.setAttribute('role', tone === 'error' ? 'alert' : 'status');
+    elements.toast.setAttribute('aria-live', tone === 'error' ? 'assertive' : 'polite');
+    elements.toast.tabIndex = tone === 'error' ? 0 : -1;
+    elements.toast.setAttribute('aria-label', tone === 'error' ? `${message}. Press Escape to dismiss.` : message);
     elements.toast.classList.add('is-visible');
-    state.toastTimer = setTimeout(() => elements.toast.classList.remove('is-visible'), 3000);
+    if (!persistent) state.toastTimer = setTimeout(dismissToast, 4000);
+  }
+
+  function confirmPortalAction({ title, description, confirmLabel = 'Confirm' }) {
+    if (typeof elements.confirmDialog.showModal !== 'function') return Promise.resolve(window.confirm(description));
+    elements.confirmTitle.textContent = title;
+    elements.confirmDescription.textContent = description;
+    elements.confirmButton.textContent = confirmLabel;
+    elements.confirmDialog.returnValue = '';
+    elements.confirmDialog.showModal();
+    return new Promise((resolve) => {
+      elements.confirmDialog.addEventListener('close', () => resolve(elements.confirmDialog.returnValue === 'confirm'), { once: true });
+    });
   }
 
   function setMessage(element, message = '') {
@@ -113,6 +162,46 @@ export function setupAquaPortal({ app, onOpenPackage }) {
       heading.setAttribute('tabindex', '-1');
       heading.focus({ preventScroll: true });
     });
+  }
+
+  function findDataElement(attribute, value, root = portal) {
+    return [...root.querySelectorAll(`[${attribute}]`)]
+      .find((element) => element.getAttribute(attribute) === String(value));
+  }
+
+  function currentPageHeading() {
+    return portal.querySelector(`[data-portal-panel="${state.currentPage}"] h1, [data-portal-panel="${state.currentPage}"] h2`);
+  }
+
+  function focusAfterRender(resolveTarget) {
+    const attemptFocus = () => {
+      if (![document.body, document.documentElement].includes(document.activeElement)) return;
+      let target = resolveTarget?.();
+      if (!target?.getClientRects().length) target = currentPageHeading();
+      if (!target) return;
+      if (!target.matches('button, a[href], input, select, textarea, [tabindex]')) target.setAttribute('tabindex', '-1');
+      target.focus({ preventScroll: true });
+    };
+    requestAnimationFrame(attemptFocus);
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) setTimeout(attemptFocus, 380);
+  }
+
+  function formFocusResolver(form) {
+    const formId = form.id;
+    const dataEntry = Object.entries(form.dataset).find(([, value]) => value);
+    const packageId = form.closest('[data-package-card]')?.dataset.packageCard;
+    const moduleId = form.closest('[data-learning-module-card]')?.dataset.learningModuleCard;
+    const classId = form.closest('[data-class-card]')?.dataset.classCard;
+    return () => {
+      if (packageId) return findDataElement('data-package-card', packageId)?.querySelector('h2');
+      if (moduleId) return findDataElement('data-learning-module-card', moduleId)?.querySelector('h2');
+      if (classId) return findDataElement('data-class-card', classId)?.querySelector('h2, h3');
+      const nextForm = [...portal.querySelectorAll('form')].find((candidate) => (
+        (formId && candidate.id === formId)
+        || (dataEntry && candidate.dataset[dataEntry[0]] === dataEntry[1])
+      ));
+      return nextForm?.querySelector('h1, h2, h3') || nextForm?.querySelector('button[type="submit"]');
+    };
   }
 
   function updateNetworkStatus() {
@@ -141,7 +230,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
     const published = state.species.filter((item) => item.status === 'published').length;
     elements.sidebarSpeciesCount.textContent = `${published} lesson${published === 1 ? '' : 's'} ready`;
     portal.querySelectorAll('[data-nav-label]').forEach((label) => {
-      label.textContent = pageLabels[label.dataset.navLabel] || label.textContent;
+      label.textContent = pageLabel(label.dataset.navLabel, user?.role);
     });
   }
 
@@ -194,18 +283,37 @@ export function setupAquaPortal({ app, onOpenPackage }) {
   }
 
   function assignmentView() {
-    if (state.currentUser?.role === 'student') return `<div class="species-library-grid">${speciesLibrary(state.species)}</div>`;
     const published = state.species.filter((item) => item.status === 'published');
     const activeClasses = state.classes.filter((item) => item.status === 'active');
     if (!activeClasses.length) return '<div class="empty-state"><strong>No assigned section is available</strong><span>Ask the administrator to assign you to an active MB 304L section.</span></div>';
-    return `<div class="assignment-grid">${activeClasses.map((course) => `
+    if (!published.length) return '<div class="empty-state assignment-empty-state"><strong>No published species lesson is ready</strong><span>Complete the review and publication steps in Species content before assigning a lesson.</span><button class="portal-secondary" type="button" data-portal-page="manager">Open Species content</button></div>';
+    return `<div class="assignment-grid">${activeClasses.map((course) => {
+      const currentAssignments = course.assignments || [];
+      const assignmentsBySpecies = new Map(currentAssignments.map((assignment) => [String(assignment.speciesId), assignment]));
+      const selectedPackage = published.find((item) => currentAssignments.some((assignment) => String(assignment.packageId) === String(item.id))) || published[0];
+      const selectedAssignment = assignmentsBySpecies.get(String(selectedPackage.speciesId));
+      const dueValue = selectedAssignment?.dueAt ? String(selectedAssignment.dueAt).slice(0, 10) : '';
+      const currentSummary = currentAssignments.length
+        ? `<ul>${currentAssignments.map((assignment) => {
+          const assignmentDue = assignment.dueAt ? String(assignment.dueAt).slice(0, 10) : '';
+          const dueLabel = assignmentDue ? new Intl.DateTimeFormat(undefined, { year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(`${assignmentDue}T00:00:00`)) : 'No due date';
+          return `<li><span><strong>${escapeHtml(assignment.commonName || 'Species lesson')}</strong><small>Version ${escapeHtml(assignment.version || '')}</small></span><small>${escapeHtml(dueLabel)}</small></li>`;
+        }).join('')}</ul>`
+        : '<p>No lesson assigned yet.</p>';
+      return `
       <form class="assignment-card" data-assignment-form="${course.id}">
         <span class="portal-kicker">${escapeHtml(course.code)}</span><h2>${escapeHtml(course.name)}</h2>
-        <label class="portal-field">Published species lesson<select name="speciesPackageId" required>${published.map((item) => `<option value="${item.id}">${escapeHtml(item.commonName)} · v${escapeHtml(item.version)}</option>`).join('')}</select></label>
-        <label class="portal-field">Due date (optional)<input name="dueAt" type="date"></label>
-        <button class="portal-primary" type="submit">Assign lesson</button>
+        <div class="assignment-current-summary"><span>Current activities</span>${currentSummary}</div>
+        <label class="portal-field">Published species lesson<select name="speciesPackageId" data-assignment-package required>${published.map((item) => {
+          const current = assignmentsBySpecies.get(String(item.speciesId));
+          const currentDue = current?.dueAt ? String(current.dueAt).slice(0, 10) : '';
+          return `<option value="${item.id}" data-current-due="${escapeHtml(currentDue)}" ${String(item.id) === String(selectedPackage.id) ? 'selected' : ''}>${escapeHtml(item.commonName)} · v${escapeHtml(item.version)}</option>`;
+        }).join('')}</select></label>
+        <label class="portal-field">Due date (optional)<input name="dueAt" type="date" value="${escapeHtml(dueValue)}"></label>
+        <button class="portal-primary" type="submit">${currentAssignments.length ? 'Save activity' : 'Assign lesson'}</button>
         <small>Students who already started remain on their saved lesson version unless you intentionally assign a new version.</small>
-      </form>`).join('')}</div>`;
+      </form>`;
+    }).join('')}</div>`;
   }
 
   function renderPage(name = state.currentPage) {
@@ -231,7 +339,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
     if (name === 'classes') {
       elements.classes.innerHTML = classCards(state.classes, state.currentUser?.role);
     }
-    if (name === 'roster') elements.roster.innerHTML = adminRosterView(state.adminRoster, state.rosterPreview, state.activationCodes);
+    if (name === 'roster') elements.roster.innerHTML = adminRosterView(state.adminRoster, state.rosterPreview, state.activationCodes, state.rosterError);
     if (name === 'assignments') elements.assignments.innerHTML = assignmentView();
     if (name === 'downloads') {
       elements.downloads.innerHTML = `<div class="download-summary"><strong>${listDownloadedPackages().length + listDownloadedLearningModules().length}</strong><span>learning items saved on this device</span></div><div class="portal-page-title portal-page-title--compact"><span class="portal-kicker">Prerequisite</span><h2>Safety module</h2></div>${safetyWorkspace(state.learningModules, state.currentUser?.role, state.currentUser, { offline: true })}<div class="portal-page-title portal-page-title--compact"><span class="portal-kicker">Assigned anatomy</span><h2>Species lessons</h2></div><div class="species-library-grid">${speciesLibrary(state.species.filter((item) => item.status === 'published'), { offline: true })}</div>`;
@@ -269,7 +377,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
       button.classList.toggle('is-active', active);
       if (active) button.setAttribute('aria-current', 'page'); else button.removeAttribute('aria-current');
     });
-    elements.pageLabel.textContent = pageLabels[name] || 'AquaDissect';
+    elements.pageLabel.textContent = pageLabel(name, state.currentUser?.role);
     setSkipDestination('portal');
     setSidebarOpen(false);
     renderPage(name);
@@ -286,6 +394,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
     state.classes = payload.classes || [];
     state.learningModules = payload.learningModules || [];
     state.adminRoster = null;
+    state.rosterError = null;
     state.activationCodes = [];
     updateSession();
     showPage('home');
@@ -303,11 +412,17 @@ export function setupAquaPortal({ app, onOpenPackage }) {
 
   async function refreshRoster() {
     if (state.currentUser?.role !== 'admin') return;
+    state.rosterError = null;
+    if (!state.adminRoster) renderPage('roster');
     try {
       state.adminRoster = await request('/api/admin/roster');
       state.classes = state.adminRoster.classes || [];
       renderPage();
-    } catch (error) { showToast(error.message); }
+    } catch (error) {
+      state.rosterError = error.message;
+      renderPage('roster');
+      showToast(error.message, { tone: 'error', persistent: true });
+    }
   }
 
   async function signOut() {
@@ -320,6 +435,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
       state.classes = [];
       state.learningModules = [];
       state.adminRoster = null;
+      state.rosterError = null;
       state.activationCodes = [];
       state.rosterPreview = [];
       state.rosterFile = null;
@@ -327,7 +443,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
       updateSession();
       showPage('login');
       showToast('Signed out');
-    } catch (error) { showToast(error.message); }
+    } catch (error) { showToast(error.message, { tone: 'error', persistent: true }); }
   }
 
   async function openPackage(id, viewerType = 'auto', selectedClassId = null) {
@@ -357,7 +473,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
         heading?.focus({ preventScroll: true });
       });
       window.dispatchEvent(new Event('resize'));
-    } catch (error) { showToast(error.message); }
+    } catch (error) { showToast(error.message, { tone: 'error', persistent: true }); }
   }
 
   async function openLearningModule(id) {
@@ -366,6 +482,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
     try {
       const classQuery = state.currentUser?.role === 'student' ? `?classId=${record.classId}` : '';
       const response = await request(`/api/learning-modules/${record.id}/manifest${classQuery}`);
+      state.openLearningModuleId = record.id;
       elements.safety.hidden = true;
       elements.safetyExperience.hidden = false;
       createModuleExperience(elements.safetyExperience, response.module, record, {
@@ -392,11 +509,11 @@ export function setupAquaPortal({ app, onOpenPackage }) {
           showToast('Safety & Tools completed. Assigned anatomy lessons are now available.');
           if (navigator.onLine) await refreshData();
         },
-        onError: (error) => showToast(error.message),
+        onError: (error) => showToast(error.message, { tone: 'error', persistent: true }),
       });
       setSkipDestination('portal');
       window.scrollTo({ top: 0, behavior: 'instant' });
-    } catch (error) { showToast(error.message); }
+    } catch (error) { showToast(error.message, { tone: 'error', persistent: true }); }
   }
 
   function openDashboard() {
@@ -411,6 +528,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
     try {
       await request(`${prefix}/species-packages/${packageId}/${action}`, { method: 'POST' });
       await refreshData();
+      focusAfterRender(() => findDataElement('data-package-card', packageId)?.querySelector('h2'));
       const messages = {
         submit: 'Species lesson sent for independent faculty review',
         publish: 'Approved species lesson published',
@@ -419,7 +537,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
         restore: 'Species lesson restored and waiting for a fresh faculty review',
       };
       showToast(messages[action] || 'Species lesson updated');
-    } catch (error) { showToast(error.message); }
+    } catch (error) { showToast(error.message, { tone: 'error', persistent: true }); }
   }
 
   async function moduleLifecycleAction(action, versionId) {
@@ -427,9 +545,10 @@ export function setupAquaPortal({ app, onOpenPackage }) {
     try {
       const response = await request(`${prefix}/learning-module-versions/${versionId}/${action}`, { method: 'POST' });
       await refreshData();
+      focusAfterRender(() => findDataElement('data-learning-module-card', versionId)?.querySelector('h2'));
       const detail = action === 'publish' ? ` ${response.assignments || 0} section assignment(s) updated; ${response.legacyOverrides || 0} legacy exception(s) retained.` : '';
       showToast(`Learning module ${action} completed.${detail}`);
-    } catch (error) { showToast(error.message); }
+    } catch (error) { showToast(error.message, { tone: 'error', persistent: true }); }
   }
 
   async function handlePortalClick(event) {
@@ -445,6 +564,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
     }
     const navigation = event.target.closest('[data-portal-page]');
     if (navigation) showPage(navigation.dataset.portalPage);
+    if (event.target.closest('[data-retry-roster]')) await refreshRoster();
     const demoButton = event.target.closest('[data-demo-role]');
     if (demoButton) {
       setMessage(elements.loginMessage);
@@ -458,9 +578,17 @@ export function setupAquaPortal({ app, onOpenPackage }) {
     const openModuleButton = event.target.closest('[data-open-learning-module]');
     if (openModuleButton) await openLearningModule(openModuleButton.dataset.openLearningModule);
     if (event.target.closest('[data-close-learning-module]')) {
+      const returningModuleId = state.openLearningModuleId;
+      state.openLearningModuleId = null;
       elements.safetyExperience.hidden = true;
       elements.safety.hidden = false;
       renderPage('safety');
+      const restoreModuleTriggerFocus = () => {
+        if (![document.body, document.documentElement].includes(document.activeElement)) return;
+        elements.safety.querySelector(`[data-open-learning-module="${returningModuleId}"]`)?.focus({ preventScroll: true });
+      };
+      requestAnimationFrame(restoreModuleTriggerFocus);
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) setTimeout(restoreModuleTriggerFocus, 380);
     }
     const approvalId = event.target.closest('[data-approve-account]')?.dataset.approveAccount;
     if (approvalId && state.currentUser?.role === 'admin') {
@@ -468,16 +596,19 @@ export function setupAquaPortal({ app, onOpenPackage }) {
         await request(`/api/admin/users/${approvalId}/approve`, { method: 'POST' });
         state.pendingUsers = state.pendingUsers.filter((item) => String(item.id) !== approvalId);
         renderPage();
+        focusAfterRender(() => elements.dashboardGreeting);
         showToast('Instructor account approved');
-      } catch (error) { showToast(error.message); }
+      } catch (error) { showToast(error.message, { tone: 'error', persistent: true }); }
     }
     const offeringAction = event.target.closest('[data-offering-status]');
     if (offeringAction && state.currentUser?.role === 'admin') {
+      if (offeringAction.dataset.offeringStatus === 'archived' && !await confirmPortalAction({ title: 'Archive this section?', description: 'The section and its learning records will be retained, but it will no longer appear as an active class.', confirmLabel: 'Archive section' })) return;
       try {
         await request(`/api/admin/offerings/${offeringAction.dataset.offeringId}/status`, { method: 'PATCH', body: { status: offeringAction.dataset.offeringStatus } });
         await refreshRoster();
+        focusAfterRender(() => findDataElement('data-class-card', offeringAction.dataset.offeringId)?.querySelector('h2, h3'));
         showToast(`Section ${offeringAction.dataset.offeringStatus}`);
-      } catch (error) { showToast(error.message); }
+      } catch (error) { showToast(error.message, { tone: 'error', persistent: true }); }
     }
     const activationId = event.target.closest('[data-issue-activation]')?.dataset.issueActivation;
     if (activationId && state.currentUser?.role === 'admin') {
@@ -485,7 +616,8 @@ export function setupAquaPortal({ app, onOpenPackage }) {
         const result = await request(`/api/admin/students/${activationId}/activation`, { method: 'POST' });
         state.activationCodes = [{ email: result.email, code: result.code }];
         renderPage('roster');
-      } catch (error) { showToast(error.message); }
+        focusAfterRender(() => findDataElement('data-issue-activation', activationId) || currentPageHeading());
+      } catch (error) { showToast(error.message, { tone: 'error', persistent: true }); }
     }
     if (event.target.closest('[data-import-reviewed-roster]') && state.rosterFile) {
       const body = new FormData();
@@ -497,24 +629,45 @@ export function setupAquaPortal({ app, onOpenPackage }) {
         state.rosterPreview = [];
         state.rosterFile = null;
         await refreshRoster();
+        focusAfterRender(currentPageHeading);
         showToast('Roster imported. Existing accounts were reused.');
-      } catch (error) { showToast(error.message); }
+      } catch (error) { showToast(error.message, { tone: 'error', persistent: true }); }
     }
     for (const action of ['submit', 'publish', 'activate', 'archive', 'restore']) {
       const id = event.target.closest(`[data-${action}-package]`)?.dataset[`${action}Package`];
-      if (id) await lifecycleAction(action, id);
+      if (!id) continue;
+      const record = state.species.find((item) => String(item.id) === String(id));
+      const confirmations = {
+        publish: ['Publish this lesson?', `${record?.commonName || 'This lesson'} will become available for assignment after publication.`, 'Publish lesson'],
+        activate: ['Make this the active version?', `New assignments will use ${record?.commonName || 'this lesson'} version ${record?.version || ''}.`, 'Make active'],
+        archive: ['Archive this lesson?', 'The lesson history will be retained, but this version will no longer be available for new assignments.', 'Archive lesson'],
+        restore: ['Restore this lesson?', 'The lesson will return as a draft and must complete a fresh faculty review before publication.', 'Restore lesson'],
+      };
+      if (confirmations[action]) {
+        const [title, description, confirmLabel] = confirmations[action];
+        if (!await confirmPortalAction({ title, description, confirmLabel })) return;
+      }
+      await lifecycleAction(action, id);
+      return;
     }
     for (const action of ['submit', 'publish', 'archive']) {
       const button = event.target.closest(`[data-${action}-learning-module]`);
-      if (button) await moduleLifecycleAction(action, button.dataset[`${action}LearningModule`]);
+      if (!button) continue;
+      if (action === 'publish' && !await confirmPortalAction({ title: 'Publish this Safety & Tools version?', description: 'Unstarted section assignments will move to this approved version. Started learners will keep their current version.', confirmLabel: 'Publish module' })) return;
+      if (action === 'archive' && !await confirmPortalAction({ title: 'Archive this module version?', description: 'Its history will be retained and the version will no longer be available for new assignments.', confirmLabel: 'Archive version' })) return;
+      await moduleLifecycleAction(action, button.dataset[`${action}LearningModule`]);
+      return;
     }
     const revokeOverride = event.target.closest('[data-revoke-module-override]');
     if (revokeOverride) {
+      const classId = revokeOverride.closest('[data-class-card]')?.dataset.classCard;
+      if (!await confirmPortalAction({ title: 'Revoke this prerequisite exception?', description: 'The learner or section will need to complete Safety & Tools before opening assigned anatomy lessons.', confirmLabel: 'Revoke exception' })) return;
       try {
         await request(`/api/staff/learning-module-overrides/${revokeOverride.dataset.revokeModuleOverride}`, { method: 'DELETE' });
         await refreshData();
+        focusAfterRender(() => findDataElement('data-class-card', classId)?.querySelector('h2, h3'));
         showToast('Prerequisite exception revoked with its history retained');
-      } catch (error) { showToast(error.message); }
+      } catch (error) { showToast(error.message, { tone: 'error', persistent: true }); }
     }
     const copyPrompt = event.target.closest('[data-copy-media-prompt]');
     if (copyPrompt) {
@@ -537,7 +690,8 @@ export function setupAquaPortal({ app, onOpenPackage }) {
           showToast('Package verified and ready offline');
         }
         renderPage('downloads');
-      } catch (error) { showToast(error.message); renderPage('downloads'); }
+        focusAfterRender(() => findDataElement('data-offline-toggle', offlineId));
+      } catch (error) { showToast(error.message, { tone: 'error', persistent: true }); renderPage('downloads'); }
     }
     const offlineModuleButton = event.target.closest('[data-offline-module-toggle]');
     if (offlineModuleButton) {
@@ -553,11 +707,37 @@ export function setupAquaPortal({ app, onOpenPackage }) {
           showToast('Safety & Tools verified and ready offline');
         }
         renderPage('downloads');
-      } catch (error) { showToast(error.message); renderPage('downloads'); }
+        focusAfterRender(() => findDataElement('data-offline-module-toggle', offlineModuleButton.dataset.offlineModuleToggle));
+      } catch (error) { showToast(error.message, { tone: 'error', persistent: true }); renderPage('downloads'); }
     }
   }
 
   async function handlePortalSubmit(event) {
+    if (event.target.closest('#portalConfirmDialog') || event.target.matches('[data-module-activity]')) return;
+    const form = event.target;
+    const submitter = event.submitter || form.querySelector('button[type="submit"], input[type="submit"]');
+    const shouldRestoreFocus = form.contains(document.activeElement);
+    const resolveReturnFocus = formFocusResolver(form);
+    const originalContent = submitter instanceof HTMLButtonElement ? submitter.innerHTML : null;
+    form.setAttribute('aria-busy', 'true');
+    if (submitter) {
+      submitter.disabled = true;
+      if (submitter instanceof HTMLButtonElement) submitter.textContent = 'Please wait…';
+    }
+    try {
+      await handlePortalSubmitAction(event);
+    } finally {
+      form.removeAttribute('aria-busy');
+      if (submitter) {
+        submitter.disabled = false;
+        if (submitter instanceof HTMLButtonElement && originalContent !== null) submitter.innerHTML = originalContent;
+      }
+      window.lucide?.createIcons();
+      if (shouldRestoreFocus && !form.isConnected) focusAfterRender(resolveReturnFocus);
+    }
+  }
+
+  async function handlePortalSubmitAction(event) {
     if (event.target === elements.loginForm) {
       event.preventDefault();
       const data = new FormData(elements.loginForm);
@@ -618,7 +798,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
         });
         await refreshData();
         showToast('Faculty decision recorded in the species lesson history');
-      } catch (error) { showToast(error.message); }
+      } catch (error) { showToast(error.message, { tone: 'error', persistent: true }); }
       return;
     }
     if (event.target.matches('[data-module-review]')) {
@@ -636,7 +816,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
         });
         await refreshData();
         showToast('Faculty decision recorded in the module audit history');
-      } catch (error) { showToast(error.message); }
+      } catch (error) { showToast(error.message, { tone: 'error', persistent: true }); }
       return;
     }
     if (event.target.matches('[data-module-asset]')) {
@@ -647,7 +827,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
         await request(`/api/staff/learning-module-versions/${event.target.dataset.moduleAsset}/assets`, { method: 'POST', body });
         await refreshData();
         showToast('Media sanitized and attached for faculty review');
-      } catch (error) { showToast(error.message); }
+      } catch (error) { showToast(error.message, { tone: 'error', persistent: true }); }
       return;
     }
     if (event.target.id === 'mediaPromptForm') {
@@ -670,7 +850,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
         output.value = response.prompt;
         requireElement(portal, '[data-copy-media-prompt]').disabled = false;
         requireElement(portal, '#mediaPromptStatus').textContent = response.recordId ? 'Prompt attached to the draft audit record.' : 'Preview only; this prompt was not retained.';
-      } catch (error) { showToast(error.message); }
+      } catch (error) { showToast(error.message, { tone: 'error', persistent: true }); }
       return;
     }
     if (event.target.matches('[data-section-override], [data-learner-override]')) {
@@ -688,7 +868,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
         });
         await refreshData();
         showToast('Documented prerequisite exception granted');
-      } catch (error) { showToast(error.message); }
+      } catch (error) { showToast(error.message, { tone: 'error', persistent: true }); }
       return;
     }
     if (event.target.id === 'packageImportForm') {
@@ -708,7 +888,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
         await request('/api/admin/offerings', { method: 'POST', body: { academicYear: data.get('academicYear'), semester: data.get('semester'), sectionCode: data.get('sectionCode') } });
         await refreshRoster();
         showToast('Section created for the existing MB 304L course');
-      } catch (error) { showToast(error.message); }
+      } catch (error) { showToast(error.message, { tone: 'error', persistent: true }); }
       return;
     }
     if (event.target.id === 'studentCreateForm') {
@@ -719,7 +899,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
         state.activationCodes = result.activationCodes || [];
         await refreshRoster();
         showToast('Student roster updated');
-      } catch (error) { showToast(error.message); }
+      } catch (error) { showToast(error.message, { tone: 'error', persistent: true }); }
       return;
     }
     if (event.target.id === 'rosterCsvForm') {
@@ -732,7 +912,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
         state.rosterPreview = result.rows || [];
         renderPage('roster');
         showToast('Roster preview ready. No accounts changed.');
-      } catch (error) { showToast(error.message); }
+      } catch (error) { showToast(error.message, { tone: 'error', persistent: true }); }
       return;
     }
     if (event.target.matches('[data-instructor-form]')) {
@@ -742,7 +922,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
         await request(`/api/admin/offerings/${event.target.dataset.instructorForm}/instructors`, { method: 'POST', body: { instructorId: Number(data.get('instructorId')) } });
         await refreshRoster();
         showToast('Instructor assigned to section');
-      } catch (error) { showToast(error.message); }
+      } catch (error) { showToast(error.message, { tone: 'error', persistent: true }); }
       return;
     }
     if (event.target.matches('[data-assignment-form]')) {
@@ -752,7 +932,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
         await request(`/api/instructor/classes/${event.target.dataset.assignmentForm}/assignments`, { method: 'POST', body: { speciesPackageId: Number(data.get('speciesPackageId')), dueAt: data.get('dueAt') || null } });
         await refreshData();
         showToast('Assignment saved with the selected package version');
-      } catch (error) { showToast(error.message); }
+      } catch (error) { showToast(error.message, { tone: 'error', persistent: true }); }
     }
   }
 
@@ -769,6 +949,11 @@ export function setupAquaPortal({ app, onOpenPackage }) {
   }
 
   function handlePortalChange(event) {
+    if (event.target.matches('[data-assignment-package]')) {
+      const dueInput = event.target.closest('form')?.querySelector('input[name="dueAt"]');
+      if (dueInput) dueInput.value = event.target.selectedOptions[0]?.dataset.currentDue || '';
+      return;
+    }
     if (!event.target.matches('[data-prompt-version]')) return;
     const module = state.learningModules.find((item) => String(item.id) === String(event.target.value));
     const toolSelect = portal.querySelector('[data-prompt-tool]');
@@ -783,6 +968,12 @@ export function setupAquaPortal({ app, onOpenPackage }) {
   document.addEventListener('keydown', handleSidebarKeydown);
   window.addEventListener('resize', () => setSidebarOpen(false, { restoreFocus: false }));
   elements.registrationPassword.addEventListener('input', updatePasswordGuidance);
+  elements.toast.addEventListener('click', () => {
+    if (elements.toast.classList.contains('is-error')) dismissToast();
+  });
+  elements.toast.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && elements.toast.classList.contains('is-error')) dismissToast();
+  });
   requireElement(portal, '#forgotPassword').addEventListener('click', () => showToast('Contact your administrator for account support.'));
   window.addEventListener('online', async () => {
     updateNetworkStatus();
@@ -792,7 +983,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
         await refreshData();
         showToast(`${attempts + modules} offline learning record${attempts + modules === 1 ? '' : 's'} synchronized`);
       }
-    } catch { showToast('Offline learning records will retry when the connection is stable.'); }
+    } catch { showToast('Offline learning records will retry when the connection is stable.', { tone: 'error', persistent: true }); }
   });
   window.addEventListener('offline', updateNetworkStatus);
 

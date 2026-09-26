@@ -1,5 +1,7 @@
 import { escapeHtml, titleCase } from './format.js';
 
+const moduleExperienceControllers = new WeakMap();
+
 function statusLabel(status) {
   return status === 'review' ? 'In faculty review' : titleCase(status);
 }
@@ -69,7 +71,7 @@ function assetForm(module) {
 
 function staffCard(module, role, currentUser) {
   const validated = module.tools.filter((tool) => tool.validationStatus === 'faculty_validated').length;
-  return `<article class="learning-module-manager-card">
+  return `<article class="learning-module-manager-card" data-learning-module-card="${module.id}">
     <div class="learning-module-manager-card__heading">
       <div><span class="portal-kicker">${escapeHtml(module.slug)} · v${escapeHtml(module.version)}</span><h2>${escapeHtml(module.title)}</h2></div>
       <span class="status-badge ${module.status === 'published' ? 'is-online' : ''}">${escapeHtml(statusLabel(module.status))}</span>
@@ -118,6 +120,7 @@ export function promptStudio(modules) {
     </form>
     <section class="prompt-output" aria-live="polite">
       <div><span class="portal-kicker">Ready to use</span><h2>Prompt ready to copy</h2></div>
+      <label class="portal-field prompt-output__label" for="mediaPromptOutput">Generated media prompt</label>
       <textarea id="mediaPromptOutput" rows="18" readonly placeholder="Choose the options, then build the prompt."></textarea>
       <button class="portal-secondary" type="button" data-copy-media-prompt disabled>Copy prompt</button>
       <p id="mediaPromptStatus" class="portal-muted"></p>
@@ -147,11 +150,15 @@ function activityMarkup(activity) {
     <div class="module-activity-heading"><span class="portal-kicker">Unlimited retries</span><h2>Tool-selection check</h2><p>Submit once to complete this required step. Your score is retained for feedback and does not control completion.</p></div>
     ${(activity.questions || []).map((question, index) => `<fieldset><legend><span>${index + 1}</span>${escapeHtml(question.question)}</legend>${question.options.map((option) => `<label><input type="radio" name="${escapeHtml(question.id)}" value="${escapeHtml(option)}" required><span>${escapeHtml(option)}</span></label>`).join('')}</fieldset>`).join('')}
     <button class="portal-primary" type="submit">Submit formative activity</button>
-    <p class="module-activity-result" role="status"></p>
+    <p class="module-activity-result" role="status" aria-live="assertive" aria-atomic="true" tabindex="-1"></p>
   </form>`;
 }
 
 export function createModuleExperience(container, manifest, record, callbacks = {}) {
+  moduleExperienceControllers.get(container)?.abort();
+  const eventController = new AbortController();
+  moduleExperienceControllers.set(container, eventController);
+  const { signal } = eventController;
   const steps = manifest.steps || [];
   const completed = new Set(record.progress?.completedStepIds || []);
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -160,7 +167,11 @@ export function createModuleExperience(container, manifest, record, callbacks = 
   let selectedKey = steps[index]?.toolKeys?.[0] || null;
 
   container.innerHTML = `<section class="safety-experience" tabindex="-1">
-    <header class="safety-experience__header"><button class="portal-secondary" type="button" data-close-learning-module><i data-lucide="arrow-left" aria-hidden="true"></i> Back to Safety &amp; Tools</button><div><span class="portal-kicker">${escapeHtml(manifest.module?.category || 'Pre-laboratory')} · v${escapeHtml(manifest.moduleVersion)}</span><h1>${escapeHtml(manifest.module?.title || record.title)}</h1><p>${escapeHtml(manifest.statusNotice || '')}</p></div></header>
+    <header class="safety-experience__header"><button class="portal-secondary" type="button" data-close-learning-module><i data-lucide="arrow-left" aria-hidden="true"></i> Back to Safety &amp; Tools</button><div><span class="portal-kicker">${escapeHtml(manifest.module?.category || 'Pre-laboratory')} · v${escapeHtml(manifest.moduleVersion)}</span><h1 data-module-title tabindex="-1">${escapeHtml(manifest.module?.title || record.title)}</h1><p>${escapeHtml(manifest.statusNotice || '')}</p></div></header>
+    <section class="module-step-summary" data-module-step-summary aria-label="Module progress and current step" aria-live="polite" aria-atomic="true">
+      <div class="module-step-summary__progress"><span data-module-step-position></span><strong data-module-progress-percent></strong></div>
+      <div class="module-step-summary__titles"><p><span>Current step</span><strong data-module-current-title></strong></p><p data-module-next-step><span>Next step</span><strong data-module-next-title></strong></p></div>
+    </section>
     <div class="module-step-progress" aria-label="Required module steps">${steps.map((step, stepIndex) => `<button type="button" data-module-step="${stepIndex}" aria-label="Open step ${stepIndex + 1}: ${escapeHtml(step.title)}" class="${completed.has(step.id) ? 'is-complete' : ''}"><span>${stepIndex + 1}</span><small>${escapeHtml(step.title)}</small></button>`).join('')}</div>
     <div class="module-learning-layout">
       <figure class="module-25d-viewer ${reducedMotion ? 'is-reduced-motion' : ''}" tabindex="0" aria-label="Interactive 2.5D laboratory tool viewer. Use the left and right arrow keys to move between steps.">
@@ -187,8 +198,12 @@ export function createModuleExperience(container, manifest, record, callbacks = 
   const stepCopy = container.querySelector('[data-module-step-copy]');
   const hotspots = container.querySelector('[data-module-hotspots]');
   const activitySlot = container.querySelector('[data-module-activity-slot]');
+  const moduleTitle = container.querySelector('[data-module-title]');
 
-  function renderStep() {
+  function renderStep(focusTarget = null) {
+    const activeElement = document.activeElement;
+    const focusedToolKey = activeElement?.closest?.('[data-module-tool]')?.dataset.moduleTool || null;
+    const focusedStepIndex = activeElement?.closest?.('[data-module-step]')?.dataset.moduleStep ?? null;
     const step = steps[index];
     selectedKey = step.toolKeys?.includes(selectedKey) ? selectedKey : step.toolKeys?.[0] || null;
     const content = stepContent(step, manifest, selectedKey);
@@ -201,6 +216,15 @@ export function createModuleExperience(container, manifest, record, callbacks = 
       ? `${content.selected.name}: ${content.selected.purpose}`
       : step.caption;
     container.querySelector('[data-module-previous]').disabled = index === 0;
+    const completedCount = steps.filter((requiredStep) => completed.has(requiredStep.id)).length;
+    const percentComplete = steps.length ? Math.round((completedCount / steps.length) * 100) : 0;
+    const nextStep = steps[index + 1] || null;
+    container.querySelector('[data-module-step-position]').textContent = `Step ${index + 1} of ${steps.length}`;
+    container.querySelector('[data-module-progress-percent]').textContent = `${percentComplete}% complete`;
+    container.querySelector('[data-module-current-title]').textContent = step.title;
+    const nextStepSummary = container.querySelector('[data-module-next-step]');
+    nextStepSummary.hidden = false;
+    container.querySelector('[data-module-next-title]').textContent = nextStep?.title || 'Module completion';
     const completionButton = container.querySelector('[data-module-complete-step]');
     completionButton.textContent = completed.has(step.id) ? (index === steps.length - 1 ? 'Step viewed' : 'Continue') : 'Done — continue';
     completionButton.disabled = step.id === 'tool-selection';
@@ -211,6 +235,17 @@ export function createModuleExperience(container, manifest, record, callbacks = 
       if (stepIndex === index) button.setAttribute('aria-current', 'step'); else button.removeAttribute('aria-current');
     });
     window.lucide?.createIcons();
+
+    const requestedToolKey = focusTarget
+      ? (focusTarget.type === 'tool' ? focusTarget.key : null)
+      : focusedToolKey;
+    const requestedStepIndex = focusTarget
+      ? (focusTarget.type === 'step' ? String(focusTarget.index) : null)
+      : focusedStepIndex;
+    const focusNode = requestedToolKey
+      ? [...container.querySelectorAll('[data-module-tool]')].find((button) => button.dataset.moduleTool === requestedToolKey)
+      : [...container.querySelectorAll('[data-module-step]')].find((button) => button.dataset.moduleStep === requestedStepIndex);
+    focusNode?.focus({ preventScroll: true });
   }
 
   async function saveProgress(answers = null) {
@@ -227,10 +262,15 @@ export function createModuleExperience(container, manifest, record, callbacks = 
   }
 
   container.addEventListener('click', async (event) => {
+    if (event.target.closest('[data-close-learning-module]')) {
+      eventController.abort();
+      moduleExperienceControllers.delete(container);
+      return;
+    }
     const stepButton = event.target.closest('[data-module-step]');
-    if (stepButton) { index = Number(stepButton.dataset.moduleStep); selectedKey = null; renderStep(); return; }
+    if (stepButton) { index = Number(stepButton.dataset.moduleStep); selectedKey = null; renderStep({ type: 'step', index }); return; }
     const toolButton = event.target.closest('[data-module-tool]');
-    if (toolButton) { selectedKey = toolButton.dataset.moduleTool; renderStep(); return; }
+    if (toolButton) { selectedKey = toolButton.dataset.moduleTool; renderStep({ type: 'tool', key: selectedKey }); return; }
     if (event.target.closest('[data-module-previous]')) { index = Math.max(0, index - 1); selectedKey = null; renderStep(); return; }
     if (event.target.closest('[data-module-play]') && !reducedMotion) {
       viewer.classList.add('is-playing');
@@ -250,33 +290,58 @@ export function createModuleExperience(container, manifest, record, callbacks = 
       completed.add(step.id);
       try {
         await saveProgress();
+        if (signal.aborted) return;
         if (index < steps.length - 1) index += 1;
         selectedKey = null;
         renderStep();
-      } catch (error) { callbacks.onError?.(error); }
+      } catch (error) {
+        if (!signal.aborted) callbacks.onError?.(error);
+      }
     }
-  });
+  }, { signal });
 
   container.addEventListener('submit', async (event) => {
     if (!event.target.matches('[data-module-activity]')) return;
     event.preventDefault();
-    const answers = Object.fromEntries(new FormData(event.target));
+    const activityForm = event.target;
+    if (activityForm.getAttribute('aria-busy') === 'true') return;
+    const submitButton = activityForm.querySelector('button[type="submit"]');
+    const submitLabel = submitButton?.textContent || 'Submit formative activity';
+    activityForm.setAttribute('aria-busy', 'true');
+    if (submitButton) {
+      submitButton.disabled = true;
+      submitButton.textContent = 'Saving activity…';
+    }
+    const answers = Object.fromEntries(new FormData(activityForm));
     completed.add('tool-selection');
-    const resultNode = event.target.querySelector('.module-activity-result');
+    const resultNode = activityForm.querySelector('.module-activity-result');
     try {
       const result = await saveProgress(answers);
+      if (signal.aborted) return;
       renderStep();
       const score = result?.attempt;
       const currentResult = activitySlot.querySelector('.module-activity-result');
-      if (currentResult) currentResult.textContent = score ? `Score retained: ${score.score} of ${score.total}. Module complete.` : 'Activity saved. Module complete.';
+      if (currentResult) {
+        currentResult.textContent = score ? `Score retained: ${score.score} of ${score.total}. Module complete.` : 'Activity saved. Module complete.';
+        currentResult.focus({ preventScroll: true });
+      }
       callbacks.onComplete?.(result);
     } catch (error) {
+      if (signal.aborted) return;
       completed.delete('tool-selection');
       resultNode.textContent = error.message;
+      resultNode.focus({ preventScroll: true });
+    } finally {
+      activityForm.removeAttribute('aria-busy');
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = submitLabel;
+      }
     }
-  });
+  }, { signal });
 
   viewer.addEventListener('keydown', (event) => {
+    if (event.target !== viewer) return;
     if (event.key === 'ArrowRight' && index < steps.length - 1) { event.preventDefault(); index += 1; selectedKey = null; renderStep(); }
     if (event.key === 'ArrowLeft' && index > 0) { event.preventDefault(); index -= 1; selectedKey = null; renderStep(); }
     if (event.key === ' ' && !reducedMotion) {
@@ -285,15 +350,15 @@ export function createModuleExperience(container, manifest, record, callbacks = 
       viewer.classList.toggle('is-playing', playing);
       motionStatus.textContent = playing ? 'Motion playing' : 'Motion paused';
     }
-  });
+  }, { signal });
   if (!reducedMotion) {
     viewer.addEventListener('pointermove', (event) => {
       const bounds = viewer.getBoundingClientRect();
       scene.style.setProperty('--parallax-x', `${((event.clientX - bounds.left) / bounds.width - 0.5) * 10}px`);
       scene.style.setProperty('--parallax-y', `${((event.clientY - bounds.top) / bounds.height - 0.5) * 8}px`);
-    });
-    viewer.addEventListener('pointerleave', () => { scene.style.setProperty('--parallax-x', '0px'); scene.style.setProperty('--parallax-y', '0px'); });
+    }, { signal });
+    viewer.addEventListener('pointerleave', () => { scene.style.setProperty('--parallax-x', '0px'); scene.style.setProperty('--parallax-y', '0px'); }, { signal });
   }
   renderStep();
-  experience.focus();
+  moduleTitle.focus({ preventScroll: true });
 }
