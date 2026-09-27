@@ -266,8 +266,9 @@ export function setupAquaPortal({ app, onOpenPackage }) {
     elements.sidebar.inert = drawerMode && !shouldOpen;
     if (drawerMode) elements.sidebar.setAttribute('aria-hidden', String(!shouldOpen));
     else elements.sidebar.removeAttribute('aria-hidden');
-    elements.menuButton.setAttribute('aria-expanded', String(shouldOpen));
-    elements.menuButton.setAttribute('aria-label', shouldOpen ? 'Close navigation' : 'Open navigation');
+    const desktopExpanded = !mobile && !portal.classList.contains('is-desktop-collapsed');
+    elements.menuButton.setAttribute('aria-expanded', String(shouldOpen || desktopExpanded));
+    elements.menuButton.setAttribute('aria-label', shouldOpen ? 'Close navigation' : desktopExpanded ? 'Collapse navigation' : 'Open navigation');
     if (shouldOpen) {
       sidebarReturnFocus = document.activeElement;
       requestAnimationFrame(() => elements.sidebar.querySelector('.portal-nav button:not([hidden])')?.focus());

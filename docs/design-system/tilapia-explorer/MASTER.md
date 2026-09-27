@@ -269,3 +269,9 @@ handlers and native dialogs unless a component is explicitly migrated. This is
 a shared framework integration, not a conversion of every existing component.
 Primary color remains #3E60D5 and font remains Figtree. Bootstrap guidance:
 https://getbootstrap.com/docs/5.3/getting-started/vite/.
+
+The sidebar follows Attex's compact navigation proportions: a fixed 70px logo
+area, independently scrolling menu, subdued section labels, 44px navigation
+targets, subtle active backgrounds, and a fixed account footer. Desktop uses
+240px expanded and 76px collapsed widths; the mobile drawer uses 260px. The
+navigation toggle reports the current expanded state after viewport changes.

@@ -4,10 +4,10 @@
       <span class="portal-brand-mark" aria-hidden="true"><i data-lucide="waves"></i></span>
       <span><strong>AquaDissect</strong><small>Guided aquatic anatomy learning</small></span>
     </button>
-    <span class="portal-sidebar-label">Workspace</span>
     <nav class="portal-nav" aria-label="Primary navigation">
-      <span class="portal-nav-section" data-role-nav="student,instructor,admin">Learn</span>
+      <span class="portal-nav-section" data-role-nav="student,instructor,admin">Navigation</span>
       <button type="button" data-portal-page="home"><i class="portal-nav-icon" data-lucide="layout-dashboard"></i><span data-nav-label="home">Home</span></button>
+      <span class="portal-nav-section" data-role-nav="student,instructor,admin">Learning</span>
       <button type="button" data-portal-page="library" data-role-nav="student,instructor,admin"><i class="portal-nav-icon" data-lucide="fish"></i><span data-nav-label="library">Species lessons</span></button>
       <button type="button" data-portal-page="safety" data-role-nav="student,instructor,admin"><i class="portal-nav-icon" data-lucide="shield-check"></i><span data-nav-label="safety">Safety &amp; Tools</span></button>
       <button type="button" data-portal-page="classes" data-role-nav="student,instructor,admin"><i class="portal-nav-icon" data-lucide="school"></i><span data-nav-label="classes">Class sections</span></button>

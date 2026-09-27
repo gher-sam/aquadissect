@@ -2,10 +2,22 @@
 :root { --color-primary:#3e60d5; --color-primary-deep:#283d85; --color-background:#f2f2f7; --color-foreground:#343a40; --color-muted-text:#596579; --color-border:#dee2e6; --color-surface:#fff; --color-surface-soft:#f5f6fa; }
 .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
 #aquaPortal.is-authenticated { grid-template-columns:240px minmax(0,1fr); }
-.is-authenticated .portal-header { width:240px; padding:18px 14px; background:#212529; box-shadow:none; overflow-y:auto; }
-.is-authenticated .portal-nav { gap:2px; }
-.is-authenticated .portal-nav button { min-height:44px; border-radius:4px; color:#c6ccd3; padding:9px 12px; }
-.is-authenticated .portal-nav button.is-active { background:#3e60d5; color:#fff; }
+.is-authenticated .portal-header { width:240px; padding:0; gap:0; background:#212529; border:0; box-shadow:none; overflow:hidden; }
+.is-authenticated .portal-brand { flex:0 0 70px; min-height:70px; justify-content:center; gap:10px; padding:0 20px; }
+.is-authenticated .portal-brand strong { font-size:21px; letter-spacing:-.5px; }
+.is-authenticated .portal-brand small { display:none; }
+.is-authenticated .portal-brand .portal-brand-mark { width:32px; height:32px; flex:0 0 32px; border-radius:9px; }
+.is-authenticated .portal-brand-mark svg { width:21px; height:21px; }
+.is-authenticated .portal-nav { display:flex; flex-direction:column; align-items:stretch; flex:1 1 auto; min-height:0; overflow-y:auto; overflow-x:hidden; gap:0; padding:0 10px 16px; overscroll-behavior:contain; scrollbar-width:thin; scrollbar-color:#ffffff26 transparent; }
+.is-authenticated .portal-nav-section { flex:none; padding:22px 10px 9px; margin:0; font-size:10px; font-weight:700; letter-spacing:.08em; color:#a1a9b3; }
+.is-authenticated .portal-nav-section:first-child { padding-top:10px; }
+.is-authenticated .portal-nav button { flex:none; min-height:44px; gap:12px; border:0; border-radius:4px; color:#b7bec8; padding:10px; font-size:14px; font-weight:400; line-height:1.4; box-shadow:none; }
+.is-authenticated .portal-nav-icon { width:19px; height:19px; flex:0 0 19px; stroke-width:1.7; }
+.is-authenticated .portal-nav button:hover { background:#ffffff08; color:#fff; transform:none; }
+.is-authenticated .portal-nav button.is-active { background:#ffffff0a; color:#fff; font-weight:600; box-shadow:none; }
+.is-authenticated .portal-session { flex:none; margin:0; padding:14px 16px; border-top:1px solid #ffffff0d; }
+.is-authenticated .portal-avatar { width:32px; height:32px; flex:0 0 32px; border-radius:50%; background:#3e60d5; color:#fff; }
+.is-authenticated .portal-signout { flex:none; }
 .is-authenticated .portal-sidebar-label { margin-top:18px; }
 .is-authenticated .portal-sidebar-note { display:none; }
 .is-authenticated .dashboard-topbar { padding:12px 24px; gap:16px; background:#fff; box-shadow:0 1px 5px #21252908; backdrop-filter:none; }
@@ -68,10 +80,13 @@
 .report-summary meter { display:block; width:100%; height:22px; margin:8px 0; }
 @media(min-width:781px) {
  #aquaPortal.is-desktop-collapsed { grid-template-columns:76px minmax(0,1fr); }
- .is-desktop-collapsed .portal-header { width:76px; padding:18px 8px; }
+ .is-authenticated.is-desktop-collapsed .portal-header { width:76px; padding:0; }
  .is-desktop-collapsed .portal-brand>span+span,.is-desktop-collapsed .portal-nav button span,.is-desktop-collapsed .portal-sidebar-label,.is-desktop-collapsed .portal-nav-section,.is-desktop-collapsed .session-copy,.is-desktop-collapsed .portal-signout { display:none; }
- .is-desktop-collapsed .portal-nav button { justify-content:center; }
- .is-desktop-collapsed .portal-brand-mark { width:44px; }
+ .is-authenticated.is-desktop-collapsed .portal-brand { padding:0; }
+ .is-authenticated.is-desktop-collapsed .portal-nav { padding:10px 8px; gap:4px; }
+ .is-authenticated.is-desktop-collapsed .portal-nav button { justify-content:center; padding:12px; }
+ .is-authenticated.is-desktop-collapsed .portal-session { padding:14px 0; }
+ .is-authenticated.is-desktop-collapsed .portal-user-card { justify-content:center; }
 }
 @media(max-width:780px) {
  #aquaPortal.is-authenticated { grid-template-columns:minmax(0,1fr); }
