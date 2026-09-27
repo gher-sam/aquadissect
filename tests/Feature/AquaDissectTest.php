@@ -13,7 +13,8 @@ class AquaDissectTest extends TestCase
 
     public function test_application_page_loads_with_the_tilapia_viewer(): void
     {
-        $this->get('/')
+        $this->get('/')->assertRedirect('/login');
+        $this->get('/login')
             ->assertOk()
             ->assertSee('AquaDissect')
             ->assertSee('AQUADISSECT_BASE_URL')
@@ -52,7 +53,7 @@ class AquaDissectTest extends TestCase
         $this->assertFileExists(public_path('pwa-icons/apple-touch-icon.png'));
 
         $worker = (string) File::get(public_path('aquadissect-sw.js'));
-        $this->assertStringContainsString('aquadissect-shell-v9', $worker);
+        $this->assertStringContainsString('aquadissect-shell-v11', $worker);
         $this->assertStringContainsString('self.registration.scope', $worker);
         $this->assertStringContainsString('manifest.webmanifest', $worker);
         $this->assertStringContainsString('caches.delete', $worker);

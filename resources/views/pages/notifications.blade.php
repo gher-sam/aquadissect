@@ -1,0 +1,1 @@
+<section class="portal-page" data-portal-panel="notifications"><div class="portal-page-title"><h1>Notifications</h1><p>Updates about your classes, access requests, and learning content.</p></div><div id="workspaceTool" aria-live="polite"><p>Loading…</p></div></section>

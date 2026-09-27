@@ -220,3 +220,19 @@ If approvals, validated instruments, or a stable application are unavailable by 
 - Ethics and consent status.
 - Completion feasibility for Scad and animated tools.
 - Final research-release version and deployment environment.
+
+
+## Approved workspace additions - September 27, 2026
+
+The researcher approved an Attex-inspired redesign, separate page URLs, a class calendar, in-app notifications, navigation/help search, and operational learning reports. These support the existing MB 304L workflow and do not change research participants, roles, content-review requirements, or evidence standards.
+
+Status: **Implemented but awaiting validation**. Local engineering checks are recorded separately in `docs/workspace-redesign-verification.md`; they are not faculty content validation, instrument validation, respondent evaluation, or proof of effectiveness.
+
+- Shared light interface, role-aware sidebar, responsive drawer, compact headings, individual Blade pages, and searchable record tables.
+- Calendar combines assignment dates with single class events. Authorized staff manage their sections; students view enrolled sections. UTC storage and Philippine-time display; cancellation retains records.
+- Recipient-scoped notifications for new activity/event changes, instructor approval, and review/publication events. No historical backfill, email, push, or scheduled reminders.
+- Reports use recorded lesson results and safety progress. Role/section/date/activity filters and CSV preserve scope; unattributed historical records remain separate from class aggregates.
+- Offline navigation uses a neutral shell and account-bound queued progress. Private staff pages are excluded from shared navigation caching.
+- Additive calendar/notification migrations and delayed-clone integration preserve existing data. Application rollback should retain these tables and records.
+
+Deferred: recurring events, external calendar synchronization, email/push, scheduled reminders, editable RBAC, and unrelated template applications. Software verification remains separate from research evaluation and manuscript completion.

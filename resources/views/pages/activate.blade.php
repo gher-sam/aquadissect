@@ -1,0 +1,17 @@
+    <section class="portal-page auth-editorial-page registration-page" data-portal-panel="activate">
+      <article class="auth-specimen-card auth-specimen-card--internal" aria-label="Tilapia internal anatomy illustration">
+        <div class="specimen-card-heading"><span><strong>Internal anatomy</strong><small>Tilapia · educational view</small></span><span class="specimen-number">Fig. 02</span></div>
+        <figure class="specimen-figure"><img src="{{ rtrim(request()->getBaseUrl(), '/') }}/species/tilapia/internal-anatomy.png" alt="Educational illustration of tilapia internal anatomy"><figcaption>Begin with the account supplied by your administrator.</figcaption></figure>
+      </article>
+      <form class="registration-card auth-card--registration" id="activationForm">
+        <div class="registration-heading"><button class="auth-back-button" type="button" data-portal-page="login"><i data-lucide="arrow-left" aria-hidden="true"></i><span>Back to sign in</span></button><span class="portal-kicker">Student access</span><h1>Activate your account</h1><p>Use the email and one-time code supplied by the administrator. Codes expire after three days.</p></div>
+        <div class="registration-grid">
+          <label class="portal-field portal-wide"><span>Institutional email</span><span class="portal-input-control"><i data-lucide="mail" aria-hidden="true"></i><input name="email" type="email" autocomplete="username" required></span></label>
+          <label class="portal-field portal-wide"><span>One-time activation code</span><span class="portal-input-control"><i data-lucide="key-round" aria-hidden="true"></i><input name="code" autocomplete="one-time-code" minlength="48" maxlength="48" required></span></label>
+          <label class="portal-field"><span>New password</span><span class="portal-input-control"><i data-lucide="lock-keyhole" aria-hidden="true"></i><input name="password" type="password" autocomplete="new-password" minlength="8" required></span></label>
+          <label class="portal-field"><span>Confirm password</span><span class="portal-input-control"><i data-lucide="lock-keyhole" aria-hidden="true"></i><input name="passwordConfirmation" type="password" autocomplete="new-password" minlength="8" required></span></label>
+        </div>
+        <p class="portal-message" id="activationMessage" role="alert" hidden></p>
+        <div class="registration-actions"><button class="portal-secondary" type="button" data-portal-page="login">Cancel</button><button class="portal-primary auth-submit" type="submit">Activate account</button></div>
+      </form>
+    </section>

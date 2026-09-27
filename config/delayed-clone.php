@@ -31,5 +31,7 @@ return [
         'media_prompt_records' => 'id',
         'account_activation_tokens' => 'id',
         'roster_events' => 'id',
+        'calendar_events' => 'id',
+        'workspace_notifications' => 'id',
     ],
 ];

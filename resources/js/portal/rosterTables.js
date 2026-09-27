@@ -7,6 +7,23 @@ export function rosterTable(key, title, columns, rows) {
     <div class="roster-table-footer"><span data-table-info role="status" aria-live="polite"></span><div class="roster-table-pages" aria-label="${escapeHtml(title)} pagination"><button type="button" data-table-prev>Previous</button><span data-table-page></span><button type="button" data-table-next>Next</button></div></div></section>`;
 }
 
+export function cardsToTable(root, selector, key, title, records = []) {
+  const cards = [...root.querySelectorAll(selector)];
+  if (!cards.length) return;
+  const holder = document.createElement('div');
+  holder.innerHTML = rosterTable(key, title, ['Record', 'Summary', 'Status', 'Actions'], cards.map((card, index) => {
+    const heading = card.querySelector('h2,h3')?.textContent || 'Record';
+    const summary = card.querySelector('.assignment-current-summary,.portal-kicker,p')?.textContent || '';
+    const record = records[index];
+    const status = record?.status || card.querySelector('.status-badge')?.textContent || '—';
+    const version = card.querySelector('.species-card-topline small')?.textContent || '';
+    return `<tr data-table-row><td>${escapeHtml(heading)} <small>${escapeHtml(version)}</small></td><td>${escapeHtml(summary)}</td><td><span class="roster-status">${escapeHtml(status)}</span></td><td><button type="button" class="portal-secondary" data-table-expand aria-expanded="false" aria-controls="${key}-${index}">View details</button></td></tr><tr data-table-detail id="${key}-${index}" hidden><td colspan="4"></td></tr>`;
+  }).join(''));
+  cards[0].parentElement.before(holder);
+  cards.forEach((card, index) => holder.querySelector(`#${key}-${index} td`).append(card));
+  setupRosterTables(root);
+}
+
 // Keep each table's view when an existing account or section action refreshes the roster.
 const views = new WeakMap();
 export function setupRosterTables(root) {
@@ -63,7 +80,7 @@ export function setupRosterTables(root) {
       if (expand) {
         const open = expand.getAttribute('aria-expanded') !== 'true';
         expand.setAttribute('aria-expanded', String(open));
-        expand.textContent = open ? 'Close details' : 'Manage section';
+        expand.textContent = open ? 'Close details' : 'View details';
         update();
         expand.focus({ preventScroll: true });
       }

@@ -18,16 +18,16 @@
 
 | Role | Hex | CSS Variable |
 |------|-----|--------------|
-| Primary | `#0140C1` | `--color-primary` |
+| Primary | `#3E60D5` | `--color-primary` |
 | On Primary | `#FFFFFF` | `--color-on-primary` |
-| Primary deep | `#0E315B` | `--color-primary-deep` |
+| Primary deep | `#283D85` | `--color-primary-deep` |
 | Secondary | `#1594E3` | `--color-secondary` |
-| Background | `#F5F9FF` | `--color-background` |
+| Background | `#F2F2F7` | `--color-background` |
 | Surface | `#FFFFFF` | `--color-surface` |
-| Surface soft | `#EAF4FF` | `--color-surface-soft` |
-| Foreground | `#0D1442` | `--color-foreground` |
-| Muted text | `#5B6F92` | `--color-muted-text` |
-| Border | `#C9D9EA` | `--color-border` |
+| Surface soft | `#F5F6FA` | `--color-surface-soft` |
+| Foreground | `#343A40` | `--color-foreground` |
+| Muted text | `#596579` | `--color-muted-text` |
+| Border | `#DEE2E6` | `--color-border` |
 | Destructive | `#B42318` | `--color-destructive` |
 | Ring | `#0F40CB` | `--color-ring` |
 
@@ -76,7 +76,7 @@ font-family: 'Figtree', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
 ```css
 /* Primary Button */
 .btn-primary {
-  background: #0140C1;
+  background: #3E60D5;
   color: white;
   padding: 12px 24px;
   border-radius: 8px;
@@ -93,8 +93,8 @@ font-family: 'Figtree', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
 /* Secondary Button */
 .btn-secondary {
   background: #FFFFFF;
-  color: #0140C1;
-  border: 1px solid #0140C1;
+  color: #3E60D5;
+  border: 1px solid #3E60D5;
   padding: 12px 24px;
   border-radius: 8px;
   font-weight: 600;
@@ -134,7 +134,7 @@ font-family: 'Figtree', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
 }
 
 .input:focus {
-  border-color: #0140C1;
+  border-color: #3E60D5;
   outline: none;
   box-shadow: 0 0 0 3px rgb(15 64 203 / 20%);
 }
@@ -237,3 +237,19 @@ Before delivering any UI code, verify:
 - [ ] Figtree is the rendered font
 - [ ] Blue motif uses flat fills only; no gradients
 - [ ] Errors remain visible long enough to understand and retry
+
+
+## Workspace redesign - approved September 27, 2026
+
+Attex dashboard and data-table patterns inform the workspace. AquaDissect retains its own components, Figtree, branding, protected lesson artwork, and faculty-review rules. `resources/css/workspace.css` controls the shared light workspace.
+
+- Primary #3E60D5; sidebar #212529; page #F2F2F7; surface white; text #343A40; secondary text #596579; borders #DEE2E6.
+- Compact 24px page headings, 4-6px panel corners, restrained shadows, 44px interaction targets, visible keyboard focus.
+- Desktop sidebar 240px, collapsible to 76px; mobile drawer at 780px. Top bar includes navigation/help search, inbox, and account controls.
+- Individual Blade pages and named URLs support browser history, reload, and bookmarks. Protected routes enforce active roles on the server.
+- Staff tables support search, sorting, pagination, and expandable workflows. Lessons/offline materials keep visual cards. Tables scroll inside labeled regions on narrow screens.
+- Calendar displays Philippine time and starts in list view on phones. Reports separate unattributed historical results and do not imply effectiveness.
+- `/offline` is a neutral cached document. Authenticated HTML is not cached as the shared shell. Offline queues are account-bound; older unowned queues remain retained without automatic attribution.
+- Labels, inline errors, disclosures, and dialog focus remain required. Initial page loads do not automatically focus headings.
+
+References: https://themes.coderthemes.com/attex/layouts/index.html and https://themes.coderthemes.com/attex/layouts/tables-datatable.html.

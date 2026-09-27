@@ -39,7 +39,7 @@ async function cacheIfAvailable(cache, url) {
 }
 
 async function cacheApplicationShell(cache, shellResponse) {
-  await cache.put(appUrl('/'), shellResponse.clone());
+  await cache.put(appUrl('/offline'), shellResponse.clone());
   const documentCopy = new DOMParser().parseFromString(await shellResponse.text(), 'text/html');
   const shellUrls = new Set(
     [...documentCopy.querySelectorAll('script[src], img[src], link[rel="stylesheet"][href], link[rel="modulepreload"][href]')]
@@ -93,7 +93,7 @@ export async function downloadPackage(record) {
 
   try {
     await pending.put(manifestUrl, manifestResponse.clone());
-    const shell = await fetch(appUrl('/'), { credentials: 'same-origin' });
+    const shell = await fetch(appUrl('/offline'), { credentials: 'omit' });
     if (shell.ok) await cacheApplicationShell(pending, shell);
 
     for (const asset of Object.values(manifest.assetRecords)) {
@@ -167,7 +167,7 @@ export async function downloadLearningModule(record) {
   const pending = await caches.open(pendingName);
   try {
     await pending.put(manifestUrl, response.clone());
-    const shell = await fetch(appUrl('/'), { credentials: 'same-origin' });
+    const shell = await fetch(appUrl('/offline'), { credentials: 'omit' });
     if (shell.ok) await cacheApplicationShell(pending, shell);
     for (const asset of Object.values(manifest.assetRecords || {})) {
       const assetResponse = await fetch(asset.url, { credentials: 'same-origin' });
@@ -239,7 +239,7 @@ export async function submitOrQueueAttempt(lessonKey, attempt) {
       if (!['TypeError', 'NetworkError'].includes(error.name) && navigator.onLine) throw error;
     }
   }
-  await storeAttempt({ lessonKey, ...attempt, source: 'offline' });
+  await storeAttempt({ lessonKey, ...attempt, ownerId: window.AQUADISSECT_BOOTSTRAP?.user?.id, source: 'offline' });
   return { queued: true };
 }
 
@@ -253,7 +253,8 @@ export async function synchronizeQueuedAttempts() {
   });
   let synced = 0;
   for (const attempt of attempts) {
-    const { lessonKey, ...body } = attempt;
+    if (!attempt.ownerId || attempt.ownerId !== window.AQUADISSECT_BOOTSTRAP?.user?.id) continue;
+    const { lessonKey, ownerId, ...body } = attempt;
     await request(`/api/lessons/${encodeURIComponent(lessonKey)}/attempts`, { method: 'POST', body });
     await new Promise((resolve, reject) => {
       const transaction = database.transaction(ATTEMPT_STORE, 'readwrite');
@@ -287,8 +288,9 @@ export async function submitOrQueueModuleProgress(versionId, progress) {
       if (!['TypeError', 'NetworkError'].includes(error.name) && navigator.onLine) throw error;
     }
   }
-  const queueId = progress.clientAttemptUuid || `${versionId}:${progress.classId}`;
-  await storeModuleProgress({ queueId, versionId, ...progress, source: 'offline' });
+  const ownerId = window.AQUADISSECT_BOOTSTRAP?.user?.id;
+  const queueId = progress.clientAttemptUuid || `${ownerId}:${versionId}:${progress.classId}`;
+  await storeModuleProgress({ queueId, versionId, ...progress, ownerId, source: 'offline' });
   return {
     queued: true,
     progress: {
@@ -312,7 +314,8 @@ export async function synchronizeQueuedModuleProgress() {
   });
   let synced = 0;
   for (const item of queued) {
-    const { queueId, versionId, ...body } = item;
+    if (!item.ownerId || item.ownerId !== window.AQUADISSECT_BOOTSTRAP?.user?.id) continue;
+    const { queueId, versionId, ownerId, ...body } = item;
     await request(`/api/learning-module-versions/${versionId}/progress`, { method: 'POST', body });
     await new Promise((resolve, reject) => {
       const transaction = database.transaction(MODULE_PROGRESS_STORE, 'readwrite');

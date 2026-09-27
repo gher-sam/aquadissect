@@ -21,7 +21,13 @@ use App\Http\Controllers\StaffLearningModuleController;
 use App\Http\Controllers\StaffSpeciesPackageController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', PortalController::class);
+Route::get('/offline', fn () => view('app', ['page' => 'downloads', 'bootstrap' => ['offlineShell' => true]]))->name('offline');
+
+Route::get('/', fn (\Illuminate\Http\Request $request) => redirect()->route($request->user() ? 'portal.home' : 'login'));
+foreach (\App\Support\PortalPages::PAGES as $page => [$path, $roles]) {
+    $route = Route::get('/'.$path, PortalController::class)->defaults('page', $page)->name($page === 'login' ? 'login' : 'portal.'.$page);
+    if ($roles) $route->middleware(['auth', 'role:'.$roles]);
+}
 
 Route::prefix('api')->group(function (): void {
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
@@ -30,6 +36,14 @@ Route::prefix('api')->group(function (): void {
     Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth');
 
     Route::middleware('auth')->group(function (): void {
+        Route::get('/calendar', [\App\Http\Controllers\CalendarController::class, 'index']);
+        Route::post('/calendar/events', [\App\Http\Controllers\CalendarController::class, 'store']);
+        Route::patch('/calendar/events/{event}', [\App\Http\Controllers\CalendarController::class, 'update']);
+        Route::post('/calendar/events/{event}/cancel', [\App\Http\Controllers\CalendarController::class, 'cancel']);
+        Route::get('/notifications', [\App\Http\Controllers\WorkspaceNotificationController::class, 'index']);
+        Route::post('/notifications/read-all', [\App\Http\Controllers\WorkspaceNotificationController::class, 'readAll']);
+        Route::post('/notifications/{notification}/read', [\App\Http\Controllers\WorkspaceNotificationController::class, 'read']);
+        Route::get('/reports', [\App\Http\Controllers\WorkspaceReportController::class, 'index']);
         Route::get('/session', [AuthController::class, 'session']);
         Route::get('/species', [SpeciesController::class, 'index']);
         Route::get('/species/{species:slug}/packages/{package}/manifest', [SpeciesController::class, 'manifest']);

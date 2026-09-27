@@ -1,4 +1,5 @@
-import { setupRosterTables } from './rosterTables.js';
+import { setupRosterTables, cardsToTable } from './rosterTables.js';
+import { setupWorkspaceShell, setupWorkspacePage } from './workspace.js';
 import { request } from './api.js';
 import { adminDashboard, adminRosterView, classCards, instructorDashboard, managerView, speciesLibrary, studentDashboard } from './dashboards.js';
 import { escapeHtml, titleCase } from './format.js';
@@ -11,12 +12,26 @@ import {
 import { setupProgressiveWebApp } from '../pwa.js';
 
 const bootstrap = window.AQUADISSECT_BOOTSTRAP || {};
+const offlineContextKey = 'aquadissect.offline-context.v2';
+if (bootstrap.offlineShell) {
+  try { Object.assign(bootstrap, JSON.parse(localStorage.getItem(offlineContextKey) || '{}')); } catch { /* Empty offline context. */ }
+} else if (bootstrap.user) {
+  const learner = bootstrap.user.role === 'student';
+  const offlineCatalog = records => (records || []).filter(r=>r.status==='published').map(({latestReview, importedBy, events, ...record})=>record);
+  localStorage.setItem(offlineContextKey, JSON.stringify({
+    user: learner ? { id: bootstrap.user.id, firstName: 'Learner', lastName: '', role: 'student', status: 'active' } : null,
+    species: offlineCatalog(bootstrap.species), learningModules: offlineCatalog(bootstrap.learningModules),
+    classes: learner ? (bootstrap.classes || []).map(c => ({ id:c.id, name:c.name, status:c.status, assignments:c.assignments })) : [],
+  }));
+}
+
 const dashboardCopy = {
   student: ['Student workspace', 'Welcome back', 'Choose your next activity below. AquaDissect keeps your saved progress with the lesson.'],
   instructor: ['Instructor workspace', 'Welcome', 'Open a class section to review students, safety status, and learning activities.'],
   admin: ['Administrator workspace', 'System overview', 'Review the people, class sections, and learning content that need attention.'],
 };
 const pageLabels = {
+  calendar: 'Calendar', notifications: 'Notifications', reports: 'Learning reports',
   home: 'Home', library: 'Species lessons', classes: 'Class sections', roster: 'People & sections', assignments: 'Class activities',
   safety: 'Safety & Tools', downloads: 'Offline access', manager: 'Species content', 'prompt-studio': 'Create media prompts', access: 'Account roles', about: 'Help & guide',
 };
@@ -50,28 +65,28 @@ export function setupAquaPortal({ app, onOpenPackage }) {
     portalMain: requireElement(portal, '#portal-main'),
     roleLabel: requireElement(portal, '#dashboardRoleLabel'),
     pageLabel: requireElement(portal, '#dashboardPageLabel'),
-    loginForm: requireElement(portal, '#loginForm'),
-    loginMessage: requireElement(portal, '#loginMessage'),
-    registrationForm: requireElement(portal, '#registrationForm'),
-    registrationMessage: requireElement(portal, '#registrationMessage'),
-    activationForm: requireElement(portal, '#activationForm'),
-    activationMessage: requireElement(portal, '#activationMessage'),
-    registrationPassword: requireElement(portal, '#registrationPassword'),
-    registrationPasswordConfirmation: requireElement(portal, '#registrationPasswordConfirmation'),
-    passwordRequirements: requireElement(portal, '#passwordRequirements'),
-    dashboardKicker: requireElement(portal, '#dashboardKicker'),
-    dashboardGreeting: requireElement(portal, '#dashboardGreeting'),
-    dashboardSummary: requireElement(portal, '#dashboardSummary'),
-    dashboardContent: requireElement(portal, '#dashboardContent'),
-    library: requireElement(portal, '#speciesLibraryContent'),
-    classes: requireElement(portal, '#classesContent'),
-    roster: requireElement(portal, '#rosterContent'),
-    assignments: requireElement(portal, '#assignmentsContent'),
-    downloads: requireElement(portal, '#downloadsContent'),
-    manager: requireElement(portal, '#speciesManagerContent'),
-    safety: requireElement(portal, '#safetyToolsContent'),
-    safetyExperience: requireElement(portal, '#safetyModuleExperience'),
-    promptStudio: requireElement(portal, '#mediaPromptStudioContent'),
+    loginForm: portal.querySelector('#loginForm'),
+    loginMessage: portal.querySelector('#loginMessage'),
+    registrationForm: portal.querySelector('#registrationForm'),
+    registrationMessage: portal.querySelector('#registrationMessage'),
+    activationForm: portal.querySelector('#activationForm'),
+    activationMessage: portal.querySelector('#activationMessage'),
+    registrationPassword: portal.querySelector('#registrationPassword'),
+    registrationPasswordConfirmation: portal.querySelector('#registrationPasswordConfirmation'),
+    passwordRequirements: portal.querySelector('#passwordRequirements'),
+    dashboardKicker: portal.querySelector('#dashboardKicker'),
+    dashboardGreeting: portal.querySelector('#dashboardGreeting'),
+    dashboardSummary: portal.querySelector('#dashboardSummary'),
+    dashboardContent: portal.querySelector('#dashboardContent'),
+    library: portal.querySelector('#speciesLibraryContent'),
+    classes: portal.querySelector('#classesContent'),
+    roster: portal.querySelector('#rosterContent'),
+    assignments: portal.querySelector('#assignmentsContent'),
+    downloads: portal.querySelector('#downloadsContent'),
+    manager: portal.querySelector('#speciesManagerContent'),
+    safety: portal.querySelector('#safetyToolsContent') || portal.querySelector('#downloadsContent'),
+    safetyExperience: portal.querySelector('#safetyModuleExperience'),
+    promptStudio: portal.querySelector('#mediaPromptStudioContent'),
     sidebarSpeciesCount: requireElement(portal, '#sidebarSpeciesCount'),
     systemStatus: requireElement(portal, '#dashboardSystemStatus'),
     confirmDialog: requireElement(portal, '#portalConfirmDialog'),
@@ -81,6 +96,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
     toast: requireElement(portal, '#portalToast'),
   };
   let sidebarReturnFocus = null;
+  let initialPage = true;
   const state = {
     currentUser: bootstrap.user || null,
     latestResult: bootstrap.lessonResult || null,
@@ -318,6 +334,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
   }
 
   function renderPage(name = state.currentPage) {
+    if (!portal.querySelector(`[data-portal-panel="${name}"]`)) return;
     if (name === 'home') {
       const user = state.currentUser;
       if (!user) return;
@@ -336,17 +353,22 @@ export function setupAquaPortal({ app, onOpenPackage }) {
       elements.safety.hidden = false;
       elements.safetyExperience.hidden = true;
       elements.safety.innerHTML = safetyWorkspace(state.learningModules, state.currentUser?.role, state.currentUser);
+      if (state.currentUser?.role !== 'student') cardsToTable(elements.safety, '.learning-module-manager-card', 'safety-records', 'Safety module versions', state.learningModules);
     }
     if (name === 'classes') {
       elements.classes.innerHTML = classCards(state.classes, state.currentUser?.role);
+      if (state.currentUser?.role !== 'student') cardsToTable(elements.classes, '.class-card', 'classes', 'Class sections', state.classes);
     }
-    if (name === 'roster') {
+    if (name === 'roster' && elements.roster) {
       elements.roster.innerHTML = adminRosterView(state.adminRoster, state.rosterPreview, state.activationCodes, state.rosterError);
       setupRosterTables(elements.roster);
     }
-    if (name === 'assignments') elements.assignments.innerHTML = assignmentView();
+    if (name === 'assignments') {
+      elements.assignments.innerHTML = assignmentView();
+      cardsToTable(elements.assignments, '.assignment-card', 'activities', 'Class activities', state.classes.filter(c=>c.status==='active'));
+    }
     if (name === 'downloads') {
-      elements.downloads.innerHTML = `<div class="download-summary"><strong>${listDownloadedPackages().length + listDownloadedLearningModules().length}</strong><span>learning items saved on this device</span></div><div class="portal-page-title portal-page-title--compact"><span class="portal-kicker">Prerequisite</span><h2>Safety module</h2></div>${safetyWorkspace(state.learningModules, state.currentUser?.role, state.currentUser, { offline: true })}<div class="portal-page-title portal-page-title--compact"><span class="portal-kicker">Assigned anatomy</span><h2>Species lessons</h2></div><div class="species-library-grid">${speciesLibrary(state.species.filter((item) => item.status === 'published'), { offline: true })}</div>`;
+      elements.downloads.innerHTML = `${bootstrap.offlineShell ? '<p class="page-guidance">Downloaded learning materials on this device. Reconnect and sign in to synchronize your own work.</p>' : ''}${bootstrap.offlineShell && state.classes.length > 1 ? `<label class="portal-field">Study section<select id="offlineSection"><option value="">Select a section before opening a lesson</option>${state.classes.map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('')}</select></label>` : ''}<div class="download-summary"><strong>${listDownloadedPackages().length + listDownloadedLearningModules().length}</strong><span>learning items saved on this device</span></div><div class="portal-page-title portal-page-title--compact"><span class="portal-kicker">Prerequisite</span><h2>Safety module</h2></div>${safetyWorkspace(state.learningModules, 'student', state.currentUser, { offline: true })}<div class="portal-page-title portal-page-title--compact"><span class="portal-kicker">Assigned anatomy</span><h2>Species lessons</h2></div><div class="species-library-grid">${speciesLibrary(state.species.filter((item) => item.status === 'published'), { offline: true })}</div>`;
       state.species.forEach((item) => {
         const button = elements.downloads.querySelector(`[data-offline-toggle="${item.id}"]`);
         if (button) {
@@ -361,7 +383,10 @@ export function setupAquaPortal({ app, onOpenPackage }) {
         if (button) button.textContent = isLearningModuleDownloaded(module.id, module.version) ? 'Remove download' : 'Download for offline use';
       });
     }
-    if (name === 'manager') elements.manager.innerHTML = managerView(state.species, state.currentUser?.role, state.currentUser);
+    if (name === 'manager') {
+      elements.manager.innerHTML = managerView(state.species, state.currentUser?.role, state.currentUser);
+      cardsToTable(elements.manager, '.species-card', 'content', 'Species content versions');
+    }
     if (name === 'prompt-studio') elements.promptStudio.innerHTML = promptStudio(state.learningModules);
 
     const activePanel = portal.querySelector(`[data-portal-panel="${name}"]`);
@@ -371,9 +396,13 @@ export function setupAquaPortal({ app, onOpenPackage }) {
   }
 
   function showPage(name) {
-    if (!state.currentUser && !['login', 'register', 'activate', 'access', 'about'].includes(name)) name = 'login';
+    if (!state.currentUser && !(bootstrap.offlineShell && name === 'downloads') && !['login', 'register', 'activate', 'access', 'about'].includes(name)) name = 'login';
     if (name === 'roster' && state.currentUser?.role !== 'admin') name = state.currentUser ? 'home' : 'login';
     if (name === 'prompt-studio' && !['instructor', 'admin'].includes(state.currentUser?.role)) name = state.currentUser ? 'home' : 'login';
+    if (!portal.querySelector(`[data-portal-panel="${name}"]`)) {
+      window.location.assign(window.AQUADISSECT_ROUTES[name] || window.AQUADISSECT_ROUTES.home);
+      return;
+    }
     state.currentPage = name;
     portal.querySelectorAll('[data-portal-panel]').forEach((panel) => { panel.hidden = panel.dataset.portalPanel !== name; });
     portal.querySelectorAll('.portal-nav [data-portal-page]').forEach((button) => {
@@ -387,7 +416,8 @@ export function setupAquaPortal({ app, onOpenPackage }) {
     renderPage(name);
     if (name === 'roster' && !state.adminRoster) void refreshRoster();
     window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
-    focusActivePage(name);
+    if (!initialPage) focusActivePage(name);
+    initialPage = false;
   }
 
   function signIn(payload) {
@@ -432,6 +462,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
   async function signOut() {
     try {
       await request('/api/logout', { method: 'POST' });
+      localStorage.removeItem(offlineContextKey);
       state.currentUser = null;
       state.latestResult = null;
       state.pendingUsers = [];
@@ -456,6 +487,10 @@ export function setupAquaPortal({ app, onOpenPackage }) {
     const matchingClasses = state.currentUser?.role === 'student'
       ? state.classes.filter((item) => item.status === 'active' && item.assignments.some((assignment) => String(assignment.packageId) === String(id)))
       : [];
+    if (bootstrap.offlineShell && matchingClasses.length > 1 && !selectedClassId) {
+      selectedClassId = Number(portal.querySelector('#offlineSection')?.value) || null;
+      if (!matchingClasses.some(c=>c.id===selectedClassId)) { showToast('Select the study section before opening this lesson.'); return; }
+    }
     if (matchingClasses.length > 1 && !selectedClassId) {
       showPage('classes');
       showToast('Open this lesson from the correct section below.');
@@ -717,6 +752,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
   }
 
   async function handlePortalSubmit(event) {
+    if (event.target.closest('#workspaceTool')) return;
     if (event.target.closest('#portalConfirmDialog') || event.target.matches('[data-module-activity]')) return;
     const form = event.target;
     const submitter = event.submitter || form.querySelector('button[type="submit"], input[type="submit"]');
@@ -941,6 +977,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
   }
 
   function updatePasswordGuidance() {
+    if (!elements.registrationPassword) return;
     const password = elements.registrationPassword.value;
     const rules = {
       length: password.length >= 8,
@@ -967,20 +1004,27 @@ export function setupAquaPortal({ app, onOpenPackage }) {
   portal.addEventListener('click', handlePortalClick);
   portal.addEventListener('submit', handlePortalSubmit);
   portal.addEventListener('change', handlePortalChange);
-  elements.menuButton.addEventListener('click', () => setSidebarOpen(!portal.classList.contains('is-sidebar-open')));
+  elements.menuButton.addEventListener('click', () => {
+    if (matchMedia('(min-width: 781px)').matches) {
+      const collapsed = portal.classList.toggle('is-desktop-collapsed');
+      elements.menuButton.setAttribute('aria-expanded', String(!collapsed));
+      elements.menuButton.setAttribute('aria-label', collapsed ? 'Open navigation' : 'Collapse navigation');
+    } else setSidebarOpen(!portal.classList.contains('is-sidebar-open'));
+  });
   elements.sidebarScrim.addEventListener('click', () => setSidebarOpen(false));
   document.addEventListener('keydown', handleSidebarKeydown);
   window.addEventListener('resize', () => setSidebarOpen(false, { restoreFocus: false }));
-  elements.registrationPassword.addEventListener('input', updatePasswordGuidance);
+  elements.registrationPassword?.addEventListener('input', updatePasswordGuidance);
   elements.toast.addEventListener('click', () => {
     if (elements.toast.classList.contains('is-error')) dismissToast();
   });
   elements.toast.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && elements.toast.classList.contains('is-error')) dismissToast();
   });
-  requireElement(portal, '#forgotPassword').addEventListener('click', () => showToast('Contact your administrator for account support.'));
-  window.addEventListener('online', async () => {
+  portal.querySelector('#forgotPassword')?.addEventListener('click', () => showToast('Contact your administrator for account support.'));
+  async function synchronizeLearningRecords() {
     updateNetworkStatus();
+    if (!state.currentUser || bootstrap.offlineShell) return;
     try {
       const [attempts, modules] = await Promise.all([synchronizeQueuedAttempts(), synchronizeQueuedModuleProgress()]);
       if (attempts || modules) {
@@ -988,13 +1032,26 @@ export function setupAquaPortal({ app, onOpenPackage }) {
         showToast(`${attempts + modules} offline learning record${attempts + modules === 1 ? '' : 's'} synchronized`);
       }
     } catch { showToast('Offline learning records will retry when the connection is stable.', { tone: 'error', persistent: true }); }
-  });
+  }
+  window.addEventListener('online', synchronizeLearningRecords);
+  if (navigator.onLine) void synchronizeLearningRecords();
   window.addEventListener('offline', updateNetworkStatus);
 
   updateSession();
+  portal.querySelectorAll('.portal-nav [data-portal-page]').forEach(link => { link.setAttribute('aria-label', link.textContent.trim()); link.title = link.textContent.trim(); });
+  window.addEventListener('pageshow', event => { if (event.persisted && navigator.onLine) window.location.reload(); });
+  if (bootstrap.offlineShell) portal.querySelectorAll('[data-portal-page]').forEach(link => { if(link.dataset.portalPage !== 'downloads') link.addEventListener('click', event => { event.stopImmediatePropagation(); window.location.assign(window.AQUADISSECT_ROUTES[link.dataset.portalPage]); }); });
+  const refreshNotificationCount = setupWorkspaceShell(portal, state.currentUser);
+  void setupWorkspacePage(window.AQUADISSECT_PAGE, portal.querySelector('#workspaceTool'), state.currentUser, showToast, refreshNotificationCount);
   updateNetworkStatus();
+  const helpSearch = portal.querySelector('#helpSearch');
+  helpSearch?.addEventListener('input', () => {
+    const topics = [...portal.querySelectorAll('.help-topic')];
+    topics.forEach(topic => { topic.hidden = !topic.textContent.toLowerCase().includes(helpSearch.value.trim().toLowerCase()); });
+    portal.querySelector('#helpEmpty').hidden = topics.some(topic => !topic.hidden);
+  });
   updatePasswordGuidance();
-  showPage(state.currentUser ? 'home' : 'login');
+  showPage(window.AQUADISSECT_PAGE || (state.currentUser ? 'home' : 'login'));
   setupProgressiveWebApp({ installButton: elements.installButton, notify: showToast })
     .catch(() => { elements.installButton.hidden = true; });
 
@@ -1002,6 +1059,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
     openDashboard,
     currentUser: () => state.currentUser,
     async recordAttempt(lessonKey, attempt) {
+      if (!state.currentUser) throw new Error('Reconnect and sign in to record an attempt.');
       const response = await submitOrQueueAttempt(lessonKey, { ...attempt, classId: state.activeClassId });
       if (response.queued) showToast('Attempt saved offline and queued for synchronization');
       else {

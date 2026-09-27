@@ -1,0 +1,1 @@
+<section class="portal-page" data-portal-panel="reports"><div class="portal-page-title"><h1>Learning reports</h1><p>Recorded formative results and safety progress. These records do not establish learning effectiveness.</p></div><div id="workspaceTool" aria-live="polite"><p>Loading…</p></div></section>

@@ -24,6 +24,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        foreach ([\App\Models\CalendarEvent::class, \App\Models\SpeciesAssignment::class, \App\Models\ClassModuleAssignment::class,
+            \App\Models\User::class, \App\Models\SpeciesPackage::class, \App\Models\LearningModuleVersion::class,
+            \App\Models\SpeciesPackageReview::class, \App\Models\LearningModuleReview::class] as $model) {
+            $model::observe(\App\Services\WorkspaceNotifications::class);
+        }
         if (! $this->app->runningInConsole()) {
             $this->app->make(AutomaticDatabaseSetup::class)->ensureCurrent($this->app->make(Migrator::class));
         }

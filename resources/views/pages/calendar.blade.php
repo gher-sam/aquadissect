@@ -1,0 +1,1 @@
+<section class="portal-page" data-portal-panel="calendar"><div class="portal-page-title"><h1>Class calendar</h1><p>Class activities and laboratory events. All times are Philippine time (UTC+8).</p></div><div id="workspaceTool" aria-live="polite"><p>Loading…</p></div></section>

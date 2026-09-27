@@ -8,10 +8,13 @@ use Illuminate\Http\Request;
 
 class PortalController extends Controller
 {
-    public function __invoke(Request $request, PortalData $portalData): View
+    public function __invoke(Request $request, PortalData $portalData)
     {
-        return view('app', [
+        $page = $request->route('page', 'login');
+        if ($page === 'login' && $request->user()) return redirect()->route('portal.home');
+        return response()->view('app', [
+            'page' => $page,
             'bootstrap' => $portalData->for($request->user()),
-        ]);
+        ])->header('Cache-Control', 'private, no-store');
     }
 }

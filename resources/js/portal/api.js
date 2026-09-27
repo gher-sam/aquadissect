@@ -22,6 +22,9 @@ export async function request(path, { method = 'GET', body } = {}) {
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
+    if ([401, 419].includes(response.status) && window.AQUADISSECT_BOOTSTRAP?.user) {
+      window.location.assign(appUrl('/login'));
+    }
     const validationMessage = Object.values(data.errors || {}).flat()[0];
     throw new Error(validationMessage || data.message || 'The request could not be completed.');
   }

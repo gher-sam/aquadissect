@@ -1,4 +1,4 @@
-const SHELL_CACHE = 'aquadissect-shell-v9';
+const SHELL_CACHE = 'aquadissect-shell-v11';
 const SHELL_CACHE_PREFIX = 'aquadissect-shell-';
 const scopeUrl = new URL(self.registration.scope);
 const withinScope = (url) => url.origin === scopeUrl.origin && url.pathname.startsWith(scopeUrl.pathname);
@@ -16,7 +16,7 @@ async function cacheResponse(cache, request) {
 
 async function cacheApplicationShell() {
   const cache = await caches.open(SHELL_CACHE);
-  const shellRequest = new Request(scopeUrl.href, { credentials: 'same-origin', cache: 'reload' });
+  const shellRequest = new Request(fromScope('offline'), { credentials: 'omit', cache: 'reload' });
   const shellResponse = await cacheResponse(cache, shellRequest);
   const fixedUrls = [
     fromScope('manifest.webmanifest'),
@@ -60,6 +60,14 @@ self.addEventListener('activate', (event) => {
     await Promise.all(cacheNames
       .filter((name) => name.startsWith(SHELL_CACHE_PREFIX) && name !== SHELL_CACHE)
       .map((name) => caches.delete(name)));
+    // Remove legacy personalized HTML from package caches; retain downloaded lesson assets.
+    for (const name of cacheNames.filter(name => name.startsWith('aquadissect-package-') || name.startsWith('aquadissect-module-'))) {
+      const cache = await caches.open(name);
+      for (const request of await cache.keys()) {
+        const response = await cache.match(request);
+        if (response?.headers.get('content-type')?.includes('text/html')) await cache.delete(request);
+      }
+    }
     await self.clients.claim();
   })());
 });
@@ -68,11 +76,9 @@ async function navigationResponse(request) {
   const cache = await caches.open(SHELL_CACHE);
   try {
     const response = await fetch(request);
-    if (response.ok) await cache.put(scopeUrl.href, response.clone());
     return response;
   } catch {
-    return (await caches.match(request, { ignoreSearch: true }))
-      || (await cache.match(scopeUrl.href))
+    return (await cache.match(fromScope('offline')))
       || new Response('AquaDissect is offline. Reconnect once, then download a species package for offline study.', {
         status: 503,
         headers: { 'Content-Type': 'text/plain; charset=utf-8' },
