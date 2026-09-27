@@ -7,9 +7,9 @@ This archive contains the selected application source at the release revision sh
 Use PHP 8.3 or later with SQLite, mbstring, XML and ZIP extensions, Composer, and a Node version compatible with Vite 8 (Node 22.12 or later is suitable).
 
 1. Extract the ZIP to a new working directory.
-2. Run `composer install` and `npm ci`.
+2. Create the writable directories `storage/app/private`, `storage/framework/cache/data`, `storage/framework/sessions`, `storage/framework/views`, `storage/framework/testing`, `storage/logs`, and `bootstrap/cache`. Create an empty `database/database.sqlite` file for SQLite.
 3. Copy `.env.example` to `.env`. Configure a local database if using MySQL instead of SQLite.
-4. Create the writable directories `storage/app/private`, `storage/framework/cache/data`, `storage/framework/sessions`, `storage/framework/views`, `storage/logs`, and `bootstrap/cache`. Create an empty `database/database.sqlite` file for SQLite.
+4. Run `composer install` and `npm ci`.
 5. Run `php artisan key:generate`, `php artisan migrate`, and `php artisan db:seed` for LOCAL demonstration data only. Never use demonstration accounts in production.
 6. Run `npm run build`, then `php artisan serve`.
 7. Run `php artisan test` to check local behavior.

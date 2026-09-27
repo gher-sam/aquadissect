@@ -8,10 +8,11 @@ use ZipArchive;
 
 class BuildSourceRelease extends Command
 {
-    protected $signature = 'source:build';
+    protected $signature = 'source:build {--if-production : Run only for a production checkout during installation}';
     protected $description = 'Prepare an allowlisted source handover from the committed release';
     public function handle(SourceRelease $release): int
     {
+        if ($this->option('if-production') && (!app()->environment('production') || !is_dir(base_path('.git')))) return self::SUCCESS;
         $run = function (array $args): string {
             $p = new Process(array_merge(['git'], $args), base_path());
             $p->setTimeout(180); $p->mustRun(); return trim($p->getOutput());
