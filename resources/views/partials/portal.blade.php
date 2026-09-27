@@ -48,7 +48,14 @@
       <div class="dashboard-breadcrumb"><span id="dashboardRoleLabel">AquaDissect</span><strong id="dashboardPageLabel">Overview</strong></div>
       <div class="workspace-search"><label class="sr-only" for="workspaceSearch">Search pages and help</label><input id="workspaceSearch" type="search" placeholder="Search pages and help…" autocomplete="off" aria-controls="workspaceSearchResults"><div id="workspaceSearchResults" hidden></div></div>
       <a class="workspace-bell" href="{{ url('/notifications') }}" data-role-nav="student,instructor,admin" aria-label="Notifications"><i data-lucide="bell"></i><span id="notificationCount" hidden>0</span></a>
-      <details class="workspace-account" data-role-nav="student,instructor,admin"><summary>Account</summary><div><a href="{{ url('/account-roles') }}">Account roles</a><a href="{{ url('/help') }}">Help &amp; guide</a><button type="button" data-portal-signout>Sign out</button></div></details>
+      <div class="workspace-account dropdown" data-role-nav="student,instructor,admin">
+        <button class="btn dropdown-toggle" id="workspaceAccountButton" type="button" data-bs-toggle="dropdown" aria-expanded="false">Account</button>
+        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="workspaceAccountButton">
+          <a class="dropdown-item" href="{{ url('/account-roles') }}">Account roles</a>
+          <a class="dropdown-item" href="{{ url('/help') }}">Help &amp; guide</a>
+          <button class="dropdown-item" type="button" data-portal-signout>Sign out</button>
+        </div>
+      </div>
       <button class="dashboard-install-button" id="installAppButton" type="button" hidden><i data-lucide="download"></i><span>Install app</span></button>
       <div class="dashboard-system-status" id="dashboardSystemStatus" role="status" aria-live="polite"><span aria-hidden="true"></span><span class="dashboard-system-status-label">Online</span></div>
     </div>

@@ -236,3 +236,9 @@ Status: **Implemented but awaiting validation**. Local engineering checks are re
 - Additive calendar/notification migrations and delayed-clone integration preserve existing data. Application rollback should retain these tables and records.
 
 Deferred: recurring events, external calendar synchronization, email/push, scheduled reminders, editable RBAC, and unrelated template applications. Software verification remains separate from research evaluation and manuscript completion.
+
+September 27, 2026: Bootstrap 5.3 integration was approved and implemented as a
+shared component foundation, with the Account dropdown using Bootstrap behavior.
+Existing application components and anatomy interactions remain in place. Status:
+**Implemented but awaiting validation**; this technical integration does not
+establish faculty validation or research outcomes.

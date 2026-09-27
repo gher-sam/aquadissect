@@ -1,3 +1,5 @@
+import '../css/bootstrap.scss';
+import 'bootstrap/js/dist/dropdown';
 import '@fontsource/figtree/latin-400.css';
 import '@fontsource/figtree/latin-500.css';
 import '@fontsource/figtree/latin-600.css';

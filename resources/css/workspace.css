@@ -26,7 +26,9 @@
 .workspace-bell svg { width:22px; height:22px; }
 #notificationCount { position:absolute; top:0; right:0; background:#b52640; color:#fff; font-size:10px; border-radius:20px; padding:2px 4px; }
 .workspace-account { position:relative; }
-.workspace-account summary { cursor:pointer; padding:12px 0; }
+.workspace-account .dropdown-toggle { cursor:pointer; min-height:44px; background:transparent; border:0; }
+.workspace-account .dropdown-item { width:100%; text-align:left; border:0; border-radius:3px; background:transparent; min-height:44px; }
+.workspace-account .dropdown-item:hover,.workspace-account .dropdown-item:focus { background:#eef1fc; color:#283d85; }
 .workspace-account>div { right:0; }
 .workspace-panel { background:#fff; border:1px solid #e7e9ed; padding:22px; margin-bottom:20px; border-radius:5px; box-shadow:0 1px 4px #21252906; }
 .workspace-panel h2 { font-size:17px; margin:0; }
@@ -82,7 +84,7 @@
 @media(max-width:620px) {
  .is-authenticated .portal-page { padding:18px 12px; }
  .workspace-panel { padding:16px; }
- .workspace-account summary { font-size:12px; }
+ .workspace-account .dropdown-toggle { font-size:12px; }
  .workspace-search input { padding:8px; font-size:12px; }
  .notification-list li { align-items:start; flex-direction:column; }
  .workspace-toolbar>div { display:flex; flex-wrap:wrap; gap:4px; }

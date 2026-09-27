@@ -253,3 +253,19 @@ Attex dashboard and data-table patterns inform the workspace. AquaDissect retain
 - Labels, inline errors, disclosures, and dialog focus remain required. Initial page loads do not automatically focus headings.
 
 References: https://themes.coderthemes.com/attex/layouts/index.html and https://themes.coderthemes.com/attex/layouts/tables-datatable.html.
+
+## Bootstrap integration - September 27, 2026
+
+Bootstrap 5.3.8 and Popper 2.11.8 are installed locally and bundled through Vite;
+no CDN is required. `resources/css/bootstrap.scss` supplies themed containers,
+grid, forms, buttons, tables, dropdowns, breadcrumbs, pagination, spinners, and
+utilities. Its CSS layer gives existing application styles precedence. Reboot
+and global typography resets are intentionally omitted to preserve anatomy and
+legacy page rendering. Only the Dropdown JavaScript plugin is loaded, powering
+the shared Account menu with arrow-key navigation, Escape, and outside dismissal.
+
+Use Bootstrap classes for new standard controls; retain existing application
+handlers and native dialogs unless a component is explicitly migrated. This is
+a shared framework integration, not a conversion of every existing component.
+Primary color remains #3E60D5 and font remains Figtree. Bootstrap guidance:
+https://getbootstrap.com/docs/5.3/getting-started/vite/.
