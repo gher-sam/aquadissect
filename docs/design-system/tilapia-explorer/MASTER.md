@@ -172,6 +172,16 @@ font-family: 'Figtree', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
 
 ### Page Pattern
 
+### Shared workspace presentation
+
+- Frame page introductions in a white panel with a restrained blue top border, a clear heading, and nearby guidance.
+- Keep the dashboard's Workspace guide action available to every signed-in role.
+- Use light card shadows; informational cards must not move on hover.
+- Give data tables blue-tinted column headings, alternating rows, comfortable cell spacing, and a contained horizontal scroll area.
+- Keep form controls consistent, file-selection buttons readable, and disabled actions visibly distinct.
+- Stack dashboard introductions on narrower screens and use full-width guide actions on phones.
+- Apply the shared presentation to authentication, dashboards, species lessons, safety, classes, roster, activities, downloads, content management, media prompts, account roles, help, and lesson panels. Retain each page's existing permissions and workflow.
+
 **Pattern Name:** Immersive/Interactive Experience
 
 - **Learning Strategy:** Show one clear next action, explain locked states, retain progress, and give recovery guidance near errors.

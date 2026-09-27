@@ -4,6 +4,7 @@
  */
 
 :root {
+  --workspace-card-shadow: 0 3px 14px rgb(14 49 91 / 4%);
   --color-primary: #0140c1;
   --color-primary-deep: #0e315b;
   --color-secondary: #1594e3;
@@ -23,6 +24,251 @@
   --shadow-sm: 0 2px 8px rgb(13 20 66 / 7%);
   --shadow-md: 0 10px 28px rgb(13 20 66 / 9%);
   --shadow-lg: 0 22px 54px rgb(13 20 66 / 15%);
+}
+
+/* Shared workspace composition: one visual hierarchy across every role. */
+.portal-page > .portal-page-title,
+.is-authenticated .dashboard-hero {
+  position: relative;
+  max-width: none;
+  padding: clamp(22px, 3vw, 32px);
+  margin-bottom: 28px;
+  border: 1px solid var(--color-border);
+  border-top: 4px solid var(--color-primary);
+  border-radius: 18px;
+  background: var(--color-surface);
+}
+
+.portal-page > .portal-page-title > p {
+  max-width: 68ch;
+  margin-bottom: 0;
+}
+
+.portal-page > .portal-page-title > .page-guidance {
+  width: 100%;
+  max-width: none;
+  padding: 14px 16px;
+  margin-top: 22px;
+  border: 0;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.portal-page > .portal-page-title > .page-guidance strong {
+  font-size: 13px;
+}
+
+.workspace-guide-link {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 44px;
+  padding: 11px 15px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  color: var(--color-primary-deep);
+  background: var(--color-surface-soft);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.workspace-guide-link:hover {
+  border-color: var(--color-primary);
+  background: var(--color-surface);
+}
+
+.workspace-guide-link svg,
+.portal-brand-mark svg {
+  width: 21px;
+  height: 21px;
+  flex-shrink: 0;
+}
+
+.portal-page :is(h1, h2, h3) {
+  text-wrap: balance;
+}
+
+.portal-page :is(.class-card, .assignment-card, .status-card, .access-card,
+  .admin-table-card, .admin-operations-card, .metric-card, .learning-module-card,
+  .learning-module-manager-card, .package-import-card, .download-summary,
+  .species-card, .prompt-studio-form, .prompt-output),
+.portal-page .flow-grid > article {
+  box-shadow: var(--workspace-card-shadow);
+}
+
+.portal-page :is(.species-card, .class-card, .assignment-card, .metric-card,
+  .learning-module-card, .access-card):hover,
+.portal-page :is(.module-grid, .flow-grid) > article:hover {
+  transform: none;
+}
+
+.portal-page :is(.class-card, .assignment-card, .status-card, .access-card,
+  .admin-table-card, .admin-operations-card, .download-summary) {
+  padding: 24px;
+}
+
+.portal-page .metric-card {
+  border-top: 3px solid var(--color-primary);
+}
+
+.portal-page .metric-card > strong {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.04em;
+}
+
+.portal-page .species-card-image {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.portal-page .species-card-image img {
+  max-width: 420px;
+}
+
+.portal-page .admin-table-wrap {
+  max-width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  overscroll-behavior-x: contain;
+}
+
+.portal-page .admin-table-wrap table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.portal-page .admin-table-wrap caption {
+  padding: 12px 16px;
+  background: var(--color-surface);
+}
+
+.portal-page .admin-table-wrap :is(th, td) {
+  padding: 14px 16px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.portal-page .admin-table-wrap th {
+  color: var(--color-primary-deep);
+  background: var(--color-surface-soft);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.portal-page .admin-table-wrap tbody tr:nth-child(even) {
+  background: #f8fbff;
+}
+
+.portal-page .admin-table-wrap tbody tr:hover {
+  background: var(--color-surface-soft);
+}
+
+.portal-page .admin-table-wrap tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.portal-page :is(input, select, textarea) {
+  font: inherit;
+  accent-color: var(--color-primary);
+}
+
+.portal-page input::file-selector-button {
+  padding: 8px 12px;
+  margin-right: 12px;
+  border: 0;
+  border-radius: 6px;
+  color: var(--color-primary-deep);
+  background: var(--color-surface-soft);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.portal-page :is(input, textarea)::placeholder {
+  color: var(--color-muted-text);
+  opacity: 1;
+}
+
+.portal-page :is(button, input, select, textarea):disabled {
+  cursor: not-allowed;
+  opacity: .6;
+  box-shadow: none;
+}
+
+.portal-page .auth-card {
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  box-shadow: var(--workspace-card-shadow);
+}
+
+.portal-page .flow-grid > article > span,
+.portal-page .access-icon {
+  color: var(--color-primary);
+  background: var(--color-surface-soft);
+  border-radius: 12px;
+}
+
+.portal-page .empty-state {
+  border: 1px dashed var(--color-border);
+  border-radius: 14px;
+  padding: 28px;
+}
+
+.portal-page .empty-state strong {
+  color: var(--color-primary-deep);
+}
+
+.app-shell :is(.task-card, .selected-card) {
+  border-radius: 14px;
+  box-shadow: var(--workspace-card-shadow);
+}
+
+.app-shell .progress-track {
+  height: 7px;
+  border-radius: 999px;
+}
+
+@media (max-width: 1100px) {
+  .is-authenticated .dashboard-hero {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 600px) {
+  .portal-page > .portal-page-title,
+  .is-authenticated .dashboard-hero {
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 14px;
+  }
+
+  .portal-page :is(.class-card, .assignment-card, .status-card, .access-card,
+    .admin-table-card, .admin-operations-card, .download-summary) {
+    padding: 18px;
+  }
+
+  .portal-page > .portal-page-title > .page-guidance {
+    align-items: flex-start;
+  }
+
+  .workspace-guide-link {
+    width: 100%;
+  }
+
+  .portal-page .admin-table-wrap :is(th, td) {
+    padding: 12px;
+  }
+
+  .portal-page :is(input, select, textarea) {
+    font-size: 16px;
+  }
 }
 
 /* The interface intentionally uses authored solid colors throughout. */

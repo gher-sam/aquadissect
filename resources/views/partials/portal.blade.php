@@ -1,7 +1,7 @@
 <div id="aquaPortal">
   <header class="portal-header" id="portalSidebar">
     <button class="portal-brand" type="button" data-portal-page="home" aria-label="AquaDissect home">
-      <span class="portal-brand-mark" aria-hidden="true">A</span>
+      <span class="portal-brand-mark" aria-hidden="true"><i data-lucide="waves"></i></span>
       <span><strong>AquaDissect</strong><small>Guided aquatic anatomy learning</small></span>
     </button>
     <span class="portal-sidebar-label">Workspace</span>
@@ -98,7 +98,7 @@
           <small>Demonstration accounts use password <strong>demo123</strong>.</small>
         </details>
         @endunless
-        <p class="auth-security-note"><i data-lucide="shield-check" aria-hidden="true"></i><span>Laravel sessions and hashed passwords protect account access.</span></p>
+        <p class="auth-security-note"><i data-lucide="shield-check" aria-hidden="true"></i><span>Your learning workspace is protected. Keep your account details private.</span></p>
       </form>
     </section>
 
@@ -177,6 +177,7 @@
           <h1 id="dashboardGreeting">Welcome to AquaDissect</h1>
           <p id="dashboardSummary">Continue your assigned learning activities.</p>
         </div>
+        <button class="workspace-guide-link" type="button" data-portal-page="about"><i data-lucide="circle-help" aria-hidden="true"></i><span>Workspace guide</span><i data-lucide="arrow-right" aria-hidden="true"></i></button>
       </div>
       <div id="dashboardContent"></div>
     </section>
