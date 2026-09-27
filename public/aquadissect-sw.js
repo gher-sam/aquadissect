@@ -150,6 +150,11 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   const url = new URL(event.request.url);
   if (!withinScope(url)) return;
+  // Source handover must never fall back to any shared offline cache.
+  if (url.pathname.includes('/source-handover')) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
 
   if (event.request.mode === 'navigate') {
     event.respondWith(navigationResponse(event.request));

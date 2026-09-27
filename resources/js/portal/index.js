@@ -31,6 +31,7 @@ const dashboardCopy = {
   admin: ['Administrator workspace', 'System overview', 'Review the people, class sections, and learning content that need attention.'],
 };
 const pageLabels = {
+  'source-handover': 'Source handover',
   calendar: 'Calendar', notifications: 'Notifications', reports: 'Learning reports',
   home: 'Home', library: 'Species lessons', classes: 'Class sections', roster: 'People & sections', assignments: 'Class activities',
   safety: 'Safety & Tools', downloads: 'Offline access', manager: 'Species content', 'prompt-studio': 'Create media prompts', access: 'Account roles', about: 'Help & guide',

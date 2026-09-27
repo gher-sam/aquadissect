@@ -242,3 +242,13 @@ shared component foundation, with the Account dropdown using Bootstrap behavior.
 Existing application components and anatomy interactions remain in place. Status:
 **Implemented but awaiting validation**; this technical integration does not
 establish faculty validation or research outcomes.
+
+## Approved source handover addition
+
+The administrator-only source handover was approved on September 27, 2026.
+It provides a read-only file tree, text previews, individual downloads, and a
+prepared release ZIP through the application. It does not grant developer access
+to learner records or introduce another role. Source packages exclude credentials,
+live records, uploads, manuscripts, and private operational artifacts. Downloads
+are logged by account ID and revision. Engineering implementation and verification
+are distinct from faculty or research validation.

@@ -1,4 +1,5 @@
 import { request, appUrl } from './api.js';
+import { sourceHandover } from './sourceHandover.js';
 import { escapeHtml as e } from './format.js';
 import { rosterTable, setupRosterTables } from './rosterTables.js';
 
@@ -44,6 +45,7 @@ export async function setupWorkspacePage(page, root, user, notify, refreshCount)
   if (!root) return;
   const fail = error => { root.innerHTML = `<div class="empty-state" role="alert"><strong>Unable to load this page</strong><p>${e(error.message)}</p><button type="button" data-retry-workspace>Try again</button></div>`; root.querySelector('button').onclick = () => setupWorkspacePage(page, root, user, notify, refreshCount); };
   try {
+    if (page === 'source-handover') await sourceHandover(root);
     if (page === 'notifications') await notifications(root, refreshCount, notify);
     if (page === 'calendar') await calendar(root, user, notify, refreshCount);
     if (page === 'reports') await reports(root, notify);

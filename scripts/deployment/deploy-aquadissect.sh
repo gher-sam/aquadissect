@@ -69,6 +69,9 @@ install -d \
 npm ci --no-audit --no-fund
 npm run build
 
+# Prepare only committed, allowlisted application files outside the public root.
+"$PHP_BIN" artisan source:build
+
 "$PHP_BIN" artisan migrate --force
 "$PHP_BIN" artisan db:seed --class='Database\Seeders\SpeciesCatalogSeeder' --force
 "$PHP_BIN" artisan db:seed --class='Database\Seeders\LearningModuleSeeder' --force
@@ -109,6 +112,10 @@ for clone_file in "$CLONE_DB_PATH" "$CLONE_DB_PATH-wal" "$CLONE_DB_PATH-shm"; do
 done
 
 # Webhook state is private but must remain readable and writable by PHP.
+if [[ -d "$SITE_DIR/storage/app/private/source-handover" ]]; then
+    chmod 750 "$SITE_DIR/storage/app/private/source-handover"
+    find "$SITE_DIR/storage/app/private/source-handover" -maxdepth 1 -type f -exec chmod 640 {} +
+fi
 if [[ -d "$SITE_DIR/storage/app/deploy" ]]; then
     chmod 750 "$SITE_DIR/storage/app/deploy"
     find "$SITE_DIR/storage/app/deploy" -maxdepth 1 -type f -exec chmod 640 {} +

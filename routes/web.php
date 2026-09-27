@@ -75,6 +75,10 @@ Route::prefix('api')->group(function (): void {
         });
 
         Route::middleware('role:admin')->prefix('admin')->group(function (): void {
+            Route::get('/source-handover', [\App\Http\Controllers\SourceHandoverController::class, 'index']);
+            Route::get('/source-handover/preview', [\App\Http\Controllers\SourceHandoverController::class, 'preview'])->middleware('throttle:60,1,source-preview');
+            Route::get('/source-handover/download', [\App\Http\Controllers\SourceHandoverController::class, 'download'])->middleware('throttle:6,1,source-zip');
+            Route::get('/source-handover/file', [\App\Http\Controllers\SourceHandoverController::class, 'file'])->middleware('throttle:30,1,source-file');
             Route::get('/roster', [AdminRosterController::class, 'index']);
             Route::post('/offerings', [AdminRosterController::class, 'storeOffering']);
             Route::post('/offerings/{class}/instructors', [AdminRosterController::class, 'assignInstructor']);

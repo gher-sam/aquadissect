@@ -131,3 +131,15 @@
 .portal-page .motion-feature h2 { font-size:24px; }
 .portal-page .motion-feature-stage { min-height:170px; }
 .portal-page .learning-module-card,.portal-page .learning-module-manager-card,.portal-page .status-card,.portal-page .admin-operations-card,.portal-page .prompt-studio-form,.portal-page .prompt-output { border-radius:5px; border:1px solid #e7e9ed; box-shadow:none; }
+
+/* Private source handover uses the same manifest for browsing and downloads. */
+.source-browser { display:grid; grid-template-columns:minmax(220px, .8fr) minmax(0,2fr); gap:24px; }
+.source-tree { max-height:65vh; overflow:auto; margin-top:16px; }
+.source-tree ul { list-style:none; margin:0; padding-left:16px; }
+.source-tree>ul { padding-left:0; }
+.source-tree summary { cursor:pointer; padding:10px 4px; font-weight:600; }
+#workspaceTool .source-tree button { text-align:left; border:0; width:100%; overflow-wrap:anywhere; }
+.source-preview { min-width:0; }
+.source-preview h2,.source-hash { overflow-wrap:anywhere; }
+.source-preview pre { max-height:65vh; overflow:auto; padding:16px; background:#f5f6fa; border:1px solid #dee2e6; font-size:12px; line-height:1.6; }
+@media(max-width:780px) { .source-browser { grid-template-columns:1fr; } .source-tree { max-height:35vh; } }

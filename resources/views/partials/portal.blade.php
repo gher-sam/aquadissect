@@ -22,6 +22,7 @@
       <button type="button" data-portal-page="notifications" data-role-nav="student,instructor,admin"><i class="portal-nav-icon" data-lucide="bell"></i><span>Notifications</span></button>
       <button type="button" data-portal-page="reports" data-role-nav="student,instructor,admin"><i class="portal-nav-icon" data-lucide="chart-no-axes-combined"></i><span>Reports</span></button>
       <span class="portal-nav-section portal-nav-section--support" data-role-nav="student,instructor,admin">Help</span>
+      <button type="button" data-portal-page="source-handover" data-role-nav="admin"><i class="portal-nav-icon" data-lucide="download"></i><span>Source handover</span></button>
       <button type="button" data-portal-page="access"><i class="portal-nav-icon" data-lucide="users"></i><span data-nav-label="access">Account roles</span></button>
       <button type="button" data-portal-page="about"><i class="portal-nav-icon" data-lucide="book-open"></i><span data-nav-label="about">Help &amp; guide</span></button>
     </nav>
