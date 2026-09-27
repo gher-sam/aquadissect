@@ -1,0 +1,298 @@
+/* Form-first source order; desktop places the specimen alongside the form. */
+.login-concept {
+  grid-template-columns: minmax(0, 1.15fr) minmax(380px, .85fr);
+  gap: 24px;
+  min-height: 0;
+}
+
+.login-concept .auth-card--login {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: stretch;
+  max-width: none;
+  padding: clamp(28px, 4vw, 60px);
+  border: 0;
+  border-radius: 20px;
+  box-shadow: none;
+}
+
+.login-concept .portal-kicker {
+  color: var(--color-primary);
+  font-size: 11px;
+  letter-spacing: .14em;
+}
+
+.login-concept .auth-card--login h1 {
+  margin-top: 12px;
+  color: var(--color-foreground);
+  font-size: clamp(32px, 3.3vw, 48px);
+  font-weight: 750;
+  line-height: 1.12;
+}
+
+.login-concept .auth-card--login > .portal-muted {
+  margin: 12px 0 28px;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.login-concept .portal-field {
+  font-size: 14px;
+}
+
+.login-concept .portal-field input {
+  min-height: 52px;
+  font-size: 16px;
+  box-shadow: none;
+}
+
+.login-concept .auth-options {
+  margin-block: 14px;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.login-concept .auth-options :is(label, button) {
+  font-size: 13px;
+}
+
+.login-concept .auth-submit,
+.login-concept .portal-secondary.portal-full {
+  min-height: 52px;
+  border-radius: 10px;
+  font-size: 16px;
+  box-shadow: none;
+}
+
+.login-concept .portal-secondary.portal-full {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.login-concept .auth-divider {
+  margin: 24px 0 18px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.login-concept .auth-divider::before,
+.login-concept .auth-divider::after {
+  background: var(--color-border);
+}
+
+.login-concept .portal-link.portal-full {
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+.login-concept .auth-card--login > .portal-link + .portal-muted {
+  margin: 8px 0 0;
+  font-size: 12px;
+  text-align: center;
+}
+
+.login-concept .auth-security-note {
+  margin-top: 24px;
+  font-size: 12px;
+}
+
+.login-concept .auth-security-note svg {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+
+.login-discovery {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  padding: clamp(28px, 4vw, 56px);
+  border-radius: 20px;
+  background: var(--color-surface-soft);
+}
+
+.login-discovery h2 {
+  margin: 22px 0 16px;
+  color: var(--color-foreground);
+  font-size: clamp(32px, 3.5vw, 52px);
+  font-weight: 750;
+  line-height: 1.13;
+  letter-spacing: -.035em;
+  text-wrap: initial;
+}
+
+.login-discovery-copy > p {
+  margin: 0;
+  color: var(--color-primary-deep);
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.login-discovery-figure {
+  margin: 28px -16px 16px;
+}
+
+.login-discovery-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  mix-blend-mode: multiply;
+}
+
+.login-discovery-figure figcaption {
+  color: var(--color-primary-deep);
+  font-size: 13px;
+  text-align: center;
+}
+
+.login-discovery-steps {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .1em;
+}
+
+.login-discovery-note {
+  margin: 28px 0 0;
+  color: var(--color-muted-text);
+  font-size: 12px;
+}
+
+.login-mobile-title,
+.login-mobile-description {
+  display: none;
+}
+
+/* Keep navigation light while the visitor is signing in. */
+#aquaPortal:not(.is-authenticated):has(.login-concept:not([hidden])) .portal-header {
+  display: flex;
+  align-items: center;
+  box-shadow: none;
+}
+
+#aquaPortal:not(.is-authenticated):has(.login-concept:not([hidden])) .portal-nav {
+  margin-left: auto;
+}
+
+#aquaPortal:not(.is-authenticated):has(.login-concept:not([hidden])) :is(.portal-session, .portal-nav [data-portal-page='home']) {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .login-concept {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 520px;
+    margin-inline: auto;
+    gap: 24px;
+  }
+
+  .login-concept .auth-card--login {
+    grid-column: 1;
+    padding: 24px;
+  }
+
+  .login-discovery {
+    grid-column: 1;
+    grid-row: 2;
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+    padding: 20px;
+  }
+
+  .login-discovery :is(.portal-kicker, .login-desktop-title, .login-desktop-description,
+    figcaption, .login-discovery-steps) {
+    display: none;
+  }
+
+  .login-discovery :is(.login-mobile-title, .login-mobile-description) {
+    display: block;
+  }
+
+  .login-discovery h2 {
+    margin: 0 0 8px;
+    font-size: 22px;
+  }
+
+  .login-discovery-copy > p {
+    font-size: 13px;
+  }
+
+  .login-discovery-figure {
+    margin: 0;
+  }
+
+  .login-discovery-note {
+    grid-column: 1 / -1;
+    padding-top: 12px;
+    margin: 0;
+    border-top: 1px solid var(--color-border);
+    font-size: 11px;
+  }
+
+  .registration-page .auth-specimen-card {
+    order: 2;
+  }
+}
+
+@media (max-width: 620px) {
+  #aquaPortal:not(.is-authenticated):has(.login-concept:not([hidden])) .portal-main {
+    width: 100%;
+    padding: 8px 20px 32px;
+  }
+
+  #aquaPortal:not(.is-authenticated):has(.login-concept:not([hidden])) .portal-header {
+    flex-wrap: nowrap;
+    gap: 12px;
+    padding: 14px 20px;
+  }
+
+  #aquaPortal:not(.is-authenticated):has(.login-concept:not([hidden])) .portal-nav {
+    width: auto;
+    margin-left: auto;
+    padding: 0;
+  }
+
+  #aquaPortal:not(.is-authenticated):has(.login-concept:not([hidden])) .portal-nav [data-portal-page='access'] {
+    display: none;
+  }
+
+  #aquaPortal:not(.is-authenticated):has(.login-concept:not([hidden])) .portal-brand strong {
+    font-size: 19px;
+  }
+
+  .login-concept .auth-card--login {
+    padding: 20px 0 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .login-concept .auth-card--login h1 {
+    font-size: 34px;
+  }
+
+  .login-concept .auth-card--login > .portal-muted {
+    margin-bottom: 24px;
+  }
+
+  .login-concept .portal-kicker {
+    font-size: 10px;
+    letter-spacing: .1em;
+  }
+
+  .login-discovery {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .login-discovery h2 {
+    font-size: 20px;
+  }
+}

@@ -172,7 +172,15 @@ font-family: 'Figtree', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
 
 ### Page Pattern
 
-### Shared workspace presentation
+### Responsive sign-in presentation
+
+- On desktop, place the existing tilapia illustration in a pale blue panel beside the white sign-in form.
+- On tablets and phones, show the form first and the compact specimen card below it. Keep the form first in document order.
+- Use 16px input text and primary controls at least 52px tall. Preserve visible keyboard focus and field labels.
+- Keep student activation and instructor access separate, with the existing account workflows and permissions.
+- Use preparation-oriented copy; do not imply validated learning effectiveness.
+
+### Shared page presentation
 
 - Frame page introductions in a white panel with a restrained blue top border, a clear heading, and nearby guidance.
 - Keep the dashboard's Workspace guide action available to every signed-in role.
