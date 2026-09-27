@@ -1,3 +1,4 @@
+import { setupRosterTables } from './rosterTables.js';
 import { request } from './api.js';
 import { adminDashboard, adminRosterView, classCards, instructorDashboard, managerView, speciesLibrary, studentDashboard } from './dashboards.js';
 import { escapeHtml, titleCase } from './format.js';
@@ -339,7 +340,10 @@ export function setupAquaPortal({ app, onOpenPackage }) {
     if (name === 'classes') {
       elements.classes.innerHTML = classCards(state.classes, state.currentUser?.role);
     }
-    if (name === 'roster') elements.roster.innerHTML = adminRosterView(state.adminRoster, state.rosterPreview, state.activationCodes, state.rosterError);
+    if (name === 'roster') {
+      elements.roster.innerHTML = adminRosterView(state.adminRoster, state.rosterPreview, state.activationCodes, state.rosterError);
+      setupRosterTables(elements.roster);
+    }
     if (name === 'assignments') elements.assignments.innerHTML = assignmentView();
     if (name === 'downloads') {
       elements.downloads.innerHTML = `<div class="download-summary"><strong>${listDownloadedPackages().length + listDownloadedLearningModules().length}</strong><span>learning items saved on this device</span></div><div class="portal-page-title portal-page-title--compact"><span class="portal-kicker">Prerequisite</span><h2>Safety module</h2></div>${safetyWorkspace(state.learningModules, state.currentUser?.role, state.currentUser, { offline: true })}<div class="portal-page-title portal-page-title--compact"><span class="portal-kicker">Assigned anatomy</span><h2>Species lessons</h2></div><div class="species-library-grid">${speciesLibrary(state.species.filter((item) => item.status === 'published'), { offline: true })}</div>`;

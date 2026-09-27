@@ -17,6 +17,7 @@ import '../css/threeViewer.css';
 import '../css/imageViewer.css';
 import '../css/polish.css';
 import '../css/login.css';
+import '../css/roster-tables.css';
 
 const app = document.querySelector('#app');
 app.innerHTML = `

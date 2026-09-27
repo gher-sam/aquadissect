@@ -182,6 +182,9 @@ font-family: 'Figtree', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
 
 ### Shared page presentation
 
+- People & sections uses separate section and enrolled-student tables with search, sortable headings, page size, pagination, and explicit empty states.
+- Keep section actions in expandable detail rows and account-creation forms in disclosures. Preserve table semantics and contained horizontal scrolling on phones.
+
 - Frame page introductions in a white panel with a restrained blue top border, a clear heading, and nearby guidance.
 - Keep the dashboard's Workspace guide action available to every signed-in role.
 - Use light card shadows; informational cards must not move on hover.
