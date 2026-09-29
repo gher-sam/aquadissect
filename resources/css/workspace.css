@@ -99,10 +99,15 @@
 @media(max-width:620px) {
  .is-authenticated .portal-page { padding:18px 12px; }
  .workspace-panel { padding:16px; }
+ .dashboard-install-button { flex:0 0 44px; }
  .workspace-account .dropdown-toggle { font-size:12px; }
  .workspace-search input { padding:8px; font-size:12px; }
  .notification-list li { align-items:start; flex-direction:column; }
  .workspace-toolbar>div { display:flex; flex-wrap:wrap; gap:4px; }
+}
+@media(max-width:340px) {
+ .is-authenticated .dashboard-topbar { flex-wrap:wrap; }
+ .workspace-search { order:10; flex:1 0 100%; width:100%; min-width:0; margin-left:0; }
 }
 
 .portal-page-title { padding:0 0 20px; margin:0; border:0; background:none; box-shadow:none; }
