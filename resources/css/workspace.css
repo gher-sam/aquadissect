@@ -138,6 +138,47 @@
 .portal-page .learning-module-card,.portal-page .learning-module-manager-card,.portal-page .status-card,.portal-page .admin-operations-card,.portal-page .prompt-studio-form,.portal-page .prompt-output { border-radius:5px; border:1px solid #e7e9ed; box-shadow:none; }
 
 /* Private source handover file browser. */
+.tutorial-start { display:flex; justify-content:space-between; gap:24px; border-left:4px solid #3e60d5; margin-bottom:24px; }
+.tutorial-start h2 { margin:6px 0; }
+.tutorial-start > div:last-child { display:grid; align-content:center; gap:10px; min-width:200px; }
+.tutorial-start small,.tutorial-heading p { color:#596579; }
+.tutorial-heading { margin:0 0 20px; }
+.tutorial-heading input { display:block; width:min(100%,540px); margin-top:8px; }
+.tutorial-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; margin-bottom:28px; }
+.tutorial-card { padding:22px; border:1px solid #dce3f2; border-radius:8px; background:#fff; display:flex; flex-direction:column; align-items:flex-start; gap:12px; }
+.tutorial-card[hidden] { display:none; }
+.tutorial-card h3,.tutorial-card p { margin:0; }
+.tutorial-card h3 { font-size:18px; }
+.tutorial-card p,.tutorial-card li { font-size:14px; line-height:1.65; }
+.tutorial-card details { width:100%; margin-bottom:6px; }
+.tutorial-card summary { color:#283d85; cursor:pointer; font-weight:600; }
+.tutorial-card li { padding:6px 0; }
+.tutorial-card > button { margin-top:auto; }
+.tutorial-state { background:#eef2fc; color:#283d85; padding:4px 9px; border-radius:4px; font-size:12px; font-weight:600; }
+.tutorial-panel { position:fixed; z-index:1100; bottom:18px; right:20px; width:390px; max-width:calc(100vw - 32px); max-height:55vh; overflow:auto; padding:20px; background:#fff; color:#263449; border:1px solid #b5c3ed; border-top:4px solid #3e60d5; border-radius:10px; box-shadow:0 8px 36px #142d5b26; font-family:Figtree,sans-serif; }
+.tutorial-panel header,.tutorial-panel footer,.tutorial-actions { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.tutorial-panel h2 { font-size:19px; margin:8px 0; }
+.tutorial-panel p { font-size:14px; line-height:1.55; }
+.tutorial-panel .tutorial-step-count { color:#283d85; font-size:12px; font-weight:700; margin:12px 0 0; }
+.tutorial-panel footer { margin-top:14px; }
+.tutorial-panel small { display:block; margin-top:12px; }
+.tutorial-panel [hidden] { display:none!important; }
+.tutorial-missing { background:#eef2fc; padding:10px; border-radius:5px; }
+.tutorial-highlight { outline:3px solid #3e60d5!important; outline-offset:5px; scroll-margin-top:100px; scroll-margin-bottom:55vh; }
+.tutorial-active { padding-bottom:55vh; }
+.role-staff-list { display:grid; gap:12px; margin:18px 0; }
+.role-staff-list form { display:flex; align-items:end; gap:16px; padding:14px; border:1px solid #dce3f2; border-radius:6px; }
+.role-staff-list label { flex:1; }
+.role-staff-list small,.role-staff-list select { display:block; margin-top:6px; }
+@media(prefers-reduced-motion:no-preference) { .tutorial-panel { animation:source-timeline-stage 180ms ease-out both; } }
+@media(max-width:700px) {
+ .tutorial-start { flex-direction:column; }
+ .tutorial-grid { grid-template-columns:minmax(0,1fr); }
+ .tutorial-panel { bottom:8px; left:8px; right:8px; width:auto; max-width:none; max-height:42vh; padding:14px; }
+ .tutorial-active { padding-bottom:45vh; }
+ .role-staff-list form { align-items:stretch; flex-direction:column; }
+}
+
 #workspaceTool [hidden] { display:none!important; }
 .source-delivery { margin:0 0 20px; }
 .source-delivery-heading h2 { margin:6px 0 8px; }

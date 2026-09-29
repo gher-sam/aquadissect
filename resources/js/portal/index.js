@@ -1,5 +1,6 @@
 import { setupRosterTables, cardsToTable } from './rosterTables.js';
 import { setupWorkspaceShell, setupWorkspacePage } from './workspace.js';
+import { setupTutorials, startHereCard, setupStaffRoles } from './tutorials.js';
 import { request } from './api.js';
 import { adminDashboard, adminRosterView, classCards, instructorDashboard, managerView, speciesLibrary, studentDashboard } from './dashboards.js';
 import { escapeHtml, titleCase } from './format.js';
@@ -26,6 +27,7 @@ if (bootstrap.offlineShell) {
 }
 
 const dashboardCopy = {
+  program_head: ['Program Head workspace', 'Program overview', 'Review progress across MB 304L sections and independently review learning content.'],
   student: ['Student workspace', 'Welcome back', 'Choose your next activity below. AquaDissect keeps your saved progress with the lesson.'],
   instructor: ['Instructor workspace', 'Welcome', 'Open a class section to review students, safety status, and learning activities.'],
   admin: ['Administrator workspace', 'System overview', 'Review the people, class sections, and learning content that need attention.'],
@@ -240,8 +242,8 @@ export function setupAquaPortal({ app, onOpenPackage }) {
     if (user) {
       elements.userInitials.textContent = `${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`.toUpperCase();
       elements.userName.textContent = `${user.firstName} ${user.lastName}`;
-      elements.userRole.textContent = titleCase(user.role);
-      elements.roleLabel.textContent = `${titleCase(user.role)} workspace`;
+      elements.userRole.textContent = titleCase(user.role.replaceAll('_', ' '));
+      elements.roleLabel.textContent = `${titleCase(user.role.replaceAll('_', ' '))} workspace`;
     } else {
       elements.roleLabel.textContent = 'AquaDissect';
     }
@@ -348,7 +350,10 @@ export function setupAquaPortal({ app, onOpenPackage }) {
         ? studentDashboard(state.species)
         : user.role === 'instructor'
           ? instructorDashboard(state.species, state.classes)
-          : adminDashboard(state.pendingUsers, state.species, state.classes);
+          : user.role === 'program_head'
+            ? `<div class="workspace-panel"><h2>Academic oversight</h2><p>${state.classes.length} sections available for review. Content decisions require an independent review; administrators handle publication.</p><div class="package-actions"><button type="button" class="portal-primary" data-portal-page="classes">Review sections</button><button type="button" class="portal-secondary" data-portal-page="reports">View learning reports</button><button type="button" class="portal-secondary" data-portal-page="manager">Review species content</button><button type="button" class="portal-secondary" data-portal-page="safety">Review Safety &amp; Tools</button></div></div>`
+            : adminDashboard(state.pendingUsers, state.species, state.classes);
+      elements.dashboardContent.insertAdjacentHTML('afterbegin', startHereCard(bootstrap.tutorials));
     }
     if (name === 'library') elements.library.innerHTML = speciesLibrary(state.species);
     if (name === 'safety') {
@@ -1054,6 +1059,22 @@ export function setupAquaPortal({ app, onOpenPackage }) {
   });
   updatePasswordGuidance();
   showPage(window.AQUADISSECT_PAGE || (state.currentUser ? 'home' : 'login'));
+  if (state.currentUser && !bootstrap.offlineShell) {
+    setupTutorials(bootstrap.tutorials, state.currentUser);
+    if (window.AQUADISSECT_PAGE === 'access' && state.currentUser.role === 'admin') void setupStaffRoles(confirmPortalAction);
+    const checkRole = async () => {
+      if (document.hidden || !navigator.onLine) return;
+      try {
+        const session = await request('/api/session');
+        if (session.user?.role !== state.currentUser.role || session.user?.status !== state.currentUser.status) window.location.reload();
+      } catch { /* Server still enforces current permissions on every action. */ }
+    };
+    document.addEventListener('visibilitychange', checkRole);
+    window.addEventListener('focus', checkRole);
+    window.addEventListener('online', checkRole);
+    const roleTimer = setInterval(checkRole, 60000);
+    window.addEventListener('pagehide', () => clearInterval(roleTimer), { once: true });
+  }
   setupProgressiveWebApp({ installButton: elements.installButton, notify: showToast })
     .catch(() => { elements.installButton.hidden = true; });
 

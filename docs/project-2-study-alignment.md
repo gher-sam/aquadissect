@@ -40,13 +40,18 @@ Intended learning outcomes are improved organ identification, understanding of o
 
 ## Application roles
 
-The defense-ready application retains the three roles currently implemented:
+The application uses four roles following the September 29, 2026 tutorial and oversight decision:
 
-- Administrator: Marine Biology program chair, department head, or other authorized administrator.
+- Administrator: authorized account, section, publication, and system administrator.
+- Program Head: designated academic oversight role with read-only access to all MB 304L sections and reports, and independent faculty content review. This role cannot publish content or manage accounts, class activities, overrides, or source downloads.
 - Instructor: faculty member handling MB 304L.
 - Student: enrolled MB 304L learner.
 
 Separate Super Administrator and Staff roles are deferred unless formally required. Application roles must not be confused with research respondents or adapted Scrum responsibilities.
+
+September 29, 2026: Administrators may explicitly change an active Instructor account to Program Head or restore Instructor access. Existing section assignments and historical records remain intact; instructor management privileges do not apply while Program Head access is active. Role changes retain actor, previous and new role, and timestamps. No accounts are converted automatically.
+
+Role-specific Start here cards, searchable task guides, and optional control-highlighting walkthroughs were approved for all four roles. Tutorial progress is saved by account and guide version, independently of lesson completion, research participation, and learning outcomes. Tutorials explain real workflows but do not submit forms or perform academic actions automatically. Status: Implemented but awaiting validation. Engineering checks are recorded in docs/tutorials-verification.md; no research or faculty validation is implied.
 
 ## Account and section-management decision
 

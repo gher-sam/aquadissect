@@ -33,5 +33,7 @@ return [
         'roster_events' => 'id',
         'calendar_events' => 'id',
         'workspace_notifications' => 'id',
+        'tutorial_progress' => 'id',
+        'role_change_events' => 'id',
     ],
 ];

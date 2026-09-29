@@ -26,6 +26,8 @@ class User extends Authenticatable
 
     public const ROLE_ADMIN = 'admin';
 
+    public const ROLE_PROGRAM_HEAD = 'program_head';
+
     public const STATUS_ACTIVE = 'active';
 
     public const STATUS_PENDING = 'pending';

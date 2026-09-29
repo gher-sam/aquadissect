@@ -14,7 +14,7 @@ class WorkspaceAccess
         $query = LearningClass::query();
         if ($user->role === 'instructor') $query->whereHas('instructors', fn ($q) => $q->where('user_id', $user->id));
         elseif ($user->role === 'student') $query->whereHas('enrollments', fn ($q) => $q->where('user_id', $user->id)->where('status', 'active'));
-        elseif ($user->role !== 'admin') abort(403);
+        elseif (!in_array($user->role, ['admin', 'program_head'], true)) abort(403);
         return $query;
     }
 

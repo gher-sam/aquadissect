@@ -29,6 +29,8 @@ class SpeciesCatalog
                     ->pluck('species_package_id'))
                 ->unique();
             $query->whereIn('id', $packageIds)->published();
+        } elseif ($user->role === User::ROLE_PROGRAM_HEAD) {
+            $query->whereIn('status', [SpeciesPackage::STATUS_PUBLISHED, SpeciesPackage::STATUS_REVIEW]);
         } elseif ($user->role === User::ROLE_INSTRUCTOR) {
             $query->where(fn (Builder $inner) => $inner
                 ->published()

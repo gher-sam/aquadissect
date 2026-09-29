@@ -35,7 +35,7 @@ class WorkspaceNotifications
             $review = $model instanceof SpeciesPackageReview || $model instanceof LearningModuleReview;
             if (!$review && (!in_array('status', $changed, true) || !in_array($model->status, ['review', 'published', 'archived']))) return;
             if ($review && !$created) return;
-            $recipients = User::whereIn('role', ['instructor', 'admin'])->pluck('id');
+            $recipients = User::whereIn('role', ['instructor', 'program_head', 'admin'])->pluck('id');
             $destination = $model instanceof LearningModuleVersion || $model instanceof LearningModuleReview ? 'safety' : 'manager';
             $summary = $review ? 'A faculty content-review decision was recorded.' : 'Learning content status changed to '.$model->status.'.';
         } else return;

@@ -35,7 +35,15 @@ Route::prefix('api')->group(function (): void {
     Route::post('/activate', [AuthController::class, 'activate'])->middleware('throttle:registration');
     Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth');
 
-    Route::middleware('auth')->group(function (): void {
+    Route::middleware(['auth', 'role:student,instructor,program_head,admin'])->group(function (): void {
+        Route::middleware('role:student,instructor,program_head,admin')->group(function (): void {
+            Route::get('/tutorials', [\App\Http\Controllers\TutorialController::class, 'index']);
+            Route::put('/tutorials/{guide}/progress', [\App\Http\Controllers\TutorialController::class, 'update']);
+        });
+        Route::middleware('role:instructor,program_head,admin')->prefix('staff')->group(function (): void {
+            Route::post('/species-packages/{package}/review', [StaffSpeciesPackageController::class, 'review']);
+            Route::post('/learning-module-versions/{version}/review', [StaffLearningModuleController::class, 'review']);
+        });
         Route::get('/calendar', [\App\Http\Controllers\CalendarController::class, 'index']);
         Route::post('/calendar/events', [\App\Http\Controllers\CalendarController::class, 'store']);
         Route::patch('/calendar/events/{event}', [\App\Http\Controllers\CalendarController::class, 'update']);
@@ -54,12 +62,10 @@ Route::prefix('api')->group(function (): void {
         Route::get('/learning-modules/{version}/manifest', [LearningModuleController::class, 'manifest']);
         Route::get('/learning-module-versions/{version}/assets/{asset}', [LearningModuleController::class, 'asset']);
         Route::post('/learning-module-versions/{version}/progress', [LearningModuleProgressController::class, 'store']);
-        Route::post('/lessons/{lessonKey}/attempts', [LessonAttemptController::class, 'store']);
+        Route::post('/lessons/{lessonKey}/attempts', [LessonAttemptController::class, 'store'])->middleware('role:student,instructor,admin');
 
         Route::middleware('role:instructor,admin')->prefix('staff')->group(function (): void {
-            Route::post('/species-packages/{package}/review', [StaffSpeciesPackageController::class, 'review']);
             Route::post('/learning-module-versions/{version}/submit', [StaffLearningModuleController::class, 'submit']);
-            Route::post('/learning-module-versions/{version}/review', [StaffLearningModuleController::class, 'review']);
             Route::post('/learning-module-versions/{version}/assets', [LearningModuleAssetController::class, 'store']);
             Route::post('/media-prompts/preview', [MediaPromptController::class, 'preview']);
             Route::post('/classes/{class}/learning-modules', [LearningModuleAssignmentController::class, 'store']);
@@ -75,6 +81,8 @@ Route::prefix('api')->group(function (): void {
         });
 
         Route::middleware('role:admin')->prefix('admin')->group(function (): void {
+            Route::get('/staff-roles', [\App\Http\Controllers\StaffRoleController::class, 'index']);
+            Route::patch('/staff-roles/{user}', [\App\Http\Controllers\StaffRoleController::class, 'update']);
             Route::get('/source-handover', [\App\Http\Controllers\SourceHandoverController::class, 'index']);
             Route::get('/source-handover/preview', [\App\Http\Controllers\SourceHandoverController::class, 'preview'])->middleware('throttle:60,1,source-preview');
             Route::get('/source-handover/download', [\App\Http\Controllers\SourceHandoverController::class, 'download'])->middleware('throttle:6,1,source-zip');
@@ -95,7 +103,7 @@ Route::prefix('api')->group(function (): void {
             Route::post('/learning-module-versions/{version}/archive', [StaffLearningModuleController::class, 'archive']);
         });
 
-        Route::post('/lesson-results', [LessonResultController::class, 'store']);
+        Route::post('/lesson-results', [LessonResultController::class, 'store'])->middleware('role:student,instructor,admin');
         Route::post('/admin/users/{user}/approve', [AdminUserController::class, 'approve'])->middleware('role:admin');
     });
 });

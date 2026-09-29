@@ -7,10 +7,11 @@ export function appUrl(path = '') {
   return `${baseUrl}${normalizedPath}` || '/';
 }
 
-export async function request(path, { method = 'GET', body } = {}) {
+export async function request(path, { method = 'GET', body, signal } = {}) {
   const isFormData = body instanceof FormData;
   const response = await fetch(appUrl(path), {
     method,
+    signal,
     credentials: 'same-origin',
     headers: {
       Accept: 'application/json',

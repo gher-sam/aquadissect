@@ -18,6 +18,10 @@ class SpeciesPackageContent
             return;
         }
 
+        if ($user->role === User::ROLE_PROGRAM_HEAD && in_array($package->status, [SpeciesPackage::STATUS_PUBLISHED, SpeciesPackage::STATUS_REVIEW], true)) {
+            return;
+        }
+
         if ($user->role === User::ROLE_INSTRUCTOR) {
             if ($package->status === SpeciesPackage::STATUS_PUBLISHED
                 || $package->status === SpeciesPackage::STATUS_REVIEW

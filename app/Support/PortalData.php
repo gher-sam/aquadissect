@@ -17,12 +17,18 @@ class PortalData
     /** @return array<string, mixed> */
     public function for(?User $user): array
     {
-        if (! $user) {
+        if (! $user || !$user->isActive()) {
             return $this->guest();
         }
 
         return [
             'user' => $user->portalProfile(),
+            'tutorials' => app(\App\Services\TutorialCatalog::class)->for($user),
+            'capabilities' => [
+                'programOversight' => in_array($user->role, ['program_head', 'admin'], true),
+                'reviewContent' => in_array($user->role, ['instructor', 'program_head', 'admin'], true),
+                'manageAccounts' => $user->isAdministrator(),
+            ],
             'lessonResult' => $user->latestLessonResult?->portalPayload(),
             'species' => $this->catalog->for($user),
             'classes' => $this->classes->for($user),

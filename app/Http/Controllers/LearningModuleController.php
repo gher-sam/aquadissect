@@ -48,6 +48,10 @@ class LearningModuleController extends Controller
     private function authorizeVersion(Request $request, LearningModuleVersion $version): void
     {
         $user = $request->user();
+        if ($user->role === User::ROLE_PROGRAM_HEAD) {
+            abort_unless(in_array($version->status, ['published', 'review'], true), 403);
+            return;
+        }
         if ($user->role !== User::ROLE_STUDENT) {
             return;
         }

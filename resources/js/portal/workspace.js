@@ -21,8 +21,9 @@ export function setupWorkspaceShell(portal, user) {
     const query = search.value.trim().toLowerCase();
     results.hidden = !query;
     if (!query) return;
-    const matches = [...pages, ...help].filter(([label]) => label.toLowerCase().includes(query)).slice(0, 8);
-    results.innerHTML = matches.map(([label, key]) => `<a href="${e(window.AQUADISSECT_ROUTES[key])}">${e(label)}</a>`).join('') || '<p>No matching pages or help topics.</p>';
+    const guides = (window.AQUADISSECT_BOOTSTRAP?.tutorials?.guides || []).map(g => [g.title, 'about', g.id]);
+    const matches = [...pages, ...help, ...guides].filter(([label]) => label.toLowerCase().includes(query)).slice(0, 8);
+    results.innerHTML = matches.map(([label, key, guide]) => `<a href="${e(window.AQUADISSECT_ROUTES[key])}${guide ? `?guide=${encodeURIComponent(guide)}` : ''}">${e(label)}</a>`).join('') || '<p>No matching pages or help topics.</p>';
   });
   search.addEventListener('keydown', event => { if (event.key === 'Escape') { results.hidden = true; search.value = ''; } });
   document.addEventListener('click', event => { if (!event.target.closest('.workspace-search')) results.hidden = true; });

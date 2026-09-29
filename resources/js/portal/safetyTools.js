@@ -81,13 +81,13 @@ function staffCard(module, role, currentUser) {
     ${module.latestReview ? `<div class="module-review-summary"><strong>${escapeHtml(titleCase(module.latestReview.decision.replace('_', ' ')))}</strong><span>${escapeHtml(module.latestReview.reviewerRole)}</span><p>${escapeHtml(module.latestReview.notes)}</p>${module.latestReview.evidenceReference ? `<small>Evidence: ${escapeHtml(module.latestReview.evidenceReference)}</small>` : ''}</div>` : ''}
     <div class="package-actions">
       <button class="portal-secondary" type="button" data-open-learning-module="${module.id}">Preview module</button>
-      ${module.status === 'draft' ? `<button class="portal-primary" type="button" data-submit-learning-module="${module.id}">Send for faculty review</button>` : ''}
+      ${role !== 'program_head' && module.status === 'draft' ? `<button class="portal-primary" type="button" data-submit-learning-module="${module.id}">Send for faculty review</button>` : ''}
       ${role === 'admin' && module.status === 'review' && module.approvalCurrent ? `<button class="portal-primary" type="button" data-publish-learning-module="${module.id}">Publish approved version</button>` : ''}
       ${role === 'admin' && module.status === 'published' ? `<button class="portal-secondary" type="button" data-archive-learning-module="${module.id}">Archive version</button>` : ''}
     </div>
     <details class="module-tool-audit"><summary>View all 15 tool checks</summary><ul>${module.tools.map((tool) => `<li><span>${escapeHtml(tool.name)}</span><small>${escapeHtml(titleCase(tool.validationStatus.replaceAll('_', ' ')))}</small></li>`).join('')}</ul></details>
     ${reviewForm(module, currentUser)}
-    ${assetForm(module)}
+    ${role !== 'program_head' ? assetForm(module) : ''}
   </article>`;
 }
 

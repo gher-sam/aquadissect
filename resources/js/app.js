@@ -280,6 +280,11 @@ function updatePrimaryAction() {
   if (definition.kind === 'quiz') {
     const answers = new FormData(elements.quiz);
     disabled = state.questions.some((question) => !answers.get(question.id));
+    if (portal.currentUser()?.role === 'program_head') {
+      elements.primaryAction.disabled = true;
+      elements.primaryAction.querySelector('span').textContent = 'Review preview — no result submitted';
+      return;
+    }
   }
   elements.primaryAction.disabled = disabled;
   elements.primaryAction.querySelector('span').textContent = definition.action;
