@@ -1,5 +1,16 @@
 import { request } from './api.js';
 import { escapeHtml as e } from './format.js';
+import { BookOpen, Compass, ShieldCheck, Users, ChartNoAxesCombined, ClipboardCheck, createElement } from 'lucide';
+
+const tutorialStyles = {
+  class: ['cyan', Users], sections: ['cyan', Users], students: ['cyan', Users],
+  safety: ['amber', ShieldCheck], exceptions: ['amber', ShieldCheck], approve: ['amber', ShieldCheck],
+  results: ['violet', ChartNoAxesCombined], progress: ['violet', ChartNoAxesCombined], reports: ['violet', ChartNoAxesCombined], overview: ['violet', ChartNoAxesCombined],
+  review: ['rose', ClipboardCheck], publish: ['rose', ClipboardCheck], content: ['rose', ClipboardCheck],
+};
+const styleFor = guide => tutorialStyles[guide.id.split('-').at(-1)] || ['blue', BookOpen];
+const icon = node => createElement(node, { 'aria-hidden': 'true', focusable: 'false', width: 24, height: 24 }).outerHTML;
+const progressBar = (value, total, label) => `<progress class="tutorial-progress" max="${total}" value="${value}" aria-label="${e(label)}">${value} of ${total}</progress>`;
 
 const helpUrl = () => window.AQUADISSECT_ROUTES.about;
 const progressFor = (data, guide) => data?.progress?.find(p => p.guide_key === guide.id && Number(p.version) === guide.version);
@@ -9,7 +20,7 @@ export function startHereCard(data) {
   if (!data?.guides?.length) return '';
   const next = data.guides.find(g => !progressFor(data, g)?.viewed_at) || data.guides[0];
   const viewed = data.guides.filter(g => progressFor(data, g)?.viewed_at).length;
-  return `<section class="workspace-panel tutorial-start" aria-labelledby="startHereTitle"><div><span class="portal-kicker">Your quick start</span><h2 id="startHereTitle">Start here</h2><p>New to AquaDissect? Follow a short guide, one step at a time.</p><small>${viewed} of ${data.guides.length} guides viewed · Separate from lesson progress</small></div><div><strong>${e(next.title)}</strong><a class="portal-primary button-link" href="${e(guideUrl(next))}">${progressFor(data, next)?.viewed_at ? 'Replay guide' : progressFor(data, next) ? 'Continue guide' : 'Start guide'}</a><a href="${e(helpUrl())}">Browse all guides</a></div></section>`;
+  return `<section class="workspace-panel tutorial-start" aria-labelledby="startHereTitle"><div><span class="tutorial-icon">${icon(Compass)}</span><span class="portal-kicker">Your quick start</span><h2 id="startHereTitle">Start here</h2><p>Get comfortable with AquaDissect, one short guide at a time.</p>${progressBar(viewed, data.guides.length, 'Guides viewed')}<small>${viewed} of ${data.guides.length} guides viewed · Separate from lesson progress</small></div><div class="tutorial-next"><span class="portal-kicker">${viewed === data.guides.length ? 'Revisit a guide' : 'Suggested next guide'}</span><strong>${e(next.title)}</strong><span>${next.steps.length} easy-to-follow steps</span><a class="portal-primary button-link" href="${e(guideUrl(next))}">${progressFor(data, next)?.viewed_at ? 'Replay guide' : progressFor(data, next) ? 'Continue guide' : 'Start guide'}</a><a href="${e(helpUrl())}">Browse all guides</a></div></section>`;
 }
 
 export function setupTutorials(data, user) {
@@ -31,9 +42,12 @@ export function setupTutorials(data, user) {
 
   function renderGuides() {
     if (!guideRoot) return;
-    guideRoot.innerHTML = `<div class="tutorial-heading"><span class="portal-kicker">${e(user.role.replaceAll('_', ' '))} guides</span><h2>What would you like to do?</h2><p>Read the instructions or choose a walkthrough. Viewing a guide does not complete a lesson or change class records.</p><label for="tutorialSearch">Find a task</label><input id="tutorialSearch" type="search" placeholder="Search these guides…"><p id="tutorialEmpty" role="status" hidden>No matching guides. Try a shorter task name.</p></div><div class="tutorial-grid">${data.guides.map(g => {
+    const viewed = data.guides.filter(g => progressFor(data, g)?.viewed_at).length;
+    const roleName = { student: 'Student', instructor: 'Teacher', program_head: 'Program Head', admin: 'Administrator' }[user.role] || 'Your';
+    guideRoot.innerHTML = `<div class="tutorial-heading"><div class="tutorial-heading-intro"><span class="tutorial-icon">${icon(Compass)}</span><div><span class="portal-kicker">${e(roleName)} guides</span><h2>What would you like to do?</h2><p>Choose a task. Read at your own pace or let us show you where to go.</p></div></div><div class="tutorial-overview"><strong>${viewed} of ${data.guides.length} guides viewed</strong>${progressBar(viewed, data.guides.length, 'Guides viewed')}<small>Guides help you get started. Lesson progress and class records stay separate.</small></div><label for="tutorialSearch">Find a task</label><input id="tutorialSearch" type="search" placeholder="Search by task or keyword…"><p id="tutorialEmpty" role="status" hidden>No matching guides. Try a shorter task name.</p></div><div class="tutorial-grid">${data.guides.map(g => {
       const progress = progressFor(data, g);
-      return `<article class="tutorial-card" id="guide-${e(g.id)}"><span class="tutorial-state">${progress?.viewed_at ? 'Viewed' : progress ? 'In progress' : `${g.steps.length} steps`}</span><h3>${e(g.title)}</h3><p>${e(g.purpose)}</p><p><strong>Before you start:</strong> ${e(g.prerequisite)}</p><details><summary>Read instructions</summary><ol>${g.steps.map(s => `<li><strong>${e(s.title)}</strong><p>${e(s.text)}</p></li>`).join('')}</ol><p><strong>Expected result:</strong> ${e(g.result)}</p><p>${e(g.support)}</p></details><button class="portal-primary" type="button" data-start-guide="${e(g.id)}">${progress?.viewed_at ? 'Replay walkthrough' : progress ? 'Continue walkthrough' : 'Start walkthrough'}</button></article>`;
+      const [tone, glyph] = styleFor(g);
+      return `<article class="tutorial-card tutorial-tone-${tone}" id="guide-${e(g.id)}"><div class="tutorial-card-top"><span class="tutorial-icon">${icon(glyph)}</span><span class="tutorial-state">${progress?.viewed_at ? 'Viewed' : progress ? 'In progress' : 'Ready to start'}</span></div><h3>${e(g.title)}</h3><p>${e(g.purpose)}</p><small class="tutorial-length">${g.steps.length} steps · Go at your own pace</small><div class="tutorial-prerequisite"><strong>Before you start</strong><p>${e(g.prerequisite)}</p></div><details><summary>Read instructions</summary><ol class="tutorial-instructions">${g.steps.map(s => `<li><strong>${e(s.title)}</strong><p>${e(s.text)}</p></li>`).join('')}</ol><div class="tutorial-result"><strong>What to expect</strong><p>${e(g.result)}</p></div><p class="tutorial-support">${e(g.support)}</p></details><button class="portal-primary" type="button" data-start-guide="${e(g.id)}">${progress?.viewed_at ? 'Replay walkthrough' : progress ? 'Continue walkthrough' : 'Start walkthrough'}</button></article>`;
     }).join('')}</div>`;
     guideRoot.querySelector('#tutorialSearch').addEventListener('input', event => {
       const query = event.target.value.trim().toLowerCase();
@@ -109,6 +123,7 @@ export function setupTutorials(data, user) {
     currentUrl.searchParams.set('walkthrough', '1');
     history.replaceState(null, '', currentUrl);
     panel.innerHTML = `<header><span class="portal-kicker">${e(selected.title)}</span><button type="button" class="portal-link" data-guide-exit aria-label="Exit walkthrough">Exit</button></header><p class="tutorial-step-count" aria-live="polite">Step ${current + 1} of ${selected.steps.length}</p><h2 id="tutorialStepTitle" tabindex="-1">${e(step.title)}</h2><p>${e(step.text)}</p><p class="tutorial-missing" data-guide-missing>${e(step.missing)}</p><div class="tutorial-actions"><a href="${e(destination.href)}" class="portal-secondary button-link">Open ${e(document.querySelector(`[data-nav-label="${step.page}"]`)?.textContent || ({home:'Home', reports:'Reports', manager:'Species content', access:'Account roles'}[step.page]) || 'page')}</a><button type="button" class="portal-link" data-guide-target>Show control</button></div><footer><button class="portal-secondary" type="button" data-guide-back ${current === 0 ? 'disabled' : ''}>Back</button><button class="portal-primary" type="button" data-guide-next>${current === selected.steps.length - 1 ? 'Finish guide' : 'Next'}</button></footer><small data-guide-save role="status"></small><button type="button" class="portal-link" data-guide-retry hidden>Retry saving</button>`;
+    panel.querySelector('.tutorial-step-count').insertAdjacentHTML('afterend', `<div class="tutorial-step-track" aria-hidden="true">${selected.steps.map((_, index) => `<span class="${index <= current ? 'is-reached' : ''}"></span>`).join('')}</div>`);
     panel.querySelector('[data-guide-exit]').onclick = exit;
     panel.querySelector('[data-guide-back]').onclick = () => { current--; draw(); void save(); };
     panel.querySelector('[data-guide-next]').onclick = async event => {
