@@ -105,9 +105,9 @@
  .notification-list li { align-items:start; flex-direction:column; }
  .workspace-toolbar>div { display:flex; flex-wrap:wrap; gap:4px; }
 }
-@media(max-width:340px) {
+@media(max-width:390px) {
  .is-authenticated .dashboard-topbar { flex-wrap:wrap; }
- .workspace-search { order:10; flex:1 0 100%; width:100%; min-width:0; margin-left:0; }
+ .workspace-search { flex:1 1 calc(100% - 52px); width:auto; min-width:0; margin-left:0; }
 }
 
 .portal-page-title { padding:0 0 20px; margin:0; border:0; background:none; box-shadow:none; }
