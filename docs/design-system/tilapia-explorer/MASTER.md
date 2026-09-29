@@ -46,16 +46,16 @@
 | Role | Size / line height | Weight | Usage |
 |------|--------------------|--------|-------|
 | Section label | `12px / 18px` | `700` | Short uppercase navigation and section cues |
-| Supporting text | `14px / 21px` | `400-600` | Metadata, table cells, captions, and helper text |
-| Controls | `15px / 22px` | `500-600` | Navigation, buttons, and compact interactive rows |
-| Body | `16px / 25px` | `400` | Instructions, explanations, and learning content |
-| Card title | `18px / 26px` | `600` | Card and panel headings |
-| Section title | `20-24px / 1.3` | `600` | Major content sections |
-| Page title | `26-32px / 1.2` | `700` | One primary heading per page; scales down on narrow phones |
+| Supporting text | `12-13px / 1.5` | `400-600` | Metadata, captions, and helper text |
+| Controls | `14px / 1.45` | `500-600` | Navigation, buttons, and compact interactive rows |
+| Body | `14px / 1.55` | `400` | General workspace text; lesson explanations remain 16px |
+| Card title | `16px / 1.4` | `600` | Card and panel headings |
+| Section title | `16-18px / 1.4` | `600` | Major content sections |
+| Page title | `20px / 1.35` | `600` | One primary workspace heading, including phones |
 | Metric | `24px / 32px` | `700` | Progress totals and summary values |
 
-Use uppercase only for short labels. Keep paragraph text at 16px for learners
-and other non-technical users; reserve 14px for supporting information. Use
+Use uppercase only for short labels. Keep lesson explanations and mobile text-entry
+fields at 16px; use the compact scale for workspace pages across roles. Use
 tabular numerals for scores and progress values. The implementation source of
 truth is `resources/css/typography.css`, loaded after page-specific styles.
 
@@ -262,7 +262,7 @@ Before delivering any UI code, verify:
 Attex dashboard and data-table patterns inform the workspace. AquaDissect retains its own components, Figtree, branding, protected lesson artwork, and faculty-review rules. `resources/css/workspace.css` controls the shared light workspace.
 
 - Primary #3E60D5; sidebar #212529; page #F2F2F7; surface white; text #343A40; secondary text #596579; borders #DEE2E6.
-- Clear 26-32px responsive page headings, 4-6px panel corners, restrained shadows, 44px interaction targets, visible keyboard focus.
+- Clear 20px page headings (revised September 30, 2026), 4-6px panel corners, restrained shadows, 44px interaction targets, visible keyboard focus.
 - Desktop sidebar 240px, collapsible to 76px; mobile drawer at 780px. Top bar includes navigation/help search, inbox, and account controls.
 - Individual Blade pages and named URLs support browser history, reload, and bookmarks. Protected routes enforce active roles on the server.
 - Staff tables support search, sorting, pagination, and expandable workflows. Lessons/offline materials keep visual cards. Tables scroll inside labeled regions on narrow screens.

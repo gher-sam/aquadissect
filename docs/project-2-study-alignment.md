@@ -229,6 +229,8 @@ If approvals, validated instruments, or a stable application are unavailable by 
 
 ## Approved workspace additions - September 27, 2026
 
+September 30, 2026: The researcher requested a consistent, compact Attex-inspired typography scale across application pages, beyond Tutorials. Use Figtree, solid colors without gradients, 20px workspace page titles, 16–18px section headings, 14px general interface text, and 12–13px supporting text. Preserve readable 16px lesson explanations and mobile text-entry fields, keyboard focus, and usable interaction targets. This is a presentation decision and does not change academic workflows or establish validation.
+
 The researcher approved an Attex-inspired redesign, separate page URLs, a class calendar, in-app notifications, navigation/help search, and operational learning reports. These support the existing MB 304L workflow and do not change research participants, roles, content-review requirements, or evidence standards.
 
 Status: **Implemented but awaiting validation**. Local engineering checks are recorded separately in `docs/workspace-redesign-verification.md`; they are not faculty content validation, instrument validation, respondent evaluation, or proof of effectiveness.
