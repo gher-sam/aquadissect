@@ -5,6 +5,7 @@ import vsCodeLogo from '../../css/product-logos/vs-code.png';
 import githubLogo from '../../css/product-logos/github.svg';
 import hostingerLogo from '../../css/product-logos/hostinger.svg';
 import aaPanelLogo from '../../css/product-logos/aapanel.png';
+import { animateSourceTimeline } from './sourceTimeline.js';
 
 const iconSet = { ChevronRight, File, Folder, FolderOpen, Search, X };
 const refreshIcons = root => createIcons({
@@ -385,7 +386,9 @@ export async function sourceHandover(root) {
   updateCompactControl();
   renderTree();
 
+  const cleanupTimeline = animateSourceTimeline(root.querySelector('.source-delivery'));
   root._sourceHandoverCleanup = () => {
+    cleanupTimeline();
     previewController?.abort();
     clearTimeout(typeaheadTimer);
     compactQuery.removeEventListener?.('change', updateCompactControl);
