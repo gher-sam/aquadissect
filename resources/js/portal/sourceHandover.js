@@ -102,7 +102,6 @@ export async function sourceHandover(root) {
         <div><h2>Release ${e(release.revision.slice(0, 12))}</h2><p>${files.length} files · ${e(formatSize(release.bytes))} · Prepared ${e(new Date(release.preparedAt).toLocaleString())}</p></div>
         <a class="btn btn-primary" href="${endpoint('download')}">Download source ZIP</a>
       </div>
-      <details><summary>Package contents and integrity</summary><p>Application code, dependency lockfiles, migrations, local setup instructions, and project learning assets. No live data, secrets, uploads, manuscripts, or installed dependencies.</p><p class="source-hash">SHA-256: ${e(release.sha256)}</p><p>Downloads are logged with your account ID and release revision. Package assets retain their internal development usage terms.</p></details>
     </section>
     <section class="workspace-panel source-browser">
       <div class="source-tree-pane" id="sourceFileBrowser">
