@@ -1,6 +1,10 @@
 import { ChevronRight, File, Folder, FolderOpen, Search, X, createIcons } from 'lucide';
 import { request, appUrl } from './api.js';
 import { escapeHtml as e } from './format.js';
+import vsCodeLogo from '../../css/product-logos/vs-code.png';
+import githubLogo from '../../css/product-logos/github.svg';
+import hostingerLogo from '../../css/product-logos/hostinger.svg';
+import aaPanelLogo from '../../css/product-logos/aapanel.png';
 
 const iconSet = { ChevronRight, File, Folder, FolderOpen, Search, X };
 const refreshIcons = root => createIcons({
@@ -97,6 +101,16 @@ export async function sourceHandover(root) {
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 
   root.innerHTML = `
+    <figure class="workspace-panel source-delivery" aria-labelledby="sourceDeliveryTitle" aria-describedby="sourceDeliveryCaption">
+      <header class="source-delivery-heading"><span class="portal-kicker">From code to website</span><h2 id="sourceDeliveryTitle">How AquaDissect reaches the web</h2><p>Follow the tools used to prepare, store, host, and publish the application.</p></header>
+      <ol class="source-delivery-flow" role="list">
+        <li><span class="source-delivery-number">01 · Create</span><div class="source-delivery-logo"><img src="${vsCodeLogo}" alt="Visual Studio Code logo" width="56" height="56"></div><h3>VS Code</h3><p>Write and check the application code in Visual Studio Code.</p><span class="source-delivery-action">Prepare the update</span></li>
+        <li><span class="source-delivery-number">02 · Store</span><div class="source-delivery-logo"><img src="${githubLogo}" alt="GitHub logo" width="56" height="56"></div><h3>GitHub</h3><p>Keep version history and send the checked code update to the repository.</p><span class="source-delivery-action">Trigger deployment</span></li>
+        <li><span class="source-delivery-number">03 · Host</span><div class="source-delivery-logo"><img src="${hostingerLogo}" alt="Hostinger logo" width="56" height="56"></div><h3>Hostinger</h3><p>Provide the virtual server that stores and runs the live application.</p><span class="source-delivery-action">Run the website server</span></li>
+        <li><span class="source-delivery-number">04 · Manage</span><div class="source-delivery-logo"><img src="${aaPanelLogo}" alt="aaPanel logo" width="48" height="48"></div><h3>aaPanel</h3><p>Manage the website, database, and HTTPS settings on that server.</p><span class="source-delivery-action">Support the live site</span></li>
+      </ol>
+      <figcaption id="sourceDeliveryCaption"><strong>Result: AquaDissect online</strong><span>A GitHub update triggers the deployment script on the Hostinger server. The script prepares the new release; aaPanel manages the hosting environment on the same server.</span></figcaption>
+    </figure>
     <section class="workspace-panel">
       <div class="workspace-toolbar">
         <div><h2>Release ${e(release.revision.slice(0, 12))}</h2><p>${files.length} files · ${e(formatSize(release.bytes))} · Prepared ${e(new Date(release.preparedAt).toLocaleString())}</p></div>
