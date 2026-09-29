@@ -1563,6 +1563,10 @@
   gap: 16px;
 }
 
+.admin-dashboard-grid > * {
+  min-width: 0;
+}
+
 .admin-dashboard-grid .admin-table-card {
   margin-top: 0;
 }
@@ -2223,7 +2227,7 @@ form[aria-busy='true'] button[type='submit'] {
   }
 
   .admin-dashboard-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
