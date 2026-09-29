@@ -167,7 +167,7 @@ export function createModuleExperience(container, manifest, record, callbacks = 
   let selectedKey = steps[index]?.toolKeys?.[0] || null;
 
   container.innerHTML = `<section class="safety-experience" tabindex="-1">
-    <header class="safety-experience__header"><button class="portal-secondary" type="button" data-close-learning-module><i data-lucide="arrow-left" aria-hidden="true"></i> Back to Safety &amp; Tools</button><div><span class="portal-kicker">${escapeHtml(manifest.module?.category || 'Pre-laboratory')} · v${escapeHtml(manifest.moduleVersion)}</span><h1 data-module-title tabindex="-1">${escapeHtml(manifest.module?.title || record.title)}</h1><p>${escapeHtml(manifest.statusNotice || '')}</p></div></header>
+    <header class="safety-experience__header"><button class="portal-secondary" type="button" data-close-learning-module><i data-lucide="arrow-left" aria-hidden="true"></i> Back to Safety &amp; Tools</button><div><span class="portal-kicker">${escapeHtml(manifest.module?.category || 'Pre-laboratory')} · v${escapeHtml(manifest.moduleVersion)}</span><h2 data-module-title tabindex="-1">${escapeHtml(manifest.module?.title || record.title)}</h2><p>${escapeHtml(manifest.statusNotice || '')}</p></div></header>
     <section class="module-step-summary" data-module-step-summary aria-label="Module progress and current step" aria-live="polite" aria-atomic="true">
       <div class="module-step-summary__progress"><span data-module-step-position></span><strong data-module-progress-percent></strong></div>
       <div class="module-step-summary__titles"><p><span>Current step</span><strong data-module-current-title></strong></p><p data-module-next-step><span>Next step</span><strong data-module-next-title></strong></p></div>

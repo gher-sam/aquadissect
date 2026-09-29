@@ -1,0 +1,517 @@
+/*
+ * AquaDissect typography discipline
+ *
+ * Figtree is bundled locally in app.js. This final layer keeps type roles
+ * predictable across the learning experience and the role-based workspace.
+ */
+
+:root {
+  --font-ui: 'Figtree', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --text-label: 0.75rem;
+  --text-supporting: 0.875rem;
+  --text-control: 0.9375rem;
+  --text-body: 1rem;
+  --text-card-title: 1.125rem;
+  --text-section-title: 1.25rem;
+  --text-metric: 1.5rem;
+  --text-page-title: clamp(1.75rem, 2vw + 1rem, 2rem);
+  --leading-label: 1.5;
+  --leading-control: 1.45;
+  --leading-body: 1.55;
+  --leading-heading: 1.25;
+  --tracking-label: 0.06em;
+}
+
+html {
+  font-family: var(--font-ui);
+  font-size: 100%;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body,
+button,
+input,
+select,
+textarea {
+  font-family: var(--font-ui);
+}
+
+body {
+  font-size: var(--text-body);
+  font-weight: 400;
+  line-height: var(--leading-body);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  line-height: var(--leading-heading);
+  text-wrap: balance;
+}
+
+/* Short labels identify a section without competing with its heading. */
+.portal-kicker,
+.portal-nav-section,
+.eyebrow,
+.task-label,
+.progress-copy,
+.anatomy-list-heading,
+.metric-card .metric-label,
+.handling-callout dt {
+  font-size: var(--text-label);
+  font-weight: 700;
+  line-height: var(--leading-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+/* Signed-in workspace */
+.is-authenticated .portal-nav-section {
+  font-size: var(--text-label);
+  font-weight: 700;
+  line-height: var(--leading-label);
+  letter-spacing: var(--tracking-label);
+}
+
+.is-authenticated .portal-nav button {
+  font-size: var(--text-control);
+  font-weight: 500;
+  line-height: var(--leading-control);
+}
+
+.is-authenticated .portal-nav button.is-active {
+  font-weight: 600;
+}
+
+.portal-page-title h1,
+.portal-page-heading h1,
+.dashboard-hero h1,
+.workspace-heading h1,
+.is-authenticated .dashboard-hero h1 {
+  margin-block: 0.25rem 0.5rem;
+  font-size: var(--text-page-title);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+}
+
+.portal-page-title h2,
+.portal-page-title--compact h2,
+.motion-feature h2,
+.portal-page .motion-feature h2 {
+  font-size: clamp(1.25rem, 1.1vw + 1rem, 1.5rem);
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+}
+
+.portal-page-title p,
+.portal-page-heading p,
+.dashboard-hero p,
+.portal-page > .portal-page-title > p {
+  max-width: 68ch;
+  font-size: var(--text-body);
+  line-height: 1.6;
+}
+
+.page-guidance,
+.portal-page > .portal-page-title > .page-guidance,
+.page-guidance strong,
+.portal-page > .portal-page-title > .page-guidance strong {
+  font-size: var(--text-control);
+  line-height: var(--leading-body);
+}
+
+.workspace-panel h2,
+.source-tree-header h2,
+.source-preview-header h2,
+.portal-page :is(.species-card, .class-card, .assignment-card, .package-import-card,
+  .learning-module-card, .learning-module-manager-card, .status-card,
+  .access-card, .admin-operations-card) h2 {
+  font-size: var(--text-card-title);
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.portal-page :is(.species-card, .class-card, .assignment-card, .package-import-card,
+  .learning-module-card, .learning-module-manager-card, .status-card,
+  .access-card, .admin-operations-card) h3 {
+  font-size: var(--text-body);
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.portal-page :is(.species-card-body > p, .class-card > p, .assignment-card > p,
+  .package-import-card > p, .learning-module-card p, .learning-module-manager-card p,
+  .status-card p, .access-card p, .admin-operations-card p) {
+  font-size: var(--text-control);
+  line-height: var(--leading-body);
+}
+
+.portal-primary,
+.portal-secondary,
+.workspace-guide-link,
+.workspace-panel button,
+.workspace-dialog button {
+  font-size: var(--text-control);
+  font-weight: 600;
+  line-height: var(--leading-control);
+}
+
+.portal-field,
+.workspace-panel label,
+.workspace-dialog label {
+  font-size: var(--text-supporting);
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.portal-field :is(input, select, textarea),
+.workspace-panel :is(input, select, textarea),
+.workspace-dialog :is(input, select, textarea),
+.workspace-search input {
+  font-size: var(--text-body);
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.portal-field > small,
+.portal-muted,
+.portal-page small,
+.workspace-account .dropdown-toggle,
+.portal-user-card small,
+.portal-sidebar-note small {
+  font-size: var(--text-supporting);
+  line-height: 1.5;
+}
+
+.portal-page .admin-table-wrap table,
+.roster-data-panel table,
+.role-comparison {
+  font-size: var(--text-supporting);
+  line-height: 1.45;
+}
+
+.portal-page .admin-table-wrap th,
+.roster-data-panel th,
+.role-comparison th {
+  font-size: var(--text-label);
+  font-weight: 700;
+  line-height: var(--leading-label);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.metric-card .metric-label {
+  font-size: var(--text-label);
+}
+
+.portal-page .metric-card > strong,
+.metric-card > strong,
+.download-summary strong,
+.score-card strong {
+  font-size: var(--text-metric);
+  font-weight: 700;
+  line-height: 1.35;
+  font-variant-numeric: tabular-nums;
+}
+
+.metric-card small,
+.portal-page .metric-card small {
+  font-size: var(--text-supporting);
+  line-height: 1.5;
+}
+
+.status-badge,
+.status-chip,
+.role-badge,
+.access-policy,
+.lesson-meta span,
+.motion-feature-kicker,
+.motion-feature-points span,
+.motion-feature-label {
+  font-size: var(--text-label);
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.dashboard-breadcrumb span {
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+}
+
+.calendar-day h3 {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.calendar-day .calendar-event {
+  font-size: var(--text-supporting);
+  line-height: 1.45;
+}
+
+.calendar-event small {
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+}
+
+/* Sign-in and account activation */
+.login-concept .portal-kicker {
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  letter-spacing: 0.08em;
+}
+
+.login-concept .auth-card--login h1,
+.login-discovery h2 {
+  font-weight: 700;
+}
+
+.login-concept .portal-field,
+.login-concept .auth-options :is(label, button),
+.login-concept .portal-link.portal-full,
+.login-discovery-figure figcaption {
+  font-size: var(--text-supporting);
+  line-height: 1.5;
+}
+
+.login-concept .auth-card--login > .portal-muted,
+.login-discovery-copy > p,
+.login-discovery .login-mobile-description {
+  font-size: var(--text-body);
+  line-height: 1.6;
+}
+
+.login-concept .auth-security-note,
+.login-concept .auth-card--login > .portal-link + .portal-muted,
+.login-discovery-note,
+.login-discovery-steps,
+.password-requirements,
+.registration-progress li small {
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+}
+
+/* Guided anatomy lesson */
+.app-shell {
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}
+
+.brand-lockup strong {
+  font-size: var(--text-card-title);
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.brand-lockup small,
+.duration,
+.progress-copy,
+.eyebrow,
+.task-label,
+.anatomy-list-heading {
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+}
+
+#stepTitle {
+  font-size: clamp(1.75rem, 1.5vw + 1.1rem, 2.125rem);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.panel-heading h2,
+.safety-experience__header h2,
+.info-dialog h2,
+.references-dialog h2,
+.completion-dialog h2 {
+  font-size: var(--text-section-title);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.lesson-description,
+.task-card p,
+.lesson-tip p,
+.selected-card p,
+.info-dialog > p:not(.eyebrow),
+.references-dialog > p:not(.eyebrow),
+.completion-dialog > p:not(.eyebrow),
+.dialog-callout p {
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}
+
+.lesson-tip :is(strong, span),
+.dialog-callout span {
+  font-size: var(--text-supporting);
+  line-height: 1.55;
+}
+
+.lesson-tip strong,
+.dialog-callout strong {
+  font-weight: 700;
+}
+
+.target-status,
+.model-label,
+.three-scene .model-label,
+.image-hotspot-label,
+.explode-control output {
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+}
+
+.explode-control > span {
+  font-size: var(--text-supporting);
+  line-height: 1.5;
+}
+
+.selected-card__empty p,
+.selected-card__content > p,
+.selected-card details p {
+  font-size: var(--text-control);
+  line-height: var(--leading-body);
+}
+
+.selected-card summary,
+.anatomy-item strong,
+.reference-list strong {
+  font-size: var(--text-supporting);
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.quiz-question legend,
+.quiz-options span {
+  font-size: var(--text-control);
+  line-height: 1.5;
+}
+
+.text-button,
+.primary-button,
+.scene-button,
+.dock-button,
+.target-item,
+.anatomy-item,
+.quiz-options label,
+.viewer-mode-control select {
+  font-size: var(--text-control);
+  line-height: var(--leading-control);
+}
+
+.mode-badge,
+.part-count,
+.interaction-hint,
+.explode-control output,
+.selected-card__heading span:not(.selected-swatch),
+.anatomy-item small,
+.quiz-question legend > span,
+.quiz-options span::before,
+.reference-list a > span:first-child,
+.reference-list small {
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+}
+
+.three-scene .interaction-hint {
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+}
+
+.module-audit-grid dt,
+.module-viewer-controls span,
+.module-step-progress button small,
+.sidebar-status,
+.dashboard-install-button,
+.dashboard-system-status,
+.password-visibility,
+.login-concept .auth-divider,
+.auth-back-button,
+.workflow-step,
+.specimen-scale,
+.specimen-footer > span {
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+}
+
+#notificationCount {
+  display: grid;
+  min-width: 1.25rem;
+  min-height: 1.25rem;
+  padding: 0.125rem 0.25rem;
+  place-items: center;
+  font-size: var(--text-label);
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.workspace-search input,
+.workspace-bell {
+  min-height: 44px;
+}
+
+.workspace-bell {
+  min-width: 44px;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Source handover keeps a denser rhythm while remaining readable. */
+.source-tree-count,
+.source-tree-status,
+.source-preview-status,
+.source-preview-meta {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+#workspaceTool .source-tree-row {
+  font-size: var(--text-supporting);
+  line-height: 1.45;
+}
+
+.source-tree-meta {
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+}
+
+.source-preview-path {
+  font-size: var(--text-body);
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.source-preview-code,
+.source-preview pre {
+  font-size: 0.8125rem;
+  line-height: 1.65;
+}
+
+@media (max-width: 620px) {
+  .portal-page-title h1,
+  .portal-page-heading h1,
+  .dashboard-hero h1,
+  .workspace-heading h1,
+  .is-authenticated .dashboard-hero h1 {
+    font-size: clamp(1.625rem, 7.2vw, 1.875rem);
+    line-height: 1.22;
+  }
+
+  .workspace-search input,
+  .portal-page :is(input, select, textarea) {
+    font-size: var(--text-body);
+  }
+
+  .login-discovery h2 {
+    font-size: 1.375rem;
+    line-height: 1.3;
+  }
+}

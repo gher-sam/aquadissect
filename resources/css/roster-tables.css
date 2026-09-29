@@ -31,7 +31,7 @@
 .roster-data-panel table { width: 100%; border-collapse: collapse; font-size: 14px; text-align: left; }
 .roster-data-panel table caption { text-align: left; font-size: 12px; color: var(--color-muted-text); padding-bottom: 10px; }
 .roster-data-panel th, .roster-data-panel td { padding: 14px 16px; border-bottom: 1px solid var(--color-border); vertical-align: middle; }
-.roster-data-panel th { background: #f1f6fc; color: var(--color-primary-deep); white-space: nowrap; font-weight: 650; }
+.roster-data-panel th { background: #f1f6fc; color: var(--color-primary-deep); white-space: nowrap; font-weight: 700; }
 .roster-data-panel th button { display: flex; align-items: center; justify-content: space-between; gap: 18px; width: 100%; border: 0; padding: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; min-height: 28px; }
 .roster-data-panel th[aria-sort]:not([aria-sort='none']) { color: var(--color-primary); }
 .roster-data-panel td { min-width: 100px; background: #fff; }
@@ -40,7 +40,7 @@
 .roster-data-panel td h3 { margin: 0 0 4px; font-size: 14px; min-width: 160px; }
 .roster-data-panel td small { color: var(--color-muted-text); }
 .roster-data-panel td .portal-secondary { white-space: nowrap; min-height: 40px; padding: 8px 12px; font-size: 13px; }
-.roster-status { display: inline-block; padding: 4px 9px; border-radius: 5px; background: #eef0f4; color: #45546b; font-size: 12px; font-weight: 650; }
+.roster-status { display: inline-block; padding: 4px 9px; border-radius: 5px; background: #eef0f4; color: #45546b; font-size: 12px; font-weight: 600; }
 .roster-status.is-active { background: #e5efff; color: #0140c1; }
 .roster-table-footer { padding-top: 18px; color: var(--color-muted-text); font-size: 13px; }
 .roster-table-pages { justify-content: flex-end; gap: 8px; }

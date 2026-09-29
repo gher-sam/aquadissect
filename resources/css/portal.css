@@ -604,7 +604,7 @@
 
 .safety-experience { padding: clamp(18px, 3vw, 34px); }
 .safety-experience__header { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 22px; }
-.safety-experience__header h1 { margin: 6px 0; font-family: 'Figtree', system-ui, sans-serif; font-size: clamp(28px, 4vw, 44px); }
+.safety-experience__header h2 { margin: 6px 0; font-family: 'Figtree', system-ui, sans-serif; font-size: clamp(28px, 4vw, 44px); }
 
 .module-step-summary {
   display: grid;

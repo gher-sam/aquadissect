@@ -1,6 +1,7 @@
 import '../css/bootstrap.scss';
 import 'bootstrap/js/dist/dropdown';
 import '@fontsource/figtree/latin-400.css';
+import '@fontsource/figtree/latin-400-italic.css';
 import '@fontsource/figtree/latin-500.css';
 import '@fontsource/figtree/latin-600.css';
 import '@fontsource/figtree/latin-700.css';
@@ -21,6 +22,7 @@ import '../css/polish.css';
 import '../css/login.css';
 import '../css/roster-tables.css';
 import '../css/workspace.css';
+import '../css/typography.css';
 
 const app = document.querySelector('#app');
 app.innerHTML = `

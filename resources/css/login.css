@@ -26,7 +26,7 @@
   margin-top: 12px;
   color: var(--color-foreground);
   font-size: clamp(32px, 3.3vw, 48px);
-  font-weight: 750;
+  font-weight: 700;
   line-height: 1.12;
 }
 
@@ -118,7 +118,7 @@
   margin: 22px 0 16px;
   color: var(--color-foreground);
   font-size: clamp(32px, 3.5vw, 52px);
-  font-weight: 750;
+  font-weight: 700;
   line-height: 1.13;
   letter-spacing: -.035em;
   text-wrap: initial;

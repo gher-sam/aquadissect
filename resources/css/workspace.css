@@ -297,7 +297,7 @@
 }
 .source-preview-header > div { min-width:0; }
 .source-preview-path,.source-preview-header h2 { overflow-wrap:anywhere; }
-.source-preview-path { color:#202b45; font-size:15px; font-weight:750; line-height:1.4; }
+.source-preview-path { color:#202b45; font-size:15px; font-weight:700; line-height:1.4; }
 .source-preview-meta { display:flex; flex-wrap:wrap; gap:6px 12px; margin-top:4px!important; color:#65738c; font-size:12px; }
 .source-preview-header a,.source-preview-header button,.source-back-to-files { display:inline-flex; flex:0 0 auto; align-items:center; justify-content:center; min-height:44px; }
 .source-preview-status {
