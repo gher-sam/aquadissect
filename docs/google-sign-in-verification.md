@@ -20,7 +20,9 @@ October 2, 2026. Status: **Implemented but awaiting provider configuration and l
 
 The code can be deployed with `GOOGLE_AUTH_ENABLED=false`. Google buttons and mandatory Google registration appear only after the provider is configured and enabled. Production credentials must remain outside source control.
 
-Google setup is assigned to the user-selected owner account. Its Google Cloud terms and persistent OAuth client creation require action-time approval. No client secret has been created or stored by this implementation at this stage.
+Google setup is assigned to the user-selected owner account. The owner supplied an existing OAuth web-client credential. It is stored only in private production configuration, with a root-only configuration backup. The callback matches the production HTTPS address. Client and secret presence were verified without printing their values. Google access remains disabled pending Google audience publication and a real matching-account callback check.
+
+Production configuration checks retained 8 users, 5 enrollments and 4 lesson results, with zero case-insensitive email conflicts. A public privacy page was added to explain the implemented data handling and supply Google's required policy destination. This is a service disclosure, not institutional ethics approval or content validation.
 
 The ordinary local MySQL service was unavailable during browser review. UI previews were rendered by the application with an isolated, nonfunctional provider configuration; account behavior was exercised in the database-backed test suite. These previews do not constitute a real Google callback test.
 

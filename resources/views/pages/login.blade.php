@@ -36,6 +36,7 @@
         </details>
         @endunless
         <p class="auth-security-note"><i data-lucide="shield-check" aria-hidden="true"></i><span>Your learning workspace is protected. Keep your account details private.</span></p>
+        <a class="portal-link" href="{{ route('privacy') }}">Privacy policy</a>
       </form>
       <aside class="login-discovery" aria-labelledby="loginDiscoveryTitle">
         <div class="login-discovery-copy">

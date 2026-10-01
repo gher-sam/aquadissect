@@ -22,6 +22,8 @@ Use a separate local callback if local testing is required. Do not reuse another
 
 Put `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `GOOGLE_REDIRECT_URI` only in the private server environment. Never commit credentials, paste secrets into chat, or put them in browser code. Complete the Google branding/audience configuration appropriate to the intended users. Basic profile sign-in and institutional eligibility are separate concerns.
 
+The public privacy policy is at `https://aquadissect.com/privacy`, linked from sign-in. Use that same address in Google branding. The policy describes current implementation behavior; institution-specific retention requirements must be confirmed by the responsible administrator.
+
 Enable the flag only after checking a designated matching account. Before creating a persistent OAuth credential, obtain the requesting user's confirmation at the final creation action.
 
 ## Stored records and rollback
