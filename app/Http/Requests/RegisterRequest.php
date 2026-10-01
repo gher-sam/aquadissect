@@ -6,9 +6,17 @@ use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Validation\ValidationException;
 
 class RegisterRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        if (config('services.google.enabled')) {
+            throw ValidationException::withMessages(['email' => 'Connect your Google account to request instructor access.']);
+        }
+    }
+
     /** @return array<string, mixed> */
     public function rules(): array
     {

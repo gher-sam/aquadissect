@@ -3,6 +3,8 @@
         <span class="portal-kicker">Your learning workspace</span>
         <h1>Welcome back</h1>
         <p class="portal-muted">Sign in to continue your learning journey.</p>
+        @include('partials.google-access', ['intent' => 'signin'])
+        @if(\App\Support\GoogleAccess::ready())<div class="auth-divider"><span>Or use your existing password</span></div>@endif
 
         <label class="portal-field" for="loginEmail">
           <span>Email address</span>
@@ -21,7 +23,7 @@
         <div class="auth-divider"><span>New to AquaDissect?</span></div>
         <button class="portal-secondary portal-full" type="button" data-portal-page="activate">Activate student account</button>
         <button class="portal-link portal-full" type="button" data-portal-page="register">Request instructor access</button>
-        <p class="portal-muted">Use the activation code provided by your administrator.</p>
+        <p class="portal-muted">{{ \App\Support\GoogleAccess::ready() ? 'Students: activate with your registered Google email or your administrator-provided code.' : 'Use the activation code provided by your administrator.' }}</p>
         @unless(app()->environment('production'))
         <details class="demo-access">
           <summary>Open local demonstration access</summary>

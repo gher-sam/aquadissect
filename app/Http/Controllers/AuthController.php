@@ -44,6 +44,10 @@ class AuthController extends Controller
 
     public function register(RegisterRequest $request, DelayedCloneWrite $writes): JsonResponse
     {
+        if (config('services.google.enabled')) {
+            throw ValidationException::withMessages(['email' => 'Connect your Google account to request instructor access.']);
+        }
+
         return $writes->transaction(function () use ($request): JsonResponse {
             $user = User::query()->create($request->userAttributes());
 

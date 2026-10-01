@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Models\User;
 use App\Services\LearningModuleCatalog;
 use App\Services\SpeciesCatalog;
+use App\Services\TutorialCatalog;
 
 class PortalData
 {
@@ -17,13 +18,14 @@ class PortalData
     /** @return array<string, mixed> */
     public function for(?User $user): array
     {
-        if (! $user || !$user->isActive()) {
+        if (! $user || ! $user->isActive()) {
             return $this->guest();
         }
 
         return [
             'user' => $user->portalProfile(),
-            'tutorials' => app(\App\Services\TutorialCatalog::class)->for($user),
+            'accountAccess' => ['googleAvailable' => GoogleAccess::ready(), 'googleInstructorRegistration' => (bool) config('services.google.enabled')],
+            'tutorials' => app(TutorialCatalog::class)->for($user),
             'capabilities' => [
                 'programOversight' => in_array($user->role, ['program_head', 'admin'], true),
                 'reviewContent' => in_array($user->role, ['instructor', 'program_head', 'admin'], true),
@@ -44,6 +46,7 @@ class PortalData
     {
         return [
             'user' => null,
+            'accountAccess' => ['googleAvailable' => GoogleAccess::ready(), 'googleInstructorRegistration' => (bool) config('services.google.enabled')],
             'lessonResult' => null,
             'species' => [],
             'classes' => [],

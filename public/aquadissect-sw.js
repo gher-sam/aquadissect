@@ -151,7 +151,7 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   if (!withinScope(url)) return;
   // Source handover must never fall back to any shared offline cache.
-  if (url.pathname.includes('/source-handover')) {
+  if (url.pathname.includes('/source-handover') || url.pathname.includes('/auth/google/')) {
     event.respondWith(fetch(event.request));
     return;
   }

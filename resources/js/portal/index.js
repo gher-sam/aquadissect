@@ -796,16 +796,17 @@ export function setupAquaPortal({ app, onOpenPackage }) {
       event.preventDefault();
       setMessage(elements.registrationMessage);
       const data = new FormData(elements.registrationForm);
+      const googleRegistration = elements.registrationForm.dataset.googleRegistration === 'true';
       const email = String(data.get('email')).trim().toLowerCase();
       const password = String(data.get('password'));
       const passwordConfirmation = String(data.get('passwordConfirmation'));
-      if (password !== passwordConfirmation) {
+      if (!googleRegistration && password !== passwordConfirmation) {
         setMessage(elements.registrationMessage, 'The password confirmation does not match.');
         elements.registrationPasswordConfirmation.focus();
         return;
       }
       try {
-        const response = await request('/api/register', { method: 'POST', body: { firstName: String(data.get('firstName')).trim(), lastName: String(data.get('lastName')).trim(), email, identityNumber: String(data.get('identityNumber')).trim(), role: 'instructor', password, agreement: data.get('agreement') === 'on' } });
+        const response = await request(googleRegistration ? '/api/register/google' : '/api/register', { method: 'POST', body: { firstName: String(data.get('firstName')).trim(), lastName: String(data.get('lastName')).trim(), email, identityNumber: String(data.get('identityNumber')).trim(), role: 'instructor', password: googleRegistration ? undefined : password, agreement: data.get('agreement') === 'on' } });
         elements.registrationForm.reset();
         updatePasswordGuidance();
         showPage('login');

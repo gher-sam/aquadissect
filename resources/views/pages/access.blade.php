@@ -15,4 +15,7 @@
     <section class="workspace-panel" id="staffRoleTools" aria-label="Staff role management"><p>Loading staff accounts…</p></section>
   @endif
   <p>Research consent is separate from account activation. Tutorial progress is separate from learning progress.</p>
+  @if(\App\Support\GoogleAccess::ready())
+  <p>Google verifies your email only. Students activate an administrator-provided account using the matching Google email or a one-time code. New instructors connect Google and submit an approval request. Existing active accounts can continue using their password. Google does not grant a role or enroll you in a class.</p>
+  @endif
 </section>

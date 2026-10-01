@@ -2,10 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Models\CalendarEvent;
 use App\Models\ClassEnrollment;
 use App\Models\ClassInstructor;
 use App\Models\ClassModuleAssignment;
 use App\Models\CloneOutbox;
+use App\Models\ExternalIdentity;
 use App\Models\LearningClass;
 use App\Models\LearningModule;
 use App\Models\LearningModuleAsset;
@@ -23,8 +25,11 @@ use App\Models\SpeciesPackageAsset;
 use App\Models\SpeciesPackageEvent;
 use App\Models\SpeciesPackageReview;
 use App\Models\User;
+use App\Models\WorkspaceNotification;
+use App\Services\CloneRefresher;
 use App\Services\DelayedCloneApplier;
 use App\Services\DelayedCloneWrite;
+use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Artisan;
@@ -59,14 +64,38 @@ class DelayedCloneTest extends TestCase
         parent::tearDown();
     }
 
+    public function test_google_identity_and_nullable_password_replay_after_twelve_hours_and_refresh(): void
+    {
+        Carbon::setTestNow('2026-10-02 00:00:00');
+        $user = app(DelayedCloneWrite::class)->transaction(fn () => User::factory()->create(['password' => null]));
+        $identity = app(DelayedCloneWrite::class)->transaction(fn () => ExternalIdentity::create([
+            'user_id' => $user->id, 'provider' => 'google', 'subject' => 'clone-subject',
+            'verified_email' => $user->email, 'verified_at' => now(),
+        ]));
+        $applier = app(DelayedCloneApplier::class);
+        $this->assertSame(0, $applier->applyEligible()['applied']);
+        $this->assertFalse(DB::connection('sqlite_clone')->table('external_identities')->exists());
+        Carbon::setTestNow('2026-10-02 12:00:00');
+        $this->assertSame(0, $applier->applyEligible(1000)['failed']);
+        $this->assertSame('clone-subject', DB::connection('sqlite_clone')->table('external_identities')->find($identity->id)->subject);
+        $this->assertNull(DB::connection('sqlite_clone')->table('users')->find($user->id)->password);
+        app(DelayedCloneWrite::class)->transaction(fn () => $identity->update(['verified_email' => 'new@example.test']));
+        Carbon::setTestNow('2026-10-03 00:00:00');
+        $this->assertSame(0, $applier->applyEligible(1000)['failed']);
+        $this->assertSame('new@example.test', DB::connection('sqlite_clone')->table('external_identities')->find($identity->id)->verified_email);
+        $counts = app(CloneRefresher::class)->refresh();
+        $this->assertSame(1, $counts['external_identities']);
+        $this->assertNull(DB::connection('sqlite_clone')->table('users')->find($user->id)->password);
+    }
+
     public function test_calendar_and_notification_records_replay_in_order(): void
     {
         Carbon::setTestNow('2026-09-27 00:00:00');
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
-        app(\App\Services\CloneRefresher::class)->refresh();
+        $this->seed(DatabaseSeeder::class);
+        app(CloneRefresher::class)->refresh();
         $class = LearningClass::firstOrFail();
         $staff = User::where('role', 'instructor')->firstOrFail();
-        $event = app(DelayedCloneWrite::class)->transaction(fn () => \App\Models\CalendarEvent::create([
+        $event = app(DelayedCloneWrite::class)->transaction(fn () => CalendarEvent::create([
             'class_id' => $class->id, 'created_by' => $staff->id, 'title' => 'Clone verification event',
             'starts_at' => now()->addDay(), 'ends_at' => now()->addDay()->addHour(),
         ]));
@@ -74,8 +103,8 @@ class DelayedCloneTest extends TestCase
         $result = app(DelayedCloneApplier::class)->applyEligible(1000);
         $this->assertSame(0, $result['failed']);
         $this->assertTrue(DB::connection('sqlite_clone')->table('calendar_events')->where('id', $event->id)->exists());
-        $this->assertSame(\App\Models\WorkspaceNotification::count(), DB::connection('sqlite_clone')->table('workspace_notifications')->count());
-        $notification = \App\Models\WorkspaceNotification::where('type', 'CalendarEvent')->firstOrFail();
+        $this->assertSame(WorkspaceNotification::count(), DB::connection('sqlite_clone')->table('workspace_notifications')->count());
+        $notification = WorkspaceNotification::where('type', 'CalendarEvent')->firstOrFail();
         app(DelayedCloneWrite::class)->transaction(fn () => $notification->update(['read_at' => now()]));
         Carbon::setTestNow('2026-09-28 02:00:00');
         app(DelayedCloneApplier::class)->applyEligible(1000);

@@ -9,6 +9,7 @@ return [
     // Parent tables must appear before tables that reference them.
     'tables' => [
         'users' => 'id',
+        'external_identities' => 'id',
         'species' => 'id',
         'species_packages' => 'id',
         'species_package_assets' => 'id',

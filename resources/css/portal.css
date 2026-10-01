@@ -3141,3 +3141,9 @@ form[aria-busy='true'] button[type='submit'] {
     transition: none;
   }
 }
+
+.google-access { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 44px; margin-top: 16px; text-decoration: none; background: #fff; color: #183b64; border: 1px solid #b9cce3; }
+.google-access svg { flex-shrink: 0; }
+.google-access:hover { background: #edf4ff; border-color: #4285f4; }
+.google-access:focus-visible { outline: 3px solid #2563eb; outline-offset: 3px; }
+.google-access-note { margin-top: 8px; font-size: 13px; line-height: 1.5; }

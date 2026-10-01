@@ -24,6 +24,10 @@ use Illuminate\Support\Facades\Route;
 Route::get('/offline', fn () => view('app', ['page' => 'downloads', 'bootstrap' => ['offlineShell' => true]]))->name('offline');
 
 Route::get('/', fn (\Illuminate\Http\Request $request) => redirect()->route($request->user() ? 'portal.home' : 'login'));
+Route::get('/auth/google/{intent}', [\App\Http\Controllers\GoogleAuthController::class, 'redirect'])
+    ->where('intent', 'signin|activate|register')->middleware('throttle:registration')->name('google.redirect');
+Route::get('/auth/google/callback', [\App\Http\Controllers\GoogleAuthController::class, 'callback'])->middleware('throttle:registration')->name('google.callback');
+Route::post('/api/register/google', [\App\Http\Controllers\GoogleAuthController::class, 'register'])->middleware('throttle:registration');
 foreach (\App\Support\PortalPages::PAGES as $page => [$path, $roles]) {
     $route = Route::get('/'.$path, PortalController::class)->defaults('page', $page)->name($page === 'login' ? 'login' : 'portal.'.$page);
     if ($roles) $route->middleware(['auth', 'role:'.$roles]);
