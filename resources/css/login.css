@@ -181,7 +181,7 @@
   margin-top: 0;
 }
 
-.login-concept .auth-card--login > .google-access-note {
+.login-concept .auth-card--login > p.google-access-note {
   margin: 8px 0 0;
   font-size: 12px;
   line-height: 1.5;
@@ -212,10 +212,29 @@
   font-size: 13px;
 }
 
-.login-account-options .portal-muted {
+.login-concept .login-account-options .portal-muted {
   margin: 4px 0 0;
   font-size: 12px;
   line-height: 1.5;
+}
+
+.login-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-top: 12px;
+}
+
+.login-concept .login-footer .auth-security-note {
+  margin: 0;
+}
+
+.login-footer .portal-link {
+  min-height: 44px;
+  padding: 4px 0;
+  font-size: 12px;
 }
 
 .login-mobile-title,

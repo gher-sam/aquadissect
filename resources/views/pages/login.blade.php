@@ -1,6 +1,5 @@
     <section class="portal-page auth-editorial-page auth-page login-concept" data-portal-panel="login">
       <form class="auth-card auth-card--login" id="loginForm">
-        <span class="portal-kicker">Your learning workspace</span>
         <h1>Welcome back</h1>
         <p class="portal-muted">Sign in to continue your learning journey.</p>
         @include('partials.google-access', ['intent' => 'signin'])
@@ -39,8 +38,10 @@
           <small>Demonstration accounts use password <strong>demo123</strong>.</small>
         </details>
         @endunless
-        <p class="auth-security-note"><i data-lucide="shield-check" aria-hidden="true"></i><span>Keep your account details private.</span></p>
-        <a class="portal-link" href="{{ route('privacy') }}">Privacy policy</a>
+        <div class="login-footer">
+          <p class="auth-security-note"><i data-lucide="shield-check" aria-hidden="true"></i><span>Keep your account details private.</span></p>
+          <a class="portal-link" href="{{ route('privacy') }}">Privacy policy</a>
+        </div>
       </form>
       <aside class="login-discovery" aria-labelledby="loginDiscoveryTitle">
         <div class="login-discovery-copy">
