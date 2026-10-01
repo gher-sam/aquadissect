@@ -20,10 +20,14 @@
         </div>
         <p class="portal-message" id="loginMessage" role="alert" hidden></p>
         <button class="portal-primary portal-full auth-submit" type="submit"><span>Sign in</span><i data-lucide="arrow-right" aria-hidden="true"></i></button>
-        <div class="auth-divider"><span>New to AquaDissect?</span></div>
-        <button class="portal-secondary portal-full" type="button" data-portal-page="activate">Activate student account</button>
-        <button class="portal-link portal-full" type="button" data-portal-page="register">Request instructor access</button>
-        <p class="portal-muted">{{ \App\Support\GoogleAccess::ready() ? 'Students: activate with your registered Google email or your administrator-provided code.' : 'Use the activation code provided by your administrator.' }}</p>
+        <div class="login-account-options">
+          <p>New to AquaDissect?</p>
+          <div class="login-account-links">
+            <button class="portal-link" type="button" data-portal-page="activate">Activate student account</button>
+            <button class="portal-link" type="button" data-portal-page="register">Request instructor access</button>
+          </div>
+          <p class="portal-muted">{{ \App\Support\GoogleAccess::ready() ? 'Students: use your registered Google email or activation code.' : 'Students: use the activation code provided by your administrator.' }}</p>
+        </div>
         @unless(app()->environment('production'))
         <details class="demo-access">
           <summary>Open local demonstration access</summary>
@@ -35,7 +39,7 @@
           <small>Demonstration accounts use password <strong>demo123</strong>.</small>
         </details>
         @endunless
-        <p class="auth-security-note"><i data-lucide="shield-check" aria-hidden="true"></i><span>Your learning workspace is protected. Keep your account details private.</span></p>
+        <p class="auth-security-note"><i data-lucide="shield-check" aria-hidden="true"></i><span>Keep your account details private.</span></p>
         <a class="portal-link" href="{{ route('privacy') }}">Privacy policy</a>
       </form>
       <aside class="login-discovery" aria-labelledby="loginDiscoveryTitle">
