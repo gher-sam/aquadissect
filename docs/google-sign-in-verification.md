@@ -1,6 +1,6 @@
 # Google sign-in engineering checks
 
-October 2, 2026. Status: **Implemented but awaiting provider configuration and live Google callback verification**. These checks do not establish academic eligibility, research consent, faculty validation, or learning effectiveness.
+October 2, 2026. Status: **Implemented and enabled on production; matching-account callback awaiting live verification**. These checks do not establish academic eligibility, research consent, faculty validation, or learning effectiveness.
 
 ## Completed checks
 
@@ -20,10 +20,10 @@ October 2, 2026. Status: **Implemented but awaiting provider configuration and l
 
 The code can be deployed with `GOOGLE_AUTH_ENABLED=false`. Google buttons and mandatory Google registration appear only after the provider is configured and enabled. Production credentials must remain outside source control.
 
-Google setup is assigned to the user-selected owner account. The owner supplied an existing OAuth web-client credential. It is stored only in private production configuration, with a root-only configuration backup. The callback matches the production HTTPS address. Client and secret presence were verified without printing their values. Google access remains disabled pending Google audience publication and a real matching-account callback check.
+Google setup is assigned to the user-selected owner account. The owner supplied an existing OAuth web-client credential. It is stored only in private production configuration, with a root-only configuration backup. The callback matches the production HTTPS address. Client and secret presence were verified without printing their values. Google audience publication was verified as In production. At the user's explicit request on October 2, 2026, the private production feature flag was enabled and configuration cache refreshed. The live login displayed Continue with Google; clicking it opened Google's account chooser for aquadissect.com with the correct HTTPS callback and only openid, email and profile scopes. No account was selected or changed in this browser check, and no completed callback is claimed. The login page was left open; no browser console errors were recorded. Screenshot evidence is retained locally under outputs/google-setup/sso-live-login.png.
 
 Production configuration checks retained 8 users, 5 enrollments and 4 lesson results, with zero case-insensitive email conflicts. A public privacy page was added to explain the implemented data handling and supply Google's required policy destination. This is a service disclosure, not institutional ethics approval or content validation.
 
 The ordinary local MySQL service was unavailable during browser review. UI previews were rendered by the application with an isolated, nonfunctional provider configuration; account behavior was exercised in the database-backed test suite. These previews do not constitute a real Google callback test.
 
-Before enabling Google access, verify production email conflicts, the configured HTTPS callback and a designated matching account, then confirm sign-in and role access without changing live academic records. Preserve existing signed-in sessions during verification.
+Remaining live check: use a designated existing account with a matching Google email to confirm the callback and signed-in role access without changing live academic records. Preserve existing signed-in sessions during verification.

@@ -24,7 +24,7 @@ Put `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `GOOGLE_REDIRECT_URI` only i
 
 The public privacy policy is at `https://aquadissect.com/privacy`, linked from sign-in. Use that same address in Google branding. The policy describes current implementation behavior; institution-specific retention requirements must be confirmed by the responsible administrator.
 
-Enable the flag only after checking a designated matching account. Before creating a persistent OAuth credential, obtain the requesting user's confirmation at the final creation action.
+Production Google access was enabled at the user's explicit request on October 2, 2026. The live button and Google account chooser were verified; a completed matching-account callback remains to be checked. For future rollouts, check a designated matching account before enabling access. Before creating a persistent OAuth credential, obtain the requesting user's confirmation at the final creation action.
 
 ## Stored records and rollback
 
