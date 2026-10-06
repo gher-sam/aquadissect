@@ -46,8 +46,8 @@
   <main class="portal-main" id="portal-main" tabindex="-1">
     <div class="dashboard-topbar">
       <button class="dashboard-menu-button" id="dashboardMenuButton" type="button" aria-label="Open navigation" aria-controls="portalSidebar" aria-expanded="false"><i data-lucide="menu"></i></button>
-      <div class="dashboard-breadcrumb"><span id="dashboardRoleLabel">AquaDissect</span><strong id="dashboardPageLabel">Overview</strong></div>
-      <div class="workspace-search"><label class="sr-only" for="workspaceSearch">Search pages and help</label><input id="workspaceSearch" type="search" placeholder="Search pages and help…" autocomplete="off" aria-controls="workspaceSearchResults"><div id="workspaceSearchResults" hidden></div></div>
+      <nav class="dashboard-breadcrumb" aria-label="Breadcrumb"><span id="dashboardRoleLabel">AquaDissect</span><strong id="dashboardPageLabel" aria-current="page">Overview</strong></nav>
+      <div class="workspace-search"><label class="sr-only" for="workspaceSearch">Search pages and help</label><input id="workspaceSearch" type="search" placeholder="Search pages and help…" autocomplete="off" aria-controls="workspaceSearchResults" aria-expanded="false"><div id="workspaceSearchResults" aria-label="Matching pages and guides" hidden></div></div>
       <a class="workspace-bell" href="{{ url('/notifications') }}" data-role-nav="student,instructor,program_head,admin" aria-label="Notifications"><i data-lucide="bell"></i><span id="notificationCount" hidden>0</span></a>
       <div class="workspace-account dropdown" data-role-nav="student,instructor,program_head,admin">
         <button class="btn dropdown-toggle" id="workspaceAccountButton" type="button" data-bs-toggle="dropdown" aria-expanded="false">Account</button>

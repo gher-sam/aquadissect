@@ -143,12 +143,12 @@ export function studentDashboard(packages) {
 }
 
 export function instructorDashboard(packages, classes) {
-  const drafts = packages.filter((item) => item.status !== 'published').length;
+  const drafts = packages.filter((item) => ['draft', 'review'].includes(item.status)).length;
   return `
     <div class="metric-grid">
       <article class="metric-card"><span class="metric-label">Assigned sections</span><strong>${classes.length}</strong><small>MB 304L offerings</small></article>
       <article class="metric-card"><span class="metric-label">Published library</span><strong>${packages.filter((item) => item.status === 'published').length}</strong><small>Assignable packages</small></article>
-      <article class="metric-card"><span class="metric-label">My drafts</span><strong>${drafts}</strong><small>Draft or review packages</small></article>
+      <article class="metric-card"><span class="metric-label">Draft or review</span><strong>${drafts}</strong><small>Available content versions</small></article>
       <article class="metric-card"><span class="metric-label">Content process</span><strong>Review</strong><small>Approval required before publication</small></article>
     </div>
     <div class="module-grid">
@@ -161,19 +161,21 @@ export function instructorDashboard(packages, classes) {
 
 export function adminDashboard(pendingUsers, packages, classes) {
   const rows = pendingUsers.map((account) => `<tr><td>${escapeHtml(account.firstName)} ${escapeHtml(account.lastName)}</td><td>${escapeHtml(account.email)}</td><td>${titleCase(account.role)}</td><td>Pending</td><td><button class="portal-secondary" type="button" data-approve-account="${escapeHtml(account.id)}">Approve</button></td></tr>`).join('');
-  const storageUsage = packages.reduce((total, item) => total + Number(item.sizeBytes || 0), 0);
+  const storageRecorded = packages.every((item) => item.sizeBytes !== null && item.sizeBytes !== undefined && item.sizeBytes !== '' && Number.isFinite(Number(item.sizeBytes)) && Number(item.sizeBytes) >= 0);
+  const storageUsage = storageRecorded ? packages.reduce((total, item) => total + Number(item.sizeBytes), 0) : null;
+  const storageLabel = storageUsage === null ? 'Not recorded' : formatBytes(storageUsage);
   return `
     <div class="metric-grid" aria-label="System summary">
       <article class="metric-card"><span class="metric-label">Pending approvals</span><strong>${pendingUsers.length}</strong><small>Instructor requests</small></article>
       <article class="metric-card"><span class="metric-label">Published packages</span><strong>${packages.filter((item) => item.status === 'published').length}</strong><small>Student-ready versions</small></article>
       <article class="metric-card"><span class="metric-label">Draft or review</span><strong>${packages.filter((item) => ['draft', 'review'].includes(item.status)).length}</strong><small>Awaiting lifecycle action</small></article>
       <article class="metric-card"><span class="metric-label">Sections</span><strong>${classes.length}</strong><small>One reusable MB 304L course</small></article>
-      <article class="metric-card"><span class="metric-label">Package storage</span><strong>${formatBytes(storageUsage)}</strong><small>Private versioned content</small></article>
+      <article class="metric-card"><span class="metric-label">Package storage</span><strong>${storageLabel}</strong><small>Private versioned content</small></article>
     </div>
     <div class="admin-dashboard-grid">
       <section class="admin-table-card"><div class="card-heading"><div><span class="portal-kicker">Account management</span><h2>Instructor requests</h2></div><button class="portal-secondary" data-portal-page="roster" type="button">Manage roster</button></div>
       ${rows ? `<div class="admin-table-wrap"><table><caption>Pending instructor account requests</caption><thead><tr><th scope="col">Name</th><th scope="col">Email</th><th scope="col">Role</th><th scope="col">Status</th><th scope="col">Action</th></tr></thead><tbody>${rows}</tbody></table></div>` : '<div class="empty-state"><strong>Approval queue is clear</strong><span>New instructor requests will appear here.</span></div>'}</section>
-      <aside class="admin-operations-card"><span class="portal-kicker">Operational overview</span><h2>System status</h2><ul class="operation-list"><li><span><strong>Main records</strong><small>Accounts, classes, and progress</small></span><span class="status-badge is-online">Available</span></li><li><span><strong>Safety copy</strong><small>Scheduled after 12 hours</small></span><span class="status-badge">Scheduled</span></li><li><span><strong>Learning files</strong><small>${formatBytes(storageUsage)} stored securely</small></span><span class="status-badge is-online">Ready</span></li></ul></aside>
+      <aside class="admin-operations-card"><span class="portal-kicker">Operational overview</span><h2>System status</h2><ul class="operation-list"><li><span><strong>Main records</strong><small>Accounts, classes, and progress</small></span><span class="status-badge is-online">Available</span></li><li><span><strong>Safety copy</strong><small>Scheduled after 12 hours</small></span><span class="status-badge">Scheduled</span></li><li><span><strong>Learning files</strong><small>${storageUsage === null ? 'Size not recorded' : `${storageLabel} stored securely`}</small></span><span class="status-badge is-online">Ready</span></li></ul></aside>
     </div>`;
 }
 

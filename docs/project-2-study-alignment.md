@@ -261,3 +261,20 @@ to learner records or introduce another role. Source packages exclude credential
 live records, uploads, manuscripts, and private operational artifacts. Downloads
 are logged by account ID and revision. Engineering implementation and verification
 are distinct from faculty or research validation.
+
+## October 6, 2026: Attex UI study and adaptation
+
+The approved UI work studies the 86 requested Attex reference pages, including
+Analytics and Ecommerce, and maps patterns to existing AquaDissect features.
+Retain Figtree, compact readable type, solid blue colors, no gradients, accessible
+controls, reduced motion, and role-scoped navigation. Commercial theme examples
+are demonstration data and do not establish a requirement for chat, email,
+invoices, billing, or specialized charts. Use recorded learning data and preserve
+missing values separately from zero. Engineering checks do not establish
+learning effectiveness or faculty validation.
+
+The latest task explicitly requires deployment authorization. These changes are
+**Implemented but awaiting validation**, with local engineering evidence recorded
+in `docs/attex-ui-verification.md`. Publication was explicitly authorized through
+`/serve_update` on October 6, 2026; deployed verification is required before claiming
+that the interface changes are live.
