@@ -51,8 +51,8 @@
           <p class="login-mobile-description">Guided fish anatomy learning</p>
         </div>
         <figure class="login-discovery-figure">
-          <img src="{{ rtrim(request()->getBaseUrl(), '/') }}/species/tilapia/natural.png" width="1536" height="1024" alt="Side-view educational illustration of a tilapia" decoding="async">
-          <figcaption>Tilapia · External anatomy</figcaption>
+          @include('partials.rabbitfish-focus')
+          <figcaption>Rabbitfish · Guided preparation</figcaption>
         </figure>
         <p class="login-discovery-steps">Observe <span aria-hidden="true">/</span> Identify <span aria-hidden="true">/</span> Prepare</p>
         <p class="login-discovery-note">Supports faculty-supervised laboratory learning.</p>

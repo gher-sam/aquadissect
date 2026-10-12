@@ -134,12 +134,12 @@ function motionFeature(item) {
 export function speciesLibrary(packages, options = {}) {
   return packages.length
     ? packages.map((item) => packageCard(item, options)).join('')
-    : '<div class="empty-state"><strong>No species are available</strong><span>Students see only published packages assigned by their instructor.</span></div>';
+    : '<div class="empty-state"><strong>No rabbitfish lesson is available yet</strong><span>Rabbitfish must be independently reviewed, published and assigned before students can open it.</span></div>';
 }
 
 export function studentDashboard(packages) {
   const flagship = packages[0];
-  if (!flagship) return '<div class="empty-state"><strong>No assigned species yet</strong><span>Your instructor can assign a published species package to your class.</span></div>';
+  if (!flagship) return '<div class="empty-state"><strong>No assigned rabbitfish lesson yet</strong><span>Your instructor can assign a published species package to your class.</span></div>';
   return `${motionFeature(flagship)}<div class="dashboard-layout"><div class="species-library-grid">${packageCard(flagship)}</div><aside class="status-card"><span class="portal-kicker">My learning</span><h2>Learning progress</h2><dl><div><dt>Assigned species</dt><dd>${packages.length}</dd></div><div><dt>Lesson version</dt><dd>${escapeHtml(flagship.version)}</dd></div><div><dt>Lesson status</dt><dd>${escapeHtml(flagship.updateStatus || 'Ready')}</dd></div><div><dt>Offline access</dt><dd>Ready to download</dd></div></dl><button class="portal-secondary" data-portal-page="downloads" type="button">Open offline access</button></aside></div>`;
 }
 
@@ -238,9 +238,8 @@ export function managerView(packages, role, currentUser) {
   const storageSummary = role === 'admin'
     ? `<div class="manager-storage-summary"><strong>${formatBytes(packages.reduce((total, item) => total + Number(item.sizeBytes || 0), 0))}</strong><span>across ${packages.length} protected lesson version${packages.length === 1 ? '' : 's'}</span><small>Archive or restore a version while keeping its history.</small></div>`
     : '';
-  const tilapia = packages.find((item) => item.slug === 'tilapia' && item.isCurrent) || packages.find((item) => item.slug === 'tilapia');
   const rabbitfish = packages.find((item) => item.slug === 'rabbitfish');
   const rabbitfishState = rabbitfish?.status === 'published' ? 'Published' : rabbitfish?.status === 'review' ? (rabbitfish.approvalCurrent ? 'Faculty approved; ready for administrator publication' : 'Awaiting independent faculty decision') : 'Draft ready to send for faculty review';
-  const milestone = `<section class="species-milestone" aria-labelledby="speciesMilestoneTitle"><div><span class="portal-kicker">Species expansion milestone</span><h2 id="speciesMilestoneTitle">Review Rabbitfish before preparing Scad</h2><p>Use the recorded review steps below. Students receive only administrator-published versions.</p></div><ol><li class="${tilapia?.status === 'published' ? 'is-complete' : ''}"><strong>Tilapia</strong><span>${tilapia?.status === 'published' ? 'Published flagship lesson' : 'Publication status needs attention'}</span></li><li class="${rabbitfish?.status === 'published' ? 'is-complete' : 'is-current'}"><strong>Goldspotted Rabbitfish</strong><span>${escapeHtml(rabbitfishState)}</span></li><li><strong>Scad</strong><span>Waiting for faculty confirmation of the exact species identity</span></li></ol></section>`;
+  const milestone = `<section class="species-milestone" aria-labelledby="speciesMilestoneTitle"><div><span class="portal-kicker">Current study focus</span><h2 id="speciesMilestoneTitle">Rabbitfish guided preparation</h2><p>Confirm the intended danggit species, anatomy and safety directions through independent faculty review. Students receive only approved, administrator-published versions.</p></div><ol><li class="${rabbitfish?.status === 'published' ? 'is-complete' : 'is-current'}"><strong>Rabbitfish</strong><span>${escapeHtml(rabbitfish ? rabbitfishState : 'No rabbitfish package available')}</span></li></ol></section>`;
   return `${milestone}${storageSummary}${importForm}<div class="species-library-grid">${speciesLibrary(packages, { manager: true, isAdmin: role === 'admin', currentUser })}</div>`;
 }

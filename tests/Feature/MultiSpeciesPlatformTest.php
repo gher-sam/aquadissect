@@ -29,6 +29,8 @@ class MultiSpeciesPlatformTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        // Exercise retained multi-species platform behavior with the temporary UI focus disabled.
+        config(['species-packages.visible_slugs' => []]);
         $this->seed(DatabaseSeeder::class);
     }
 

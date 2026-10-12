@@ -26,6 +26,8 @@ class LearningModuleTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        // Keep retained-species prerequisite regression scenarios independent of current presentation scope.
+        config(['species-packages.visible_slugs' => []]);
         $this->seed(DatabaseSeeder::class);
     }
 

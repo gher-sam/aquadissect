@@ -1,6 +1,8 @@
 <?php
 
 return [
+    // Temporary presentation scope. Empty list restores all retained species.
+    'visible_slugs' => ['rabbitfish'],
     'disk' => env('SPECIES_PACKAGES_DISK', 'local'),
     'root' => 'species-packages',
     'quarantine' => 'species-package-quarantine',

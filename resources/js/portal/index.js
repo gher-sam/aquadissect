@@ -1,3 +1,4 @@
+import { focusedSpecies, focusedClasses } from './speciesFocus.js';
 import { setupRosterTables, cardsToTable } from './rosterTables.js';
 import { setupWorkspaceShell, setupWorkspacePage } from './workspace.js';
 import { setupTutorials, startHereCard, setupStaffRoles } from './tutorials.js';
@@ -13,6 +14,9 @@ import {
 import { setupProgressiveWebApp } from '../pwa.js';
 
 const bootstrap = window.AQUADISSECT_BOOTSTRAP || {};
+const visibleSpecies = window.AQUADISSECT_VISIBLE_SPECIES || ['rabbitfish'];
+const focusSpecies = records => focusedSpecies(records, visibleSpecies);
+const focusClasses = (classes, species) => focusedClasses(classes, species, visibleSpecies);
 const offlineContextKey = 'aquadissect.offline-context.v2';
 if (bootstrap.offlineShell) {
   try { Object.assign(bootstrap, JSON.parse(localStorage.getItem(offlineContextKey) || '{}')); } catch { /* Empty offline context. */ }
@@ -25,6 +29,9 @@ if (bootstrap.offlineShell) {
     classes: learner ? (bootstrap.classes || []).map(c => ({ id:c.id, name:c.name, status:c.status, assignments:c.assignments })) : [],
   }));
 }
+
+bootstrap.classes = focusClasses(bootstrap.classes, bootstrap.species);
+bootstrap.species = focusSpecies(bootstrap.species);
 
 const dashboardCopy = {
   program_head: ['Program Head workspace', 'Program overview', 'Review progress across MB 304L sections and independently review learning content.'],
@@ -375,7 +382,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
       cardsToTable(elements.assignments, '.assignment-card', 'activities', 'Class activities', state.classes.filter(c=>c.status==='active'));
     }
     if (name === 'downloads') {
-      elements.downloads.innerHTML = `${bootstrap.offlineShell ? '<p class="page-guidance">Downloaded learning materials on this device. Reconnect and sign in to synchronize your own work.</p>' : ''}${bootstrap.offlineShell && state.classes.length > 1 ? `<label class="portal-field">Study section<select id="offlineSection"><option value="">Select a section before opening a lesson</option>${state.classes.map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('')}</select></label>` : ''}<div class="download-summary"><strong>${listDownloadedPackages().length + listDownloadedLearningModules().length}</strong><span>learning items saved on this device</span></div><div class="portal-page-title portal-page-title--compact"><span class="portal-kicker">Prerequisite</span><h2>Safety module</h2></div>${safetyWorkspace(state.learningModules, 'student', state.currentUser, { offline: true })}<div class="portal-page-title portal-page-title--compact"><span class="portal-kicker">Assigned anatomy</span><h2>Species lessons</h2></div><div class="species-library-grid">${speciesLibrary(state.species.filter((item) => item.status === 'published'), { offline: true })}</div>`;
+      elements.downloads.innerHTML = `${bootstrap.offlineShell ? '<p class="page-guidance">Downloaded learning materials on this device. Reconnect and sign in to synchronize your own work.</p>' : ''}${bootstrap.offlineShell && state.classes.length > 1 ? `<label class="portal-field">Study section<select id="offlineSection"><option value="">Select a section before opening a lesson</option>${state.classes.map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('')}</select></label>` : ''}<div class="download-summary"><strong>${focusSpecies(listDownloadedPackages()).length + listDownloadedLearningModules().length}</strong><span>learning items saved on this device</span></div><div class="portal-page-title portal-page-title--compact"><span class="portal-kicker">Prerequisite</span><h2>Safety module</h2></div>${safetyWorkspace(state.learningModules, 'student', state.currentUser, { offline: true })}<div class="portal-page-title portal-page-title--compact"><span class="portal-kicker">Assigned anatomy</span><h2>Species lessons</h2></div><div class="species-library-grid">${speciesLibrary(state.species.filter((item) => item.status === 'published'), { offline: true })}</div>`;
       state.species.forEach((item) => {
         const button = elements.downloads.querySelector(`[data-offline-toggle="${item.id}"]`);
         if (button) {
@@ -432,8 +439,8 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
     state.currentUser = payload.user;
     state.latestResult = payload.lessonResult || null;
     state.pendingUsers = payload.pendingUsers || [];
-    state.species = payload.species || [];
-    state.classes = payload.classes || [];
+    state.species = focusSpecies(payload.species);
+    state.classes = focusClasses(payload.classes, payload.species);
     state.learningModules = payload.learningModules || [];
     state.adminRoster = null;
     state.rosterError = null;
@@ -445,7 +452,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
 
   async function refreshData() {
     const [speciesResponse, classesResponse, modulesResponse] = await Promise.all([request('/api/species'), request('/api/classes'), request('/api/learning-modules')]);
-    state.species = speciesResponse.species || [];
+    state.species = focusSpecies(speciesResponse.species);
     state.classes = classesResponse.classes || [];
     state.learningModules = modulesResponse.learningModules || [];
     updateSession();

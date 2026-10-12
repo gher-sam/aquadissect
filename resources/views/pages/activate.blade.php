@@ -1,7 +1,7 @@
     <section class="portal-page auth-editorial-page registration-page" data-portal-panel="activate">
-      <article class="auth-specimen-card auth-specimen-card--internal" aria-label="Tilapia internal anatomy illustration">
-        <div class="specimen-card-heading"><span><strong>Internal anatomy</strong><small>Tilapia · educational view</small></span><span class="specimen-number">Fig. 02</span></div>
-        <figure class="specimen-figure"><img src="{{ rtrim(request()->getBaseUrl(), '/') }}/species/tilapia/internal-anatomy.png" alt="Educational illustration of tilapia internal anatomy"><figcaption>Begin with the account supplied by your administrator.</figcaption></figure>
+      <article class="auth-specimen-card auth-specimen-card--internal" aria-label="Rabbitfish study focus">
+        <div class="specimen-card-heading"><span><strong>Current study focus</strong><small>Rabbitfish · guided preparation</small></span><span class="specimen-number">Fig. 02</span></div>
+        <figure class="specimen-figure">@include('partials.rabbitfish-focus')<figcaption>Begin with the account supplied by your administrator.</figcaption></figure>
       </article>
       <form class="registration-card auth-card--registration" id="activationForm">
         <div class="registration-heading"><button class="auth-back-button" type="button" data-portal-page="login"><i data-lucide="arrow-left" aria-hidden="true"></i><span>Back to sign in</span></button><span class="portal-kicker">Student access</span><h1>Activate your account</h1><p>{{ \App\Support\GoogleAccess::ready() ? 'The administrator must provide your account first. Activate with the matching Google email or use a one-time code below.' : 'Use the email and one-time code supplied by the administrator. Codes expire after three days.' }}</p></div>

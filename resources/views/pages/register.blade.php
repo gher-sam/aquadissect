@@ -1,14 +1,13 @@
     <section class="portal-page auth-editorial-page registration-page" data-portal-panel="register">
       <article class="auth-specimen-card auth-specimen-card--internal" aria-labelledby="registrationSpecimenTitle">
         <div class="specimen-card-heading">
-          <span><strong>Internal anatomy</strong><small>Tilapia · sagittal educational view</small></span>
+          <span><strong>Current study focus</strong><small>Rabbitfish · guided preparation</small></span>
           <span class="specimen-number">Fig. 02</span>
         </div>
         <figure class="specimen-figure">
-          <img src="{{ rtrim(request()->getBaseUrl(), '/') }}/species/tilapia/internal-anatomy.png" alt="Educational illustration showing the labeled internal anatomy of a tilapia">
+          @include('partials.rabbitfish-focus')
           <figcaption id="registrationSpecimenTitle">A guided preparation environment for recognizing structures and following procedures.</figcaption>
         </figure>
-        <div class="specimen-scale" aria-hidden="true"><span>0</span><i></i><i></i><i></i><i></i><span>20 cm</span></div>
         <div class="specimen-footer">
           <p>Educational illustrations support preparation; faculty-approved content and supervised observation remain authoritative.</p>
           <span>Explore · Understand · Document</span>

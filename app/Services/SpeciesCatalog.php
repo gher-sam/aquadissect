@@ -18,6 +18,11 @@ class SpeciesCatalog
     {
         $query = SpeciesPackage::query()->with(['species', 'assets', 'reviews'])->withCount(['results', 'reviews']);
 
+        $visibleSlugs = config('species-packages.visible_slugs', ['rabbitfish']);
+        if ($visibleSlugs !== []) {
+            $query->whereHas('species', fn (Builder $species) => $species->whereIn('slug', $visibleSlugs));
+        }
+
         if ($user->role === User::ROLE_STUDENT) {
             $packageIds = $user->classEnrollments()
                 ->where('class_enrollments.status', 'active')

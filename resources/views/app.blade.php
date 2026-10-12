@@ -19,6 +19,7 @@
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%230140c1'/%3E%3Cpath d='M14 33c9-13 24-15 34-5l7-6v20l-7-6c-10 10-25 8-34-3Z' fill='white'/%3E%3Ccircle cx='40' cy='29' r='2' fill='%230d1442'/%3E%3C/svg%3E" />
     <title>AquaDissect | Guided Aquatic Anatomy Learning</title>
     <script>
+      window.AQUADISSECT_VISIBLE_SPECIES = @json(config('species-packages.visible_slugs', ['rabbitfish']));
       window.AQUADISSECT_PAGE = @json($page);
       window.AQUADISSECT_ROUTES = @json(\App\Support\PortalPages::urls());
       window.AQUADISSECT_BASE_URL = @json(rtrim(request()->getBaseUrl(), '/'));
