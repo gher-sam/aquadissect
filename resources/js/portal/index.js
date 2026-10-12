@@ -52,7 +52,7 @@ function requireElement(root, selector) {
   return element;
 }
 
-export function setupAquaPortal({ app, onOpenPackage }) {
+export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }) {
   const portal = requireElement(document, '#aquaPortal');
   const elements = {
     skipLink: requireElement(document, '#primarySkipLink'),
@@ -428,6 +428,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
   }
 
   function signIn(payload) {
+    onLeaveLesson();
     state.currentUser = payload.user;
     state.latestResult = payload.lessonResult || null;
     state.pendingUsers = payload.pendingUsers || [];
@@ -467,6 +468,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
   }
 
   async function signOut() {
+    onLeaveLesson();
     try {
       await request('/api/logout', { method: 'POST' });
       localStorage.removeItem(offlineContextKey);
@@ -563,6 +565,7 @@ export function setupAquaPortal({ app, onOpenPackage }) {
   }
 
   function openDashboard() {
+    onLeaveLesson();
     app.hidden = true;
     portal.hidden = false;
     document.body.classList.remove('lesson-is-open');

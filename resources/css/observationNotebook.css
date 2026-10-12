@@ -1,0 +1,26 @@
+/* Shared lesson worksheet; session-only, independent of graded attempts. */
+.observation-notebook { width: min(900px, calc(100vw - 24px)); max-width: calc(100vw - 24px); max-height: calc(100dvh - 32px); padding: 0; border: 1px solid var(--color-border); border-radius: 16px; color: var(--color-foreground); background: var(--color-surface); }
+.observation-notebook::backdrop { background: rgb(13 20 66 / 65%); }
+.notebook-form { padding: 24px; font: 14px/1.6 'Figtree', system-ui, sans-serif; }
+.notebook-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.notebook-heading h2 { font-size: 20px; margin: 0 0 12px; }
+.notebook-form h3 { font-size: 16px; }
+.notebook-notice { padding: 12px; border-left: 3px solid var(--color-warning); background: var(--color-warning-soft); }
+.notebook-form details { margin: 12px 0; border: 1px solid var(--color-border); border-radius: 10px; }
+.notebook-form summary { padding: 14px; cursor: pointer; font-weight: 700; }
+.notebook-section { padding: 0 16px 16px; }
+.notebook-field, .notebook-row label, .notebook-feature-grid label, .notebook-organ > label { display: grid; gap: 6px; margin: 10px 0; }
+.notebook-form input, .notebook-form select, .notebook-form textarea { min-width: 0; width: 100%; min-height: 44px; padding: 9px 10px; border: 1px solid var(--color-border); border-radius: 6px; background: var(--color-surface); color: var(--color-foreground); font: inherit; }
+.notebook-form textarea { resize: vertical; }
+.notebook-form :is(input, select, textarea):focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+.notebook-form input:disabled { background: var(--color-surface-soft); }
+.notebook-row, .notebook-organ { min-width: 0; border: 1px solid var(--color-border); border-radius: 8px; margin: 14px 0; padding: 12px; }
+.notebook-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.notebook-form legend { float: none; width: auto; max-width: 100%; padding: 0 4px; margin: 0; font-size: 14px; font-weight: 600; }
+.notebook-feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+.notebook-footer > div:not([hidden]) { display: flex; flex-wrap: wrap; gap: 10px; }
+.notebook-footer .notebook-reset:not([hidden]) { display: block; padding: 12px; background: var(--color-warning-soft); margin-top: 12px; }
+.notebook-footer [role='status'] { border-top: 1px solid var(--color-border); padding-top: 12px; }
+@media (max-width: 600px) { .notebook-form { padding: 16px; } .notebook-row, .notebook-feature-grid { grid-template-columns: 1fr; gap: 0; } .notebook-form input, .notebook-form select, .notebook-form textarea { font-size: 16px; } .notebook-heading .text-button { flex-shrink: 0; } }
+
+.notebook-entry:not([hidden]) { display: flex; justify-content: flex-start; width: 100%; margin: 12px 0; min-height: 44px; }

@@ -12,6 +12,7 @@ import {
   Maximize2, Menu, PackageOpen, Pause, Play, RotateCcw, ScanSearch, School, ShieldCheck, Sparkles, User,
   Users, UsersRound, Waves, X, createIcons,
 } from 'lucide';
+import { createObservationNotebook } from './observationNotebook.js';
 import { createViewer } from './viewerFactory.js';
 import { setupAquaPortal } from './portal/index.js';
 import '../css/style.css';
@@ -50,6 +51,7 @@ app.innerHTML = `
         <section class="task-card" aria-labelledby="taskHeading"><div class="task-card__icon" aria-hidden="true"><i data-lucide="scan-search"></i></div><div><span class="task-label" id="taskHeading">Your task</span><p id="stepPrompt"></p></div></section>
         <div class="target-list" id="targetList" aria-live="polite"></div>
         <form class="quiz" id="quiz" hidden></form>
+        <button class="text-button notebook-entry" id="notebookButton" type="button" aria-label="Open observation notebook" hidden><i data-lucide="clipboard-list"></i><span>Open observation notebook</span></button>
         <div class="lesson-tip" id="lessonTip"><i data-lucide="info" aria-hidden="true"></i><p><strong>Educational visualization</strong><span id="lessonSafety">Follow instructor guidance and applicable laboratory safety rules.</span></p></div>
         <div class="lesson-actions">
           <button class="primary-button" id="primaryAction" type="button"><span>Continue</span><i data-lucide="arrow-right"></i></button>
@@ -83,6 +85,7 @@ app.innerHTML = `
       </aside>
     </main>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <dialog class="observation-notebook" id="observationNotebook" aria-labelledby="notebookTitle"></dialog>
     <dialog class="info-dialog" id="infoDialog" aria-labelledby="infoTitle"><button class="dialog-close" data-close-dialog="infoDialog" aria-label="Close information"><i data-lucide="x"></i></button><span class="dialog-icon" aria-hidden="true"><i data-lucide="waves"></i></span><p class="eyebrow">About this lesson</p><h2 id="infoTitle">A safe first look at aquatic anatomy</h2><p id="infoDescription"></p><div class="dialog-callout"><i data-lucide="badge-check"></i><p><strong>Learning goals</strong><span id="learningGoals"></span></p></div><button class="primary-button dialog-action" data-close-dialog="infoDialog">Continue lesson</button></dialog>
     <dialog class="references-dialog" id="referencesDialog" aria-labelledby="referencesTitle"><button class="dialog-close" data-close-dialog="referencesDialog" aria-label="Close references"><i data-lucide="x"></i></button><p class="eyebrow">Content foundations</p><h2 id="referencesTitle">Educational references</h2><p>Package references support the lesson. Illustrations remain simplified teaching aids.</p><div class="reference-list" id="referenceList"></div></dialog>
     <dialog class="completion-dialog" id="completionDialog" aria-labelledby="completionTitle"><span class="completion-mark" aria-hidden="true"><i data-lucide="badge-check"></i></span><p class="eyebrow">Formative activity complete</p><h2 id="completionTitle">Observation recorded</h2><p id="completionCopy"></p><div class="score-card"><span>Your score</span><strong id="scoreValue">0 / 0</strong></div><div class="completion-actions"><button class="primary-button" id="reviewLesson" type="button"><i data-lucide="rotate-ccw"></i><span>Review lesson</span></button><button class="text-button" id="completionDashboard" type="button">Return to dashboard</button><button class="text-button" data-close-dialog="completionDialog" type="button">Keep exploring</button></div></dialog>
@@ -133,6 +136,7 @@ function restorePartButtonFocus(focusTarget) {
 }
 
 let portal;
+const notebook = createObservationNotebook(query('#observationNotebook'), query('#notebookButton'));
 
 function anatomyMap(structures) {
   return Object.fromEntries(structures.map((item) => [item.id, item]));
@@ -210,6 +214,7 @@ async function openPackage(manifest, record, { viewerType = 'auto' } = {}) {
     const { LessonMotion } = await import('./lessonMotion.js');
     state.motion = new LessonMotion(app);
   }
+  notebook.load(manifest);
   state.manifest = manifest;
   state.record = record;
   state.anatomy = anatomyMap(manifest.contentData.anatomy.structures);
@@ -456,5 +461,5 @@ query('#reviewLesson').addEventListener('click', async () => {
 query('#completionDashboard').addEventListener('click', () => { query('#completionDialog').close(); portal.openDashboard(); });
 query('#portalReturnButton').addEventListener('click', () => portal.openDashboard());
 
-portal = setupAquaPortal({ app, onOpenPackage: openPackage });
+portal = setupAquaPortal({ app, onOpenPackage: openPackage, onLeaveLesson: () => notebook.clear() });
 refreshIcons();

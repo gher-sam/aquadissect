@@ -71,6 +71,7 @@ function packageCard(item, { manager = false, offline = false, isAdmin = false, 
       <div class="species-card-image">${item.naturalImageUrl ? `<img src="${item.naturalImageUrl}" alt="${escapeHtml(item.commonName)} natural specimen illustration">` : '<span aria-hidden="true">A</span>'}</div>
       <div class="species-card-body">
         <div class="species-card-topline"><span class="status-badge ${item.status === 'published' ? 'is-online' : ''}">${status}</span><small>v${escapeHtml(item.version)}</small></div>
+        ${item.slug === 'rabbitfish' ? '<span class="status-badge">Development focus · Rabbitfish</span>' : ''}
         <h2>${escapeHtml(item.commonName)}</h2>
         <p class="scientific-name"><em>${escapeHtml(item.scientificName || '')}</em></p>
         <p>${escapeHtml(item.description || '')}</p>

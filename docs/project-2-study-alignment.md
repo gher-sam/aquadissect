@@ -63,7 +63,7 @@ Legacy class records and lesson results must be retained. Existing results witho
 
 ## Species scope and current implementation truth
 
-The proposed defense scope is Tilapia, Rabbitfish, and Scad.
+October 12, 2026: The user confirmed Rabbitfish (danggit) as the single priority specimen and authorized application enhancements. This replaces the earlier three-species development priority. Existing Tilapia and other historical packages, assignments and results remain intact. Seahorse and further species are deferred. Faculty confirmation of the exact rabbitfish identity and adaptations to the multi-specimen laboratory comparison outcomes remains pending; the current draft uses Goldspotted Rabbitfish (`Siganus guttatus`). No faculty approval or research readiness is implied.
 
 - Tilapia is the published flagship package with layered 2.5D anatomy, accessible hotspots, guided learning, quiz functionality, and an optional procedural 3D viewer.
 - Goldspotted Rabbitfish (`Siganus guttatus`) version `1.1.0` is an implemented 2.5D package with a locally authored swimming reference in the staff-only faculty-review stage. No faculty approval or publication is recorded. Version `1.0.0` remains an unchanged historical package source.
@@ -195,7 +195,7 @@ Use a feature-status matrix with: `Implemented and validated`, `Implemented but 
 
 ## Defense scope and evidence
 
-The demonstration should cover administrator, instructor, and student workflows; class assignment; laboratory tools and safety; Tilapia, Rabbitfish, and Scad 2.5D hotspots; guided procedure; formative activities; quizzes and results; offline operation; and progress reporting.
+The demonstration should cover administrator, instructor, and student workflows; class assignment; laboratory tools and safety; Rabbitfish 2.5D hotspots after independent faculty approval, with historical lessons retained; guided procedure; formative activities; quizzes and results; offline operation; and progress reporting.
 
 Prepare a stable live demonstration and an offline screenshot or recorded fallback. Do not deploy unchanged demonstration passwords.
 
@@ -278,3 +278,8 @@ The latest task explicitly requires deployment authorization. These changes are
 in `docs/attex-ui-verification.md`. Publication was explicitly authorized through
 `/serve_update` on October 6, 2026; deployed verification is required before claiming
 that the interface changes are live.
+
+
+## October 12, 2026: Rabbitfish observation preparation
+
+A session-only observation notebook supports the consultation follow-up: 16 Table 1 mm measurement fields, classification and external-feature states, independent fin/spine counts, internal observations and reflective preparation. It is an unreviewed worksheet aid, separate from lesson scoring and research instruments. It provides JSON/CSV downloads, has no account identifiers or server persistence, and clears when leaving the lesson or changing packages. Virtual images have no calibrated measurement scale. Unknown, not observed, not applicable and actual observed values remain distinct. Faculty must confirm field definitions, species applicability, identity, the requested spine geometry, and physical worksheet/LMS mapping. Existing immutable content packages and publication gates are unchanged. Status: Implemented but awaiting validation.
