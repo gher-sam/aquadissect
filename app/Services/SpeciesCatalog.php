@@ -141,6 +141,8 @@ class SpeciesCatalog
             'draftNotice' => $manifest['draftNotice'] ?? null,
             'lessonKey' => $manifest['lessonKey'],
             'duration' => $this->lessonDuration($package),
+            'cardPreviewVideoUrl' => !$locked && $package->species->slug === 'rabbitfish' && $package->version === '1.1.0'
+                ? url("/api/species-packages/{$package->id}/card-preview").($availableClassId ? '?classId='.$availableClassId : '') : null,
             'naturalImageUrl' => $locked ? null : $this->assetUrl($package, 'natural', $availableClassId),
             'videoUrl' => $locked ? null : $this->assetUrl($package, 'video', $availableClassId),
             'manifestUrl' => url("/api/species/{$package->species->slug}/packages/{$package->id}/manifest"),

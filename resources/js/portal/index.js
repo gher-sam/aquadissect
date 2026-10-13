@@ -404,6 +404,12 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
     if (name === 'prompt-studio') elements.promptStudio.innerHTML = promptStudio(state.learningModules);
 
     const activePanel = portal.querySelector(`[data-portal-panel="${name}"]`);
+    activePanel?.querySelectorAll('[data-card-video]').forEach((video) => {
+      const fallback = () => { if (video.hidden) return; video.hidden = true; const image = document.createElement('img'); image.src = video.poster; image.alt = 'Rabbitfish specimen illustration'; video.after(image); };
+      video.addEventListener('error', fallback, { once: true });
+      video.querySelector('source')?.addEventListener('error', fallback, { once: true });
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) video.play().catch(() => {});
+    });
     import('../portalMotion.js')
       .then(({ revealPortalPage }) => revealPortalPage(activePanel))
       .catch(() => undefined);

@@ -57,6 +57,20 @@ class RabbitfishFocusTest extends TestCase
         }
     }
 
+    public function test_card_video_preserves_review_and_assignment_access_boundaries(): void
+    {
+        $package = SpeciesPackage::where('version', '1.1.0')->whereHas('species', fn ($query) => $query->where('slug', 'rabbitfish'))->firstOrFail();
+        $url = '/api/species-packages/'.$package->id.'/card-preview';
+        $this->getJson($url)->assertUnauthorized();
+        $student = User::where('role', 'student')->firstOrFail();
+        $this->actingAs($student)->getJson($url)->assertForbidden();
+        $admin = User::where('role', 'admin')->firstOrFail();
+        $this->actingAs($admin)->get($url)->assertOk()->assertHeader('Content-Type', 'video/mp4');
+        $this->get($url, ['Range' => 'bytes=0-99'])->assertStatus(206);
+        $this->assertSame('review', $package->fresh()->status);
+        $package->update(['status' => 'published']);
+        $this->actingAs($student)->getJson($url)->assertForbidden();
+    }
     public function test_retained_catalog_can_be_restored_without_reseeding(): void
     {
         config(['species-packages.visible_slugs' => []]);

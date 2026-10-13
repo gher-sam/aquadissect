@@ -60,6 +60,7 @@ Route::prefix('api')->group(function (): void {
         Route::get('/session', [AuthController::class, 'session']);
         Route::get('/species', [SpeciesController::class, 'index']);
         Route::get('/species/{species:slug}/packages/{package}/manifest', [SpeciesController::class, 'manifest']);
+        Route::get('/species-packages/{package}/card-preview', [SpeciesController::class, 'cardPreview']);
         Route::get('/species-packages/{package}/assets/{asset}', [SpeciesController::class, 'asset']);
         Route::get('/species-packages/{package}/download', [SpeciesController::class, 'download']);
         Route::get('/classes', [ClassController::class, 'index']);

@@ -43,6 +43,18 @@ class SpeciesController extends Controller
         ]);
     }
 
+    public function cardPreview(Request $request, SpeciesPackage $package, SpeciesPackageContent $content): BinaryFileResponse
+    {
+        abort_unless($package->species->slug === 'rabbitfish' && $package->version === '1.1.0', 404);
+        $content->authorize($request->user(), $package, $request->integer('classId') ?: null);
+
+        return response()->file(resource_path('media/rabbitfish-card-loop.mp4'), [
+            'Content-Type' => 'video/mp4',
+            'Cache-Control' => 'private, no-store',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
+    }
+
     public function download(Request $request, SpeciesPackage $package, SpeciesPackageContent $content, SpeciesPackageArchive $archive): BinaryFileResponse
     {
         abort_unless(in_array($request->user()->role, ['instructor', 'admin'], true), 403);

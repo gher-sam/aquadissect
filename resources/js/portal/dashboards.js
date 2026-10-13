@@ -69,7 +69,7 @@ function packageCard(item, { manager = false, offline = false, isAdmin = false, 
 
   return `
     <article class="species-card" data-package-card="${item.id}">
-      <div class="species-card-image">${item.naturalImageUrl ? `<img src="${item.naturalImageUrl}" alt="${escapeHtml(item.commonName)} natural specimen illustration">` : '<span aria-hidden="true">A</span>'}</div>
+      <div class="species-card-image">${!manager && !offline && item.cardPreviewVideoUrl ? `<video class="species-card-video" data-card-video controls muted loop playsinline preload="metadata" poster="${escapeHtml(item.naturalImageUrl || '')}" aria-label="${escapeHtml(item.commonName)} swimming preview"><source src="${escapeHtml(item.cardPreviewVideoUrl)}" type="video/mp4"></video><small class="species-card-video-note">AI-generated swimming preview · awaiting faculty review</small>` : item.naturalImageUrl ? `<img src="${item.naturalImageUrl}" alt="${escapeHtml(item.commonName)} natural specimen illustration">` : '<span aria-hidden="true">A</span>'}</div>
       <div class="species-card-body">
         <div class="species-card-topline"><span class="status-badge ${item.status === 'published' ? 'is-online' : ''}">${status}</span><small>v${escapeHtml(item.version)}</small></div>
         ${item.slug === 'rabbitfish' ? '<span class="status-badge">Development focus · Rabbitfish</span>' : ''}
