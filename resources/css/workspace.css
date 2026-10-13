@@ -578,3 +578,11 @@
  .source-tree-row,.source-tree-chevron { transition:none; }
  .source-tree-row.is-loading .source-tree-icon,.source-tree-row.loading .source-tree-icon,.source-tree-row[aria-busy="true"] .source-tree-icon { animation:none; border-color:#3e60d5; }
 }
+
+.student-orientation-path { margin-bottom: 24px; padding: 24px; border-top: 4px solid var(--color-primary); }
+.student-orientation-path h2 { font-size: 18px; }
+.student-orientation-path ol { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding-left: 24px; }
+.student-orientation-path li { padding: 8px; }
+.student-orientation-path li strong, .student-orientation-path li span { display: block; }
+.student-orientation-path li span { margin-top: 6px; font-size: 14px; color: var(--color-muted-text); }
+@media(max-width: 600px) { .student-orientation-path { padding: 16px; } .student-orientation-path ol { grid-template-columns: 1fr; gap: 8px; } }

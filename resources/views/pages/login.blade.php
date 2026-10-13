@@ -1,7 +1,7 @@
     <section class="portal-page auth-editorial-page auth-page login-concept" data-portal-panel="login">
       <form class="auth-card auth-card--login" id="loginForm">
         <h1>Welcome back</h1>
-        <p class="portal-muted">Sign in to continue your learning journey.</p>
+        <p class="portal-muted">First session: activate your administrator-provided student account, sign in, then choose Start orientation on Home.</p>
         @include('partials.google-access', ['intent' => 'signin'])
         @if(\App\Support\GoogleAccess::ready())<div class="auth-divider"><span>Or use your existing password</span></div>@endif
 

@@ -27,7 +27,7 @@ class TutorialAndProgramHeadTest extends TestCase
     public function test_catalog_is_role_scoped_and_progress_is_private_validated_and_idempotent(): void
     {
         $this->getJson('/api/tutorials')->assertUnauthorized();
-        foreach (['student' => 5, 'instructor' => 5, 'program_head' => 4, 'admin' => 5] as $role => $count) {
+        foreach (['student' => 6, 'instructor' => 5, 'program_head' => 4, 'admin' => 5] as $role => $count) {
             $this->actingAs($this->person($role))->getJson('/api/tutorials')->assertOk()->assertJsonCount($count, 'guides');
             foreach (app(TutorialCatalog::class)->guides($role) as $guide) {
                 $this->assertSame($role, $guide['role']);

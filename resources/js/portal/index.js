@@ -3,7 +3,7 @@ import { setupRosterTables, cardsToTable } from './rosterTables.js';
 import { setupWorkspaceShell, setupWorkspacePage } from './workspace.js';
 import { setupTutorials, startHereCard, setupStaffRoles } from './tutorials.js';
 import { request } from './api.js';
-import { adminDashboard, adminRosterView, classCards, instructorDashboard, managerView, speciesLibrary, studentDashboard } from './dashboards.js';
+import { adminDashboard, adminRosterView, classCards, instructorDashboard, managerView, speciesLibrary, studentDashboard, studentOrientationPath } from './dashboards.js';
 import { escapeHtml, titleCase } from './format.js';
 import { createModuleExperience, promptStudio, safetyWorkspace } from './safetyTools.js';
 import {
@@ -360,7 +360,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
           : user.role === 'program_head'
             ? `<div class="workspace-panel"><h2>Academic oversight</h2><p>${state.classes.length} sections available for review. Content decisions require an independent review; administrators handle publication.</p><div class="package-actions"><button type="button" class="portal-primary" data-portal-page="classes">Review sections</button><button type="button" class="portal-secondary" data-portal-page="reports">View learning reports</button><button type="button" class="portal-secondary" data-portal-page="manager">Review species content</button><button type="button" class="portal-secondary" data-portal-page="safety">Review Safety &amp; Tools</button></div></div>`
             : adminDashboard(state.pendingUsers, state.species, state.classes);
-      elements.dashboardContent.insertAdjacentHTML('afterbegin', startHereCard(bootstrap.tutorials));
+      elements.dashboardContent.insertAdjacentHTML('afterbegin', user.role === 'student' ? studentOrientationPath(bootstrap.tutorials, state.classes) : startHereCard(bootstrap.tutorials));
     }
     if (name === 'library') elements.library.innerHTML = speciesLibrary(state.species);
     if (name === 'safety') {
@@ -436,6 +436,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
 
   function signIn(payload) {
     onLeaveLesson();
+    bootstrap.tutorials = payload.tutorials || { guides: [], progress: [] };
     state.currentUser = payload.user;
     state.latestResult = payload.lessonResult || null;
     state.pendingUsers = payload.pendingUsers || [];

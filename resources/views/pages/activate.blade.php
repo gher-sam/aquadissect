@@ -5,6 +5,7 @@
       </article>
       <form class="registration-card auth-card--registration" id="activationForm">
         <div class="registration-heading"><button class="auth-back-button" type="button" data-portal-page="login"><i data-lucide="arrow-left" aria-hidden="true"></i><span>Back to sign in</span></button><span class="portal-kicker">Student access</span><h1>Activate your account</h1><p>{{ \App\Support\GoogleAccess::ready() ? 'The administrator must provide your account first. Activate with the matching Google email or use a one-time code below.' : 'Use the email and one-time code supplied by the administrator. Codes expire after three days.' }}</p></div>
+        <p class="page-guidance">After activation: open Home → Start orientation → Finish guide. If you have no account or code, ask your administrator; student self-registration is not available.</p>
         <div class="registration-grid">
           <div class="portal-wide">@include('partials.google-access', ['intent' => 'activate', 'label' => 'Activate with Google'])</div>
           @if(\App\Support\GoogleAccess::ready())<p class="portal-muted portal-wide">Google activates an account already supplied by the administrator. Prefer a password? Use your one-time code below.</p>@endif

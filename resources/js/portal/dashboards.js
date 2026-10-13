@@ -137,9 +137,16 @@ export function speciesLibrary(packages, options = {}) {
     : '<div class="empty-state"><strong>No rabbitfish lesson is available yet</strong><span>Rabbitfish must be independently reviewed, published and assigned before students can open it.</span></div>';
 }
 
+export function studentOrientationPath(tutorials = {}, classes = []) {
+  const progress = tutorials.progress?.find(item => item.guide_key === 'student-orientation' && Number(item.version) === 1);
+  const viewed = Boolean(progress?.viewed_at);
+  const guideUrl = `${window.AQUADISSECT_ROUTES.about}?guide=student-orientation`;
+  return `<section class="workspace-panel student-orientation-path" id="studentOrientationPath" aria-labelledby="studentOrientationTitle"><span class="portal-kicker">First session · Start here</span><h2 id="studentOrientationTitle">Activate your account, then complete orientation</h2><p>You are signed in. Follow this short path before opening laboratory lessons.</p><ol><li><strong>Account activated</strong><span>You have reached your student workspace.</span></li><li><strong>${classes.length ? 'Check your class section' : 'Section needs checking'}</strong><span>${classes.length ? 'Confirm the section and semester in Class sections.' : 'Ask your administrator to verify enrollment. You can complete orientation now.'}</span></li><li><strong>${viewed ? 'Orientation guide viewed' : progress ? 'Continue orientation' : 'Complete the orientation guide'}</strong><span>Five short steps explain navigation, content availability and support.</span></li><li><strong>Wait for your instructor’s next activity</strong><span>Orientation does not unlock unpublished lessons or complete the safety prerequisite.</span></li></ol><div class="package-actions"><a class="portal-primary button-link" href="${escapeHtml(guideUrl)}">${viewed ? 'Review orientation' : progress ? 'Continue orientation' : 'Start orientation'}</a><button class="portal-secondary" type="button" data-portal-page="classes">Check my section</button></div><p class="portal-muted">Saved status: ${viewed ? 'Orientation guide viewed' : progress ? 'In progress' : 'Not started'}. Guide viewing is separate from academic work and research participation.</p></section>`;
+}
+
 export function studentDashboard(packages) {
   const flagship = packages[0];
-  if (!flagship) return '<div class="empty-state"><strong>No assigned rabbitfish lesson yet</strong><span>Your instructor can assign a published species package to your class.</span></div>';
+  if (!flagship) return '<div class="empty-state"><strong>No laboratory lesson assigned yet</strong><span>You can complete orientation above now. Your instructor will announce later approved, assigned laboratory activities.</span></div>';
   return `${motionFeature(flagship)}<div class="dashboard-layout"><div class="species-library-grid">${packageCard(flagship)}</div><aside class="status-card"><span class="portal-kicker">My learning</span><h2>Learning progress</h2><dl><div><dt>Assigned species</dt><dd>${packages.length}</dd></div><div><dt>Lesson version</dt><dd>${escapeHtml(flagship.version)}</dd></div><div><dt>Lesson status</dt><dd>${escapeHtml(flagship.updateStatus || 'Ready')}</dd></div><div><dt>Offline access</dt><dd>Ready to download</dd></div></dl><button class="portal-secondary" data-portal-page="downloads" type="button">Open offline access</button></aside></div>`;
 }
 
