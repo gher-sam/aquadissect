@@ -1,5 +1,6 @@
 import { escapeHtml, titleCase } from './format.js';
 import { rosterTable } from './rosterTables.js';
+import { staffLessonVersions } from './speciesFocus.js';
 
 function formatBytes(bytes = 0) {
   if (bytes < 1024) return `${bytes} B`;
@@ -45,7 +46,7 @@ function speciesReviewForm(item, currentUser) {
   </form>`;
 }
 
-function packageCard(item, { manager = false, offline = false, isAdmin = false, currentUser = null } = {}) {
+function packageCard(item, { manager = false, offline = false, isAdmin = false, currentUser = null, versionCount = 0 } = {}) {
   const status = item.status === 'published' ? 'Published' : item.status === 'review' ? 'In review' : titleCase(item.status);
   const score = item.progress ? `${item.progress.score} / ${item.progress.total}` : 'Not started';
   const canOpen = (item.status === 'published' || manager) && !item.locked;
@@ -80,6 +81,7 @@ function packageCard(item, { manager = false, offline = false, isAdmin = false, 
         ${item.locked ? `<div class="prerequisite-notice"><i data-lucide="lock-keyhole" aria-hidden="true"></i><span>${escapeHtml(item.lockReason || 'Complete Safety & Tools before opening this lesson.')}</span><button type="button" data-portal-page="safety">Open prerequisite</button></div>` : ''}
         <div class="package-score"><span>Progress</span><strong>${score}</strong></div>
         <div class="package-actions">${mainAction}${offlineAction}</div>
+        ${versionCount > 1 ? `<div class="package-actions"><button class="portal-secondary" type="button" data-portal-page="manager">Version history (${versionCount})</button><small>Other versions remain in Species content.</small></div>` : ''}
         ${managerActions}
       </div>
     </article>`;
@@ -132,8 +134,9 @@ function motionFeature(item) {
 }
 
 export function speciesLibrary(packages, options = {}) {
-  return packages.length
-    ? packages.map((item) => packageCard(item, options)).join('')
+  const visible = options.singleSpecies && !options.manager ? staffLessonVersions(packages) : packages;
+  return visible.length
+    ? visible.map((item) => packageCard(item, { ...options, versionCount: options.singleSpecies && !options.manager ? packages.filter(version => version.slug === item.slug).length : 0 })).join('')
     : '<div class="empty-state"><strong>No rabbitfish lesson is available yet</strong><span>Rabbitfish must be independently reviewed, published and assigned before students can open it.</span></div>';
 }
 

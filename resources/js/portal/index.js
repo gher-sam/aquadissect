@@ -362,7 +362,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
             : adminDashboard(state.pendingUsers, state.species, state.classes);
       elements.dashboardContent.insertAdjacentHTML('afterbegin', user.role === 'student' ? studentOrientationPath(bootstrap.tutorials, state.classes) : startHereCard(bootstrap.tutorials));
     }
-    if (name === 'library') elements.library.innerHTML = speciesLibrary(state.species);
+    if (name === 'library') elements.library.innerHTML = speciesLibrary(state.species, { singleSpecies: state.currentUser?.role !== 'student' });
     if (name === 'safety') {
       elements.safety.hidden = false;
       elements.safetyExperience.hidden = true;
