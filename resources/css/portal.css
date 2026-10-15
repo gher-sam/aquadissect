@@ -3231,6 +3231,26 @@ form[aria-busy='true'] button[type='submit'] {
   .safety-experience .module-step-actions button { flex: 1; }
 }
 .safety-experience .module-step-intro { margin: 16px 0 0; color: #526783; font-size: 13px; line-height: 1.55; }
+.module-tool-select { display: none; }
+.safety-experience :is(.module-learning-layout, .module-step-copy, .module-tool-picker, .module-activity, fieldset) { min-width: 0; }
+.safety-experience :is(button, select) { min-height: 44px; }
+@media (max-width: 620px) {
+  .safety-experience .module-hotspots { display: none; }
+  .safety-experience .module-tool-select { display: grid; margin-top: 8px; }
+  .safety-experience .portal-field select { width: 100%; min-width: 0; font-size: 16px; }
+  .safety-experience__header h2 { font-size: 23px; overflow-wrap: anywhere; }
+  .safety-experience .module-scene { height: clamp(200px, 62vw, 280px); padding: 12px; }
+  .safety-experience .module-tool-image { height: 100%; max-height: 256px; }
+  .safety-experience .module-step-copy { font-size: 15px; line-height: 1.6; }
+  .safety-experience .handling-callout h2 { font-size: 23px; overflow-wrap: anywhere; }
+  .safety-experience .module-viewer-controls { flex-wrap: wrap; }
+  .safety-experience .module-step-actions button { min-width: 0; white-space: normal; padding: 12px 8px; }
+  .safety-experience .module-activity fieldset { padding: 12px; }
+  .safety-experience .module-activity legend { max-width: 100%; overflow-wrap: anywhere; }
+  .safety-experience .module-activity label { align-items: flex-start; }
+  .safety-experience .module-activity input[type="radio"] { flex: 0 0 auto; margin-top: 5px; }
+  .safety-experience .module-activity button[type="submit"] { width: 100%; white-space: normal; }
+}
 @media (prefers-color-scheme: dark) {
   .safety-experience .module-step-intro { color: #bdcde3; }
 }

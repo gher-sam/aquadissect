@@ -175,7 +175,7 @@ export function createModuleExperience(container, manifest, record, callbacks = 
     <div class="module-step-progress" aria-label="Required module steps">${steps.map((step, stepIndex) => `<button type="button" data-module-step="${stepIndex}" aria-label="Open step ${stepIndex + 1}: ${escapeHtml(step.title)}" class="${completed.has(step.id) ? 'is-complete' : ''}"><span>${stepIndex + 1}</span><small>${escapeHtml(step.title)}</small></button>`).join('')}</div>
     <label class="portal-field module-step-select">Go to step<select data-module-step-select>${steps.map((step, stepIndex) => `<option value="${stepIndex}">${stepIndex + 1}. ${escapeHtml(step.title)}</option>`).join('')}</select></label>
     <p class="module-step-intro" data-module-step-intro></p>
-    <div class="module-tool-picker"><span class="portal-kicker" data-module-picker-label>Choose an item</span><div class="module-hotspots" data-module-hotspots></div></div>
+    <div class="module-tool-picker"><span class="portal-kicker" data-module-picker-label>Choose an item</span><label class="portal-field module-tool-select">Laboratory item<select data-module-tool-select></select></label><div class="module-hotspots" data-module-hotspots></div></div>
     <div class="module-learning-layout">
       <figure class="module-25d-viewer ${reducedMotion ? 'is-reduced-motion' : ''}" tabindex="0" aria-label="Laboratory tool illustration. Use the left and right arrow keys to move between steps.">
         <div class="module-scene" data-module-scene>
@@ -212,6 +212,9 @@ export function createModuleExperience(container, manifest, record, callbacks = 
     stepCopy.innerHTML = content.html;
     container.querySelector('[data-module-step-intro]').textContent = step.caption;
     hotspots.innerHTML = content.tools.map((tool) => toolMarkup(tool, tool.key === content.selected?.key)).join('');
+    const toolSelect = container.querySelector('[data-module-tool-select]');
+    toolSelect.innerHTML = content.tools.map((tool) => `<option value="${escapeHtml(tool.key)}">${escapeHtml(tool.name)}</option>`).join('');
+    toolSelect.value = content.selected?.key || '';
     scene.querySelector('.module-scene__tool').innerHTML = content.selected
       ? `<span>${escapeHtml(content.selected.name)}</span><small>Tool reference</small>`
       : '<span>Safety first</span>';
@@ -302,6 +305,11 @@ export function createModuleExperience(container, manifest, record, callbacks = 
   }
 
   container.addEventListener('change', (event) => {
+    if (event.target.matches('[data-module-tool-select]')) {
+      selectedKey = event.target.value;
+      renderStep();
+      return;
+    }
     if (!event.target.matches('[data-module-step-select]')) return;
     index = Number(event.target.value);
     selectedKey = null;
