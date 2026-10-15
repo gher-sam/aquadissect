@@ -130,7 +130,7 @@ export function promptStudio(modules) {
 
 function toolMarkup(tool, active) {
   return `<button class="module-hotspot ${active ? 'is-active' : ''}" type="button" data-module-tool="${escapeHtml(tool.key)}" aria-pressed="${active}">
-    <i data-lucide="${escapeHtml(tool.icon || 'wrench')}" aria-hidden="true"></i><span>${escapeHtml(tool.name)}</span>
+    <span>${escapeHtml(tool.name)}</span>
   </button>`;
 }
 
@@ -140,8 +140,8 @@ function stepContent(step, manifest, selectedKey) {
   return {
     tools,
     selected,
-    html: `<span class="portal-kicker">Required step</span><h2>${escapeHtml(step.title)}</h2><p>${escapeHtml(step.caption)}</p>
-      ${selected ? `<div class="handling-callout"><strong>${escapeHtml(selected.name)}</strong><p>${escapeHtml(selected.purpose)}</p><dl><div><dt>Proper handling</dt><dd>${escapeHtml(selected.handling)}</dd></div><div><dt>Safety precaution</dt><dd>${escapeHtml(selected.safety)}</dd></div><div><dt>Procedure use</dt><dd>${escapeHtml(selected.applicableStep)}</dd></div></dl></div>` : '<div class="handling-callout"><strong>Faculty-directed preparation</strong><p>Review this step before continuing. The current instructor direction and approved local procedure remain authoritative.</p></div>'}`,
+    html: `<span class="portal-kicker">${escapeHtml(step.title)}</span>
+      ${selected ? `<div class="handling-callout"><h2>${escapeHtml(selected.name)}</h2><p>${escapeHtml(selected.purpose)}</p><dl><div><dt>Proper handling</dt><dd>${escapeHtml(selected.handling)}</dd></div><div><dt>Safety precaution</dt><dd>${escapeHtml(selected.safety)}</dd></div><div><dt>Procedure use</dt><dd>${escapeHtml(selected.applicableStep)}</dd></div></dl></div>` : '<div class="handling-callout"><strong>Faculty-directed preparation</strong><p>Review this step before continuing. The current instructor direction and approved local procedure remain authoritative.</p></div>'}`,
   };
 }
 
@@ -167,26 +167,28 @@ export function createModuleExperience(container, manifest, record, callbacks = 
   let selectedKey = steps[index]?.toolKeys?.[0] || null;
 
   container.innerHTML = `<section class="safety-experience" tabindex="-1">
-    <header class="safety-experience__header"><button class="portal-secondary" type="button" data-close-learning-module><i data-lucide="arrow-left" aria-hidden="true"></i> Back to Safety &amp; Tools</button><div><span class="portal-kicker">${escapeHtml(manifest.module?.category || 'Pre-laboratory')} · v${escapeHtml(manifest.moduleVersion)}</span><h2 data-module-title tabindex="-1">${escapeHtml(manifest.module?.title || record.title)}</h2><p>${escapeHtml(manifest.statusNotice || '')}</p></div></header>
+    <header class="safety-experience__header"><button class="portal-secondary" type="button" data-close-learning-module>← Back to Safety &amp; Tools</button><div><span class="portal-kicker">${escapeHtml(manifest.module?.category || 'Pre-laboratory')} · v${escapeHtml(manifest.moduleVersion)}</span><h2 data-module-title tabindex="-1">${escapeHtml(manifest.module?.title || record.title)}</h2><p>${escapeHtml(manifest.statusNotice || '')}</p></div></header>
     <section class="module-step-summary" data-module-step-summary aria-label="Module progress and current step" aria-live="polite" aria-atomic="true">
       <div class="module-step-summary__progress"><span data-module-step-position></span><strong data-module-progress-percent></strong></div>
       <div class="module-step-summary__titles"><p><span>Current step</span><strong data-module-current-title></strong></p><p data-module-next-step><span>Next step</span><strong data-module-next-title></strong></p></div>
     </section>
     <div class="module-step-progress" aria-label="Required module steps">${steps.map((step, stepIndex) => `<button type="button" data-module-step="${stepIndex}" aria-label="Open step ${stepIndex + 1}: ${escapeHtml(step.title)}" class="${completed.has(step.id) ? 'is-complete' : ''}"><span>${stepIndex + 1}</span><small>${escapeHtml(step.title)}</small></button>`).join('')}</div>
+    <label class="portal-field module-step-select">Go to step<select data-module-step-select>${steps.map((step, stepIndex) => `<option value="${stepIndex}">${stepIndex + 1}. ${escapeHtml(step.title)}</option>`).join('')}</select></label>
+    <p class="module-step-intro" data-module-step-intro></p>
+    <div class="module-tool-picker"><span class="portal-kicker" data-module-picker-label>Choose an item</span><div class="module-hotspots" data-module-hotspots></div></div>
     <div class="module-learning-layout">
-      <figure class="module-25d-viewer ${reducedMotion ? 'is-reduced-motion' : ''}" tabindex="0" aria-label="Interactive 2.5D laboratory tool viewer. Use the left and right arrow keys to move between steps.">
+      <figure class="module-25d-viewer ${reducedMotion ? 'is-reduced-motion' : ''}" tabindex="0" aria-label="Laboratory tool illustration. Use the left and right arrow keys to move between steps.">
         <div class="module-scene" data-module-scene>
           <span class="module-scene__plane module-scene__plane--back" data-depth="1"></span>
           <span class="module-scene__tray" data-depth="2"></span>
           <div class="module-scene__tool" data-depth="4"></div>
           <span class="module-scene__highlight" data-depth="5"></span>
         </div>
-        <div class="module-viewer-controls"><button type="button" data-module-play aria-label="Play motion" ${reducedMotion ? 'disabled' : ''}><i data-lucide="play"></i></button><button type="button" data-module-pause aria-label="Pause motion"><i data-lucide="pause"></i></button><button type="button" data-module-replay aria-label="Replay motion" ${reducedMotion ? 'disabled' : ''}><i data-lucide="rotate-ccw"></i></button><span data-module-motion-status aria-live="polite">${reducedMotion ? 'Reduced motion enabled' : 'Motion paused'}</span></div>
+        <div class="module-viewer-controls"><button type="button" data-module-motion aria-pressed="false" ${reducedMotion ? 'disabled' : ''}>Animate image</button><span data-module-motion-status aria-live="polite">${reducedMotion ? 'Reduced motion enabled' : 'Still image'}</span></div>
         <figcaption data-module-caption></figcaption>
       </figure>
       <article class="module-step-copy" data-module-step-copy></article>
     </div>
-    <div class="module-hotspots" data-module-hotspots></div>
     <div class="module-step-actions"><button class="portal-secondary" type="button" data-module-previous>Previous</button><button class="portal-primary" type="button" data-module-complete-step>Done — continue</button></div>
     <div data-module-activity-slot></div>
   </section>`;
@@ -208,10 +210,11 @@ export function createModuleExperience(container, manifest, record, callbacks = 
     selectedKey = step.toolKeys?.includes(selectedKey) ? selectedKey : step.toolKeys?.[0] || null;
     const content = stepContent(step, manifest, selectedKey);
     stepCopy.innerHTML = content.html;
+    container.querySelector('[data-module-step-intro]').textContent = step.caption;
     hotspots.innerHTML = content.tools.map((tool) => toolMarkup(tool, tool.key === content.selected?.key)).join('');
     scene.querySelector('.module-scene__tool').innerHTML = content.selected
-      ? `<i data-lucide="${escapeHtml(content.selected.icon || 'wrench')}" aria-hidden="true"></i><span>${escapeHtml(content.selected.name)}</span>`
-      : '<i data-lucide="shield-check" aria-hidden="true"></i><span>Safety first</span>';
+      ? `<span>${escapeHtml(content.selected.name)}</span><small>Tool reference</small>`
+      : '<span>Safety first</span>';
     const illustration = manifest.assetRecords?.[content.selected?.imageAssetKey];
     const iconFallback = scene.querySelector('.module-scene__tool').innerHTML;
     viewer.classList.toggle('has-tool-image', Boolean(illustration?.url));
@@ -226,7 +229,6 @@ export function createModuleExperience(container, manifest, record, callbacks = 
         if (!image.isConnected) return;
         scene.querySelector('.module-scene__tool').innerHTML = iconFallback;
         viewer.classList.remove('has-tool-image');
-        window.lucide?.createIcons();
       }, { once: true });
       image.src = illustration.url;
       const toolNode = scene.querySelector('.module-scene__tool');
@@ -236,28 +238,34 @@ export function createModuleExperience(container, manifest, record, callbacks = 
       toolNode.append(label);
     }
     container.querySelector('[data-module-caption]').textContent = content.selected
-      ? `${content.selected.name}: ${content.selected.purpose}`
+      ? content.selected.name
       : step.caption;
     container.querySelector('[data-module-previous]').disabled = index === 0;
     const completedCount = steps.filter((requiredStep) => completed.has(requiredStep.id)).length;
     const percentComplete = steps.length ? Math.round((completedCount / steps.length) * 100) : 0;
     const nextStep = steps[index + 1] || null;
     container.querySelector('[data-module-step-position]').textContent = `Step ${index + 1} of ${steps.length}`;
-    container.querySelector('[data-module-progress-percent]').textContent = `${percentComplete}% complete`;
+    container.querySelector('[data-module-progress-percent]').textContent = callbacks.onProgress ? `${percentComplete}% complete` : 'Staff preview';
     container.querySelector('[data-module-current-title]').textContent = step.title;
     const nextStepSummary = container.querySelector('[data-module-next-step]');
     nextStepSummary.hidden = false;
     container.querySelector('[data-module-next-title]').textContent = nextStep?.title || 'Module completion';
     const completionButton = container.querySelector('[data-module-complete-step]');
     completionButton.textContent = completed.has(step.id) ? (index === steps.length - 1 ? 'Step viewed' : 'Continue') : 'Done — continue';
+    if (!callbacks.onProgress) completionButton.textContent = index < steps.length - 1 ? 'Next step' : 'Preview finished';
     completionButton.disabled = step.id === 'tool-selection';
     activitySlot.innerHTML = step.id === 'tool-selection' ? activityMarkup(manifest.activity || {}) : '';
+    if (!callbacks.onProgress && activitySlot.querySelector('button[type="submit"]')) activitySlot.querySelector('button[type="submit"]').textContent = 'Preview activity';
     container.querySelectorAll('[data-module-step]').forEach((button, stepIndex) => {
       button.classList.toggle('is-current', stepIndex === index);
       button.classList.toggle('is-complete', completed.has(steps[stepIndex].id));
       if (stepIndex === index) button.setAttribute('aria-current', 'step'); else button.removeAttribute('aria-current');
     });
-    window.lucide?.createIcons();
+    container.querySelector('[data-module-step-select]').value = String(index);
+    container.querySelector('.module-tool-picker').hidden = content.tools.length === 0;
+    container.querySelector('[data-module-picker-label]').textContent = `Choose an item · ${content.tools.length} available`;
+    container.querySelector('.module-learning-layout').hidden = step.id === 'tool-selection';
+    completionButton.hidden = step.id === 'tool-selection';
 
     const requestedToolKey = focusTarget
       ? (focusTarget.type === 'tool' ? focusTarget.key : null)
@@ -284,6 +292,22 @@ export function createModuleExperience(container, manifest, record, callbacks = 
     return result;
   }
 
+  function toggleMotion() {
+    const playing = !viewer.classList.contains('is-playing');
+    viewer.classList.toggle('is-playing', playing);
+    const button = container.querySelector('[data-module-motion]');
+    button.textContent = playing ? 'Pause animation' : 'Animate image';
+    button.setAttribute('aria-pressed', String(playing));
+    motionStatus.textContent = playing ? 'Animation playing' : 'Still image';
+  }
+
+  container.addEventListener('change', (event) => {
+    if (!event.target.matches('[data-module-step-select]')) return;
+    index = Number(event.target.value);
+    selectedKey = null;
+    renderStep();
+  }, { signal });
+
   container.addEventListener('click', async (event) => {
     if (event.target.closest('[data-close-learning-module]')) {
       eventController.abort();
@@ -295,19 +319,7 @@ export function createModuleExperience(container, manifest, record, callbacks = 
     const toolButton = event.target.closest('[data-module-tool]');
     if (toolButton) { selectedKey = toolButton.dataset.moduleTool; renderStep({ type: 'tool', key: selectedKey }); return; }
     if (event.target.closest('[data-module-previous]')) { index = Math.max(0, index - 1); selectedKey = null; renderStep(); return; }
-    if (event.target.closest('[data-module-play]') && !reducedMotion) {
-      viewer.classList.add('is-playing');
-      motionStatus.textContent = 'Motion playing';
-    }
-    if (event.target.closest('[data-module-pause]')) {
-      viewer.classList.remove('is-playing');
-      motionStatus.textContent = reducedMotion ? 'Reduced motion enabled' : 'Motion paused';
-    }
-    if (event.target.closest('[data-module-replay]') && !reducedMotion) {
-      viewer.classList.remove('is-playing');
-      requestAnimationFrame(() => viewer.classList.add('is-playing'));
-      motionStatus.textContent = 'Motion replaying';
-    }
+    if (event.target.closest('[data-module-motion]') && !reducedMotion) toggleMotion();
     if (event.target.closest('[data-module-complete-step]')) {
       const step = steps[index];
       completed.add(step.id);
@@ -345,10 +357,10 @@ export function createModuleExperience(container, manifest, record, callbacks = 
       const score = result?.attempt;
       const currentResult = activitySlot.querySelector('.module-activity-result');
       if (currentResult) {
-        currentResult.textContent = score ? `Score retained: ${score.score} of ${score.total}. Module complete.` : 'Activity saved. Module complete.';
+        currentResult.textContent = score ? `Score retained: ${score.score} of ${score.total}. Module complete.` : callbacks.onProgress ? 'Activity saved. Module complete.' : 'Preview only. No learner result was saved.';
         currentResult.focus({ preventScroll: true });
       }
-      callbacks.onComplete?.(result);
+      if (callbacks.onProgress) callbacks.onComplete?.(result);
     } catch (error) {
       if (signal.aborted) return;
       completed.delete('tool-selection');
@@ -369,9 +381,7 @@ export function createModuleExperience(container, manifest, record, callbacks = 
     if (event.key === 'ArrowLeft' && index > 0) { event.preventDefault(); index -= 1; selectedKey = null; renderStep(); }
     if (event.key === ' ' && !reducedMotion) {
       event.preventDefault();
-      const playing = !viewer.classList.contains('is-playing');
-      viewer.classList.toggle('is-playing', playing);
-      motionStatus.textContent = playing ? 'Motion playing' : 'Motion paused';
+      toggleMotion();
     }
   }, { signal });
   if (!reducedMotion) {

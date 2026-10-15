@@ -3173,3 +3173,64 @@ form[aria-busy='true'] button[type='submit'] {
 .fish-angle-picker select { flex:1; min-width:0; min-height:44px; border:1px solid #b9cce3; border-radius:8px; padding:8px; background:var(--color-surface); color:var(--color-foreground); font:inherit; }
 .fish-carousel:focus-visible, .fish-carousel button:focus-visible, .fish-carousel select:focus-visible { outline:3px solid #2563eb; outline-offset:3px; }
 @media(max-width:640px) { .fish-carousel-stage, .portal-page .fish-carousel-stage video { height:230px; } .fish-carousel-stage canvas { max-height:230px; } }
+
+/* Safety preparation: keep item choices beside the current learning context. */
+.safety-experience__header { grid-template-columns: 1fr; gap: 14px; }
+.safety-experience__header > button { justify-self: start; }
+.safety-experience__header h2 { font-size: clamp(23px, 2.5vw, 30px); }
+.safety-experience__header p { max-width: 85ch; margin: 8px 0 0; font-size: 13px; line-height: 1.55; }
+.safety-experience .module-step-summary { margin-top: 18px; padding: 12px 16px; }
+.safety-experience .module-step-summary__progress strong { font-size: 15px; }
+.safety-experience .module-step-progress { margin: 16px 0; }
+.module-step-select { display: none; }
+.module-tool-picker { margin: 18px 0; }
+.safety-experience .module-hotspots { margin: 8px 0 0; gap: 8px; }
+.safety-experience .module-hotspot { min-height: 42px; border-radius: 8px; padding: 9px 12px; font-size: 13px; }
+.safety-experience .module-hotspot.is-active { border-color: #0140c1; background: #eaf2ff; color: #003390; box-shadow: inset 0 -2px #0140c1; }
+.safety-experience .module-learning-layout { grid-template-columns: minmax(240px, .85fr) minmax(0, 1.15fr); align-items: start; gap: 20px; }
+.safety-experience .module-25d-viewer { min-height: 0; border: 1px solid #ccd9e8; border-radius: 14px; background: #edf3fa; color: #183b62; }
+.safety-experience .module-scene { min-height: 0; height: 290px; padding: 20px; perspective: none; }
+.safety-experience .module-scene__plane,
+.safety-experience .module-scene__tray,
+.safety-experience .module-scene__highlight { display: none; }
+.safety-experience .module-scene__tool { position: relative; width: 100%; height: 100%; transform: translate(var(--parallax-x), var(--parallax-y)); text-shadow: none; color: inherit; }
+.safety-experience .module-tool-image { width: 100%; height: 250px; object-fit: contain; filter: drop-shadow(0 8px 8px rgb(27 55 84 / 12%)); }
+.safety-experience .has-tool-image .module-scene__tool > span { display: none; }
+.safety-experience .module-viewer-controls { align-items: center; justify-content: center; padding: 8px 12px; gap: 10px; }
+.safety-experience .module-viewer-controls button { width: auto; height: auto; min-height: 40px; padding: 8px 12px; border-radius: 8px; border: 1px solid #b6c9df; color: #183b62; background: white; font-size: 12px; font-weight: 700; }
+.safety-experience .module-viewer-controls span { color: #526783; font-size: 11px; }
+.safety-experience .module-25d-viewer figcaption { min-height: 0; padding: 4px 16px 14px; text-align: center; color: #34506e; font-size: 12px; }
+.safety-experience .module-step-copy { padding: 20px; border-radius: 14px; }
+.safety-experience .handling-callout { margin-top: 8px; }
+.safety-experience .handling-callout h2 { margin: 0 0 8px; font-size: 25px; line-height: 1.2; }
+.safety-experience .handling-callout > p { margin: 0 0 16px; line-height: 1.6; }
+.safety-experience .handling-callout dl > div { padding: 10px 12px; }
+.safety-experience .module-step-actions { margin-top: 20px; gap: 12px; }
+.safety-experience [hidden] { display: none !important; }
+.safety-experience button:focus-visible,
+.safety-experience select:focus-visible { outline: 3px solid #5289e2; outline-offset: 3px; }
+@media (max-width: 900px) {
+  .safety-experience .module-learning-layout { grid-template-columns: 1fr; }
+  .safety-experience .module-scene { height: 250px; }
+  .safety-experience .module-tool-image { height: 210px; }
+  .safety-experience .module-step-progress { display: none; }
+  .safety-experience .module-step-select { display: grid; margin: 14px 0; }
+  .safety-experience .module-step-select select { width: 100%; min-width: 0; }
+  .safety-experience .module-step-summary__titles { grid-template-columns: 1fr; }
+  .safety-experience .module-step-summary__titles > p:last-child { display: none; }
+}
+@media (max-width: 620px) {
+  .safety-experience { padding: 16px; }
+  .safety-experience .module-step-summary { grid-template-columns: 1fr; gap: 8px; }
+  .safety-experience .module-step-summary__progress { display: flex; justify-content: space-between; }
+  .safety-experience .module-step-summary__titles { display: none; }
+  .safety-experience .module-hotspots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .safety-experience .module-hotspot { text-align: left; justify-content: start; }
+  .safety-experience .module-step-copy { padding: 16px; }
+  .safety-experience .module-step-actions { display: flex; }
+  .safety-experience .module-step-actions button { flex: 1; }
+}
+.safety-experience .module-step-intro { margin: 16px 0 0; color: #526783; font-size: 13px; line-height: 1.55; }
+@media (prefers-color-scheme: dark) {
+  .safety-experience .module-step-intro { color: #bdcde3; }
+}
