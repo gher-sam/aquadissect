@@ -51,7 +51,7 @@ class AutomaticDatabaseSetup
             if ($tilapiaVideoPackageMissing || $rabbitfishPackageMissing) {
                 app(SpeciesCatalogSeeder::class)->run();
             }
-            if (! LearningModuleVersion::query()->where('version', '0.1.0')
+            if (! LearningModuleVersion::query()->where('version', '0.2.0')
                 ->whereHas('module', fn ($query) => $query->where('slug', 'lab-safety-tools'))->exists()) {
                 app(LearningModuleSeeder::class)->run();
             }

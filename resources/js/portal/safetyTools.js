@@ -85,7 +85,7 @@ function staffCard(module, role, currentUser) {
       ${role === 'admin' && module.status === 'review' && module.approvalCurrent ? `<button class="portal-primary" type="button" data-publish-learning-module="${module.id}">Publish approved version</button>` : ''}
       ${role === 'admin' && module.status === 'published' ? `<button class="portal-secondary" type="button" data-archive-learning-module="${module.id}">Archive version</button>` : ''}
     </div>
-    <details class="module-tool-audit"><summary>View all 15 tool checks</summary><ul>${module.tools.map((tool) => `<li><span>${escapeHtml(tool.name)}</span><small>${escapeHtml(titleCase(tool.validationStatus.replaceAll('_', ' ')))}</small></li>`).join('')}</ul></details>
+    <details class="module-tool-audit"><summary>View all ${module.toolCount} tool checks</summary><ul>${module.tools.map((tool) => `<li><span>${escapeHtml(tool.name)}</span><small>${escapeHtml(titleCase(tool.validationStatus.replaceAll('_', ' ')))}</small></li>`).join('')}</ul></details>
     ${reviewForm(module, currentUser)}
     ${role !== 'program_head' ? assetForm(module) : ''}
   </article>`;
@@ -212,6 +212,29 @@ export function createModuleExperience(container, manifest, record, callbacks = 
     scene.querySelector('.module-scene__tool').innerHTML = content.selected
       ? `<i data-lucide="${escapeHtml(content.selected.icon || 'wrench')}" aria-hidden="true"></i><span>${escapeHtml(content.selected.name)}</span>`
       : '<i data-lucide="shield-check" aria-hidden="true"></i><span>Safety first</span>';
+    const illustration = manifest.assetRecords?.[content.selected?.imageAssetKey];
+    const iconFallback = scene.querySelector('.module-scene__tool').innerHTML;
+    viewer.classList.toggle('has-tool-image', Boolean(illustration?.url));
+    if (illustration?.url && illustration.mimeType === 'image/webp') {
+      const image = document.createElement('img');
+      image.className = 'module-tool-image';
+      image.alt = content.selected.name;
+      image.width = 1254;
+      image.height = 1254;
+      image.decoding = 'async';
+      image.addEventListener('error', () => {
+        if (!image.isConnected) return;
+        scene.querySelector('.module-scene__tool').innerHTML = iconFallback;
+        viewer.classList.remove('has-tool-image');
+        window.lucide?.createIcons();
+      }, { once: true });
+      image.src = illustration.url;
+      const toolNode = scene.querySelector('.module-scene__tool');
+      toolNode.replaceChildren(image);
+      const label = document.createElement('span');
+      label.textContent = content.selected.name;
+      toolNode.append(label);
+    }
     container.querySelector('[data-module-caption]').textContent = content.selected
       ? `${content.selected.name}: ${content.selected.purpose}`
       : step.caption;

@@ -36,6 +36,7 @@ class LearningModuleCatalog
             ->when($user->role === User::ROLE_PROGRAM_HEAD, fn ($query) => $query->whereIn('status', ['published', 'review']))
             ->orderByRaw("CASE status WHEN 'published' THEN 1 WHEN 'review' THEN 2 WHEN 'draft' THEN 3 ELSE 4 END")
             ->orderByDesc('created_at')
+            ->orderByDesc('id')
             ->get()->map(fn (LearningModuleVersion $version) => $this->staffPayload($version))->all();
     }
 

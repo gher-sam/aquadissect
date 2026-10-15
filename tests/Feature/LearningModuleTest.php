@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Models\ClassEnrollment;
 use App\Models\ClassModuleAssignment;
 use App\Models\LearningClass;
-use App\Models\LearningModuleAsset;
 use App\Models\LearningModuleOverride;
 use App\Models\LearningModuleVersion;
 use App\Models\LessonResult;
@@ -13,6 +12,7 @@ use App\Models\MediaPromptRecord;
 use App\Models\SpeciesPackage;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
+use Database\Seeders\LearningModuleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Str;
@@ -45,7 +45,7 @@ class LearningModuleTest extends TestCase
         $this->actingAs($instructor)->getJson('/api/learning-modules')
             ->assertOk()
             ->assertJsonPath('learningModules.0.status', 'draft')
-            ->assertJsonPath('learningModules.0.toolCount', 15);
+            ->assertJsonPath('learningModules.0.toolCount', 39);
         $response = $this->actingAs($instructor)->getJson("/api/learning-modules/{$version->id}/manifest")
             ->assertOk()
             ->assertJsonCount(15, 'module.tools')
@@ -62,6 +62,30 @@ class LearningModuleTest extends TestCase
             $this->assertNotEmpty($tool['licence']);
             $this->assertSame('awaiting_faculty_validation', $tool['validationStatus']);
         }
+    }
+
+    public function test_illustrated_draft_installs_once_and_keeps_assets_staff_only(): void
+    {
+        $version = LearningModuleVersion::query()->where('version', '0.2.0')->firstOrFail();
+        $this->assertSame('draft', $version->status);
+        $this->assertFalse($version->is_current);
+        $this->assertCount(38, $version->assets);
+        $this->assertSame(0, $version->reviews()->count());
+        $manifest = $this->actingAs($this->instructor())->getJson("/api/learning-modules/{$version->id}/manifest")
+            ->assertOk()->assertJsonCount(39, 'module.tools')->json('module');
+        $usedKeys = collect($manifest['steps'])->flatMap(fn ($step) => $step['toolKeys'])->unique();
+        foreach ($version->assets as $asset) {
+            $this->assertTrue($asset->metadata['aiGenerated']);
+            $this->assertSame('awaiting_faculty_validation', $asset->metadata['reviewStatus']);
+            $this->assertTrue($usedKeys->contains($asset->asset_key));
+            $url = $manifest['assetRecords'][$asset->asset_key]['url'];
+            $this->actingAs($this->instructor())->get($url)->assertOk()->assertHeader('Content-Type', 'image/webp');
+            $this->actingAs($this->student())->get($url)->assertForbidden();
+        }
+        $this->seed(LearningModuleSeeder::class);
+        $this->assertSame(38, $version->assets()->count());
+        $this->assertSame(15, count($this->version()->manifest['tools']));
+        $this->assertSame(2, LearningModuleVersion::query()->count());
     }
 
     public function test_independent_faculty_review_is_required_before_administrator_publication(): void
@@ -198,16 +222,7 @@ class LearningModuleTest extends TestCase
 
         $newStudent = User::factory()->create(['role' => User::ROLE_STUDENT, 'status' => User::STATUS_ACTIVE]);
         ClassEnrollment::query()->create(['class_id' => $class->id, 'user_id' => $newStudent->id, 'status' => 'active']);
-        $manifest = $first->fresh()->manifest;
-        $manifest['moduleVersion'] = '0.2.0';
-        $second = LearningModuleVersion::query()->create([
-            'learning_module_id' => $first->learning_module_id,
-            'version' => '0.2.0',
-            'status' => LearningModuleVersion::STATUS_DRAFT,
-            'manifest' => $manifest,
-            'is_current' => false,
-            'imported_by' => $this->admin()->id,
-        ]);
+        $second = LearningModuleVersion::query()->where('version', '0.2.0')->firstOrFail();
         $this->submitReviewAndPublish($second);
 
         $this->assertSame($second->id, ClassModuleAssignment::query()->where('class_id', $class->id)->value('learning_module_version_id'));
@@ -255,7 +270,7 @@ class LearningModuleTest extends TestCase
         ], ['Accept' => 'application/json'])->assertCreated()
             ->assertJsonPath('asset.mime_type', 'image/webp')
             ->assertJsonPath('asset.metadata.metadataSanitization', 'server-reencoded');
-        $asset = LearningModuleAsset::query()->firstOrFail();
+        $asset = $version->assets()->where('asset_key', 'scalpel-side-view')->firstOrFail();
         $this->assertSame(64, strlen($asset->sha256));
         $this->assertTrue($asset->metadata['aiGenerated']);
 
