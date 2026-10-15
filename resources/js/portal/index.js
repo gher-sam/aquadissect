@@ -405,10 +405,34 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
 
     const activePanel = portal.querySelector(`[data-portal-panel="${name}"]`);
     activePanel?.querySelectorAll('[data-card-video]').forEach((video) => {
-      const fallback = () => { if (video.hidden) return; video.hidden = true; const image = document.createElement('img'); image.src = video.poster; image.alt = 'Rabbitfish specimen illustration'; video.after(image); };
+      const poster = video.poster;
+      const button = video.parentElement.querySelector('[data-card-motion]');
+      const syncButton = () => {
+        if (!button) return;
+        button.textContent = video.paused ? 'Play' : 'Pause';
+        button.setAttribute('aria-label', video.paused ? 'Play fish animation' : 'Pause fish animation');
+      };
+      const fallback = () => {
+        if (video.hidden) return;
+        video.hidden = true;
+        if (button) button.hidden = true;
+        const image = document.createElement('img');
+        image.src = poster;
+        image.alt = 'Rabbitfish specimen illustration';
+        video.after(image);
+      };
       video.addEventListener('error', fallback, { once: true });
       video.querySelector('source')?.addEventListener('error', fallback, { once: true });
-      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) video.play().catch(() => {});
+      video.addEventListener('loadeddata', () => video.removeAttribute('poster'), { once: true });
+      video.addEventListener('play', syncButton);
+      video.addEventListener('pause', syncButton);
+      button?.addEventListener('click', () => {
+        if (video.paused) video.play().catch(syncButton);
+        else video.pause();
+      });
+      const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+      motion.addEventListener('change', () => { if (motion.matches) video.pause(); });
+      if (!motion.matches) video.play().catch(syncButton);
     });
     import('../portalMotion.js')
       .then(({ revealPortalPage }) => revealPortalPage(activePanel))

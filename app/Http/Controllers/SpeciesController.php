@@ -48,8 +48,10 @@ class SpeciesController extends Controller
         abort_unless($package->species->slug === 'rabbitfish' && $package->version === '1.1.0', 404);
         $content->authorize($request->user(), $package, $request->integer('classId') ?: null);
 
-        return response()->file(resource_path('media/rabbitfish-card-loop.mp4'), [
-            'Content-Type' => 'video/mp4',
+        $cutout = $request->query('format') === 'cutout';
+
+        return response()->file(resource_path($cutout ? 'media/rabbitfish-card-cutout.webm' : 'media/rabbitfish-card-loop.mp4'), [
+            'Content-Type' => $cutout ? 'video/webm' : 'video/mp4',
             'Cache-Control' => 'private, no-store',
             'X-Content-Type-Options' => 'nosniff',
         ]);

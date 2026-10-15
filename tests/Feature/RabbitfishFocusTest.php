@@ -67,6 +67,8 @@ class RabbitfishFocusTest extends TestCase
         $admin = User::where('role', 'admin')->firstOrFail();
         $this->actingAs($admin)->get($url)->assertOk()->assertHeader('Content-Type', 'video/mp4');
         $this->get($url, ['Range' => 'bytes=0-99'])->assertStatus(206);
+        $this->get($url.'?format=cutout')->assertOk()->assertHeader('Content-Type', 'video/webm');
+        $this->get($url.'?format=cutout', ['Range' => 'bytes=0-99'])->assertStatus(206);
         $this->assertSame('review', $package->fresh()->status);
         $package->update(['status' => 'published']);
         $this->actingAs($student)->getJson($url)->assertForbidden();

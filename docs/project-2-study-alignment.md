@@ -297,3 +297,7 @@ October 13: Staff Species lessons now shows one card per species, preferring the
 ## October 14, 2026: Rabbitfish lesson-card video
 
 The Rabbitfish lesson card uses an AI-generated looping preview in place of the illustration. The preview uses existing package access checks and includes playback controls, reduced-motion support and an image fallback. It does not modify immutable lesson packages, establish scientific accuracy or replace the locally authored lesson reference. Review and publication gates remain unchanged. Status: Implemented but awaiting faculty validation.
+
+## October 15, 2026: Animated cutout presentation
+
+The user selected an animated cutout for the Rabbitfish card. The existing AI-generated swimming preview is processed into a transparent WebM loop at 24 fps, with a small keyboard-accessible Play/Pause button instead of the native video-player toolbar. Reduced-motion autoplay suppression, illustration fallback, AI review label and existing package access checks remain in place. Original video and immutable lesson packages are preserved. Status: Implemented but awaiting faculty validation.
