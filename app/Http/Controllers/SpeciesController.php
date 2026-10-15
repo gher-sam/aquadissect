@@ -49,9 +49,10 @@ class SpeciesController extends Controller
         $content->authorize($request->user(), $package, $request->integer('classId') ?: null);
 
         $cutout = $request->query('format') === 'cutout';
+        $angles = $request->query('format') === 'angles';
 
-        return response()->file(resource_path($cutout ? 'media/rabbitfish-card-cutout.webm' : 'media/rabbitfish-card-loop.mp4'), [
-            'Content-Type' => $cutout ? 'video/webm' : 'video/mp4',
+        return response()->file(resource_path($angles ? 'media/rabbitfish-angle-sheet.jpg' : ($cutout ? 'media/rabbitfish-card-cutout.webm' : 'media/rabbitfish-card-loop.mp4')), [
+            'Content-Type' => $angles ? 'image/jpeg' : ($cutout ? 'video/webm' : 'video/mp4'),
             'Cache-Control' => 'private, no-store',
             'X-Content-Type-Options' => 'nosniff',
         ]);

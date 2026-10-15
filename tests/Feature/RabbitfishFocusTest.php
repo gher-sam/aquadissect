@@ -62,16 +62,20 @@ class RabbitfishFocusTest extends TestCase
         $package = SpeciesPackage::where('version', '1.1.0')->whereHas('species', fn ($query) => $query->where('slug', 'rabbitfish'))->firstOrFail();
         $url = '/api/species-packages/'.$package->id.'/card-preview';
         $this->getJson($url)->assertUnauthorized();
+        $this->getJson($url.'?format=angles')->assertUnauthorized();
         $student = User::where('role', 'student')->firstOrFail();
         $this->actingAs($student)->getJson($url)->assertForbidden();
+        $this->getJson($url.'?format=angles')->assertForbidden();
         $admin = User::where('role', 'admin')->firstOrFail();
         $this->actingAs($admin)->get($url)->assertOk()->assertHeader('Content-Type', 'video/mp4');
         $this->get($url, ['Range' => 'bytes=0-99'])->assertStatus(206);
         $this->get($url.'?format=cutout')->assertOk()->assertHeader('Content-Type', 'video/webm');
         $this->get($url.'?format=cutout', ['Range' => 'bytes=0-99'])->assertStatus(206);
+        $this->get($url.'?format=angles')->assertOk()->assertHeader('Content-Type', 'image/jpeg');
         $this->assertSame('review', $package->fresh()->status);
         $package->update(['status' => 'published']);
         $this->actingAs($student)->getJson($url)->assertForbidden();
+        $this->getJson($url.'?format=angles')->assertForbidden();
     }
     public function test_retained_catalog_can_be_restored_without_reseeding(): void
     {

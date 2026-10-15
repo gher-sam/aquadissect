@@ -1,3 +1,4 @@
+import { fishCarousel } from './fishAngles.js';
 import { escapeHtml, titleCase } from './format.js';
 import { rosterTable } from './rosterTables.js';
 import { staffLessonVersions } from './speciesFocus.js';
@@ -69,7 +70,7 @@ function packageCard(item, { manager = false, offline = false, isAdmin = false, 
 
   return `
     <article class="species-card" data-package-card="${item.id}">
-      <div class="species-card-image">${!manager && !offline && item.cardPreviewVideoUrl ? `<video class="species-card-video" data-card-video muted loop playsinline preload="metadata" poster="${escapeHtml(item.naturalImageUrl || '')}" aria-label="${escapeHtml(item.commonName)} swimming preview"><source src="${escapeHtml(item.cardPreviewVideoUrl + (item.cardPreviewVideoUrl.includes('?') ? '&' : '?') + 'format=cutout')}" type="video/webm"></video><button type="button" class="species-card-motion" data-card-motion aria-label="Play fish animation">Play</button><small class="species-card-video-note">Swimming preview · awaiting faculty review</small>` : item.naturalImageUrl ? `<img src="${item.naturalImageUrl}" alt="${escapeHtml(item.commonName)} natural specimen illustration">` : '<span aria-hidden="true">A</span>'}</div>
+      <div class="species-card-image">${!manager && !offline && item.cardPreviewVideoUrl ? fishCarousel(item) : item.naturalImageUrl ? `<img src="${item.naturalImageUrl}" alt="${escapeHtml(item.commonName)} natural specimen illustration">` : '<span aria-hidden="true">A</span>'}</div>
       <div class="species-card-body">
         <div class="species-card-topline"><span class="status-badge ${item.status === 'published' ? 'is-online' : ''}">${status}</span><small>v${escapeHtml(item.version)}</small></div>
         ${item.slug === 'rabbitfish' ? '<span class="status-badge">Development focus · Rabbitfish</span>' : ''}

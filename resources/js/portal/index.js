@@ -1,3 +1,4 @@
+import { setupFishCarousels } from './fishAngles.js';
 import { focusedSpecies, focusedClasses } from './speciesFocus.js';
 import { setupRosterTables, cardsToTable } from './rosterTables.js';
 import { setupWorkspaceShell, setupWorkspacePage } from './workspace.js';
@@ -406,7 +407,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
     const activePanel = portal.querySelector(`[data-portal-panel="${name}"]`);
     activePanel?.querySelectorAll('[data-card-video]').forEach((video) => {
       const poster = video.poster;
-      const button = video.parentElement.querySelector('[data-card-motion]');
+      const button = video.closest('.species-card-image').querySelector('[data-card-motion]');
       const syncButton = () => {
         if (!button) return;
         button.textContent = video.paused ? 'Play' : 'Pause';
@@ -418,6 +419,8 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
         if (button) button.hidden = true;
         const image = document.createElement('img');
         image.src = poster;
+        image.dataset.cardFallback = '';
+        image.hidden = video.closest('[data-fish-carousel]')?.querySelector('select')?.value !== '0';
         image.alt = 'Rabbitfish specimen illustration';
         video.after(image);
       };
@@ -434,6 +437,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
       motion.addEventListener('change', () => { if (motion.matches) video.pause(); });
       if (!motion.matches) video.play().catch(syncButton);
     });
+    setupFishCarousels(activePanel);
     import('../portalMotion.js')
       .then(({ revealPortalPage }) => revealPortalPage(activePanel))
       .catch(() => undefined);
