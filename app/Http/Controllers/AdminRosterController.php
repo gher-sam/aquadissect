@@ -9,6 +9,8 @@ use App\Models\RosterEvent;
 use App\Models\User;
 use App\Services\CourseProvisioner;
 use App\Services\DelayedCloneWrite;
+use App\Services\RosterFileReader;
+use App\Services\RosterUploadDrafts;
 use App\Services\StudentRoster;
 use App\Support\ClassPresenter;
 use Illuminate\Http\JsonResponse;
@@ -18,6 +20,47 @@ use Illuminate\Validation\ValidationException;
 
 class AdminRosterController extends Controller
 {
+    public function inspectUpload(Request $request, RosterFileReader $reader, RosterUploadDrafts $drafts): JsonResponse
+    {
+        $input = $request->validate(['roster' => ['required', 'file', 'max:5120']]);
+
+        return response()->json($drafts->create($reader->inspect($input['roster']), $request->user()));
+    }
+
+    public function mapUpload(Request $request, string $draft, RosterUploadDrafts $drafts): JsonResponse
+    {
+        $input = $request->validate([
+            'revision' => ['required', 'integer'], 'sheet' => ['required', 'integer', 'min:0', 'max:19'],
+            'headerRow' => ['required', 'integer', 'min:1', 'max:100'], 'mapping' => ['required', 'array:identityNumber,firstName,lastName,email,program,yearLevel,homeSection'],
+            'mapping.*' => ['nullable', 'integer', 'min:0', 'max:63'],
+        ]);
+
+        return response()->json($drafts->access($draft, $request->user(), fn ($data) => $drafts->map($data, $input)));
+    }
+
+    public function reviewUpload(Request $request, string $draft, RosterUploadDrafts $drafts): JsonResponse
+    {
+        $input = $request->validate([
+            'revision' => ['required', 'integer'], 'selected' => ['required', 'array', 'min:1', 'max:1000'],
+            'selected.*.id' => ['required', 'integer', 'distinct'], 'selected.*.email' => ['present', 'nullable', 'string', 'max:255'],
+            'selected.*.offeringId' => ['required', 'integer'],
+        ]);
+
+        return response()->json($drafts->access($draft, $request->user(), fn ($data) => $drafts->review($data, $input)));
+    }
+
+    public function importUpload(Request $request, string $draft, RosterUploadDrafts $drafts): JsonResponse
+    {
+        $input = $request->validate(['revision' => ['required', 'integer']]);
+
+        return response()->json($drafts->access($draft, $request->user(), fn ($data) => $drafts->commit($data, $input, $request->user())));
+    }
+
+    public function cancelUpload(Request $request, string $draft, RosterUploadDrafts $drafts): JsonResponse
+    {
+        return response()->json($drafts->access($draft, $request->user(), fn ($data) => null));
+    }
+
     public function index(Request $request, ClassPresenter $presenter, CourseProvisioner $courses): JsonResponse
     {
         $course = $courses->ensure();
@@ -187,7 +230,7 @@ class AdminRosterController extends Controller
         ]);
         $class = LearningClass::query()->where('status', 'active')->findOrFail($validated['classId']);
 
-        return response()->json($roster->import($roster->readCsv($validated['roster']), $class, $request->user()));
+        return response()->json($roster->import($roster->readCsv($validated['roster']), $class, $request->user(), 'csv'));
     }
 
     public function issueActivation(Request $request, User $user, StudentRoster $roster, DelayedCloneWrite $writes): JsonResponse

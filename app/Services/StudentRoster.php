@@ -8,6 +8,7 @@ use App\Models\LearningClass;
 use App\Models\RosterEvent;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -55,12 +56,12 @@ class StudentRoster
     /** @param array<int, array<string, mixed>> $rows
      * @return array<int, array<string, mixed>>
      */
-    public function preview(array $rows, LearningClass $class): array
+    public function preview(array $rows, LearningClass $class, bool $lock = false): array
     {
         $seenEmails = [];
         $seenIds = [];
 
-        return collect($rows)->map(function (array $source, int $index) use ($class, &$seenEmails, &$seenIds): array {
+        return collect($rows)->map(function (array $source, int $index) use ($class, $lock, &$seenEmails, &$seenIds): array {
             $row = [
                 'firstName' => trim((string) ($source['firstName'] ?? '')),
                 'lastName' => trim((string) ($source['lastName'] ?? '')),
@@ -85,7 +86,7 @@ class StudentRoster
             } else {
                 $seenEmails[$row['email']] = true;
                 $seenIds[$row['identityNumber']] = true;
-                [$status, $message] = $this->classify($row, $class);
+                [$status, $message] = $this->classify($row, $class, $lock);
             }
 
             return ['row' => $index + 2, ...$row, 'status' => $status, 'message' => $message];
@@ -95,10 +96,15 @@ class StudentRoster
     /** @param array<int, array<string, mixed>> $rows
      * @return array{rows: array<int, array<string, mixed>>, activationCodes: array<int, array<string, string>>}
      */
-    public function import(array $rows, LearningClass $class, User $admin): array
+    public function import(array $rows, LearningClass $class, User $admin, ?string $source = null): array
     {
-        return app(DelayedCloneWrite::class)->transaction(function () use ($rows, $class, $admin): array {
-            $preview = $this->preview($rows, $class);
+        return app(DelayedCloneWrite::class)->transaction(function () use ($rows, $class, $admin, $source): array {
+            DB::table('courses')->where('id', $class->course_id)->lockForUpdate()->first();
+            $class = LearningClass::query()->lockForUpdate()->findOrFail($class->id);
+            if ($class->status !== 'active') {
+                throw ValidationException::withMessages(['roster' => 'The destination section is no longer active.']);
+            }
+            $preview = $this->preview($rows, $class, true);
             if (collect($preview)->contains(fn ($row) => in_array($row['status'], ['invalid', 'conflict'], true))) {
                 throw ValidationException::withMessages(['roster' => 'Resolve the invalid or conflicting rows before import.']);
             }
@@ -139,12 +145,44 @@ class StudentRoster
                     'user_id' => $user->id,
                     'class_id' => $class->id,
                     'action' => $action,
-                    'details' => ['source' => count($rows) === 1 ? 'manual' : 'csv'],
+                    'details' => ['source' => $source ?? (count($rows) === 1 ? 'manual' : 'csv')],
                 ]);
             }
 
             return ['rows' => $preview, 'activationCodes' => $codes];
         });
+    }
+
+    public function previewBatch(array $batch, bool $lock = false): array
+    {
+        $classes = LearningClass::query()->with('course')->whereIn('id', collect($batch)->pluck('offeringId'))->get()->keyBy('id');
+        $seenIds = [];
+        $seenEmails = [];
+        $rows = [];
+        $counts = ['selected' => count($batch), 'new' => 0, 'existing_student' => 0, 'already_enrolled' => 0, 'errors' => 0];
+        $destinations = [];
+        foreach ($batch as $source) {
+            $class = $classes->get($source['offeringId']);
+            if (! $class || $class->status !== 'active' || $class->course?->code !== 'MB-304L') {
+                $row = [...$source, 'status' => 'invalid', 'message' => 'Choose an active MB 304L course section.'];
+            } else {
+                $row = [...$source, ...$this->preview([$source], $class, $lock)[0], 'row' => $source['id']];
+                $id = mb_strtoupper(trim($row['identityNumber']));
+                $email = mb_strtolower(trim($row['email']));
+                if (isset($seenIds[$id]) || isset($seenEmails[$email])) {
+                    $row['status'] = 'conflict';
+                    $row['message'] = 'Select each student only once per batch.';
+                }
+                $seenIds[$id] = $seenEmails[$email] = true;
+                $key = (string) $class->id;
+                $destinations[$key] ??= ['id' => $class->id, 'name' => $class->name, 'academicYear' => $class->academic_year, 'semester' => $class->semester, 'count' => 0];
+                $destinations[$key]['count']++;
+            }
+            $counts[in_array($row['status'], ['invalid', 'conflict']) ? 'errors' : $row['status']]++;
+            $rows[] = $row;
+        }
+
+        return ['rows' => $rows, 'counts' => $counts, 'destinations' => array_values($destinations)];
     }
 
     public function issueActivationCode(User $student, User $admin): string
@@ -170,10 +208,10 @@ class StudentRoster
     /** @param array<string, string> $row
      * @return array{string, string}
      */
-    private function classify(array $row, LearningClass $class): array
+    private function classify(array $row, LearningClass $class, bool $lock = false): array
     {
-        $emailMatch = User::query()->whereRaw('LOWER(email) = ?', [$row['email']])->first();
-        $idMatch = User::query()->whereRaw('UPPER(identity_number) = ?', [$row['identityNumber']])->first();
+        $emailMatch = User::query()->whereRaw('LOWER(email) = ?', [$row['email']])->when($lock, fn ($query) => $query->lockForUpdate())->first();
+        $idMatch = User::query()->whereRaw('UPPER(identity_number) = ?', [$row['identityNumber']])->when($lock, fn ($query) => $query->lockForUpdate())->first();
         if (! $emailMatch && ! $idMatch) {
             return ['new', 'New student account and section enrollment.'];
         }
@@ -184,7 +222,7 @@ class StudentRoster
             || Str::lower(trim($emailMatch->last_name)) !== Str::lower($row['lastName'])) {
             return ['conflict', 'The name differs from the existing account; review manually.'];
         }
-        if ($emailMatch->classEnrollments()->where('class_id', $class->id)->where('status', 'active')->exists()) {
+        if ($emailMatch->classEnrollments()->where('class_id', $class->id)->where('status', 'active')->when($lock, fn ($query) => $query->lockForUpdate())->first()) {
             return ['already_enrolled', 'This student is already enrolled in the section.'];
         }
         $otherSection = $emailMatch->classEnrollments()->where('status', 'active')
@@ -193,7 +231,7 @@ class StudentRoster
                 ->where('academic_year', $class->academic_year)
                 ->where('semester', $class->semester)
                 ->where('id', '!=', $class->id))
-            ->exists();
+            ->when($lock, fn ($query) => $query->lockForUpdate())->first();
         if ($otherSection) {
             return ['conflict', 'The student is enrolled in another section of this course and semester.'];
         }

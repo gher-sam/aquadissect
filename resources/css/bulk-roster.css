@@ -1,0 +1,19 @@
+.bulk-roster { padding: 20px; max-width: 100%; font-size: 14px; }
+.bulk-roster h2 { font-size: 18px; }
+.bulk-roster h3 { font-size: 16px; margin-top: 24px; }
+.bulk-roster p { max-width: 85ch; }
+.bulk-roster [role="alert"] { color: #a32121; }
+.bulk-roster section, .bulk-roster details { margin: 18px 0; }
+.bulk-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 16px 0; }
+.bulk-actions { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; margin: 14px 0; }
+.bulk-actions .portal-field { flex: 1 1 240px; }
+.bulk-table { overflow: auto; max-height: 480px; margin: 14px 0; border: 1px solid #dce3ec; border-radius: 6px; }
+.bulk-table table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+.bulk-table th, .bulk-table td { padding: 10px; border-bottom: 1px solid #e3e9f0; vertical-align: top; }
+.bulk-table thead th { position: sticky; top: 0; background: #f4f7fb; z-index: 1; }
+.bulk-table caption { padding: 10px; text-align: left; }
+.bulk-table small { display: block; font-weight: 400; }
+.bulk-table input:not([type="checkbox"]), .bulk-table select { min-width: 210px; padding: 9px; border: 1px solid #aebdce; border-radius: 5px; background: white; color: #25364a; }
+.bulk-roster .bulk-table input[type="checkbox"] { width: 22px; height: 22px; min-width: 22px; min-height: 22px; max-width: 22px; padding: 0; margin: 10px; }
+.bulk-roster :focus-visible { outline: 3px solid #226cba; outline-offset: 3px; }
+@media (max-width: 600px) { .bulk-roster { padding: 12px; } .bulk-fields { grid-template-columns: 1fr; } .bulk-table input, .bulk-table select { font-size: 16px; } .bulk-actions > button { min-height: 44px; } }

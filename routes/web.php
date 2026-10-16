@@ -99,6 +99,11 @@ Route::prefix('api')->group(function (): void {
             Route::patch('/offerings/{class}/status', [AdminRosterController::class, 'setOfferingStatus']);
             Route::post('/students', [AdminRosterController::class, 'storeStudent']);
             Route::post('/roster/preview', [AdminRosterController::class, 'preview']);
+            Route::post('/roster/uploads', [AdminRosterController::class, 'inspectUpload'])->middleware('throttle:10,1');
+            Route::post('/roster/uploads/{draft}/map', [AdminRosterController::class, 'mapUpload']);
+            Route::post('/roster/uploads/{draft}/review', [AdminRosterController::class, 'reviewUpload']);
+            Route::post('/roster/uploads/{draft}/import', [AdminRosterController::class, 'importUpload']);
+            Route::delete('/roster/uploads/{draft}', [AdminRosterController::class, 'cancelUpload']);
             Route::post('/roster/import', [AdminRosterController::class, 'import']);
             Route::post('/students/{user}/activation', [AdminRosterController::class, 'issueActivation']);
             Route::post('/species-packages/{package}/publish', [AdminSpeciesPackageController::class, 'publish']);

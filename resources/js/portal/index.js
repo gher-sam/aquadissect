@@ -1,3 +1,5 @@
+import { setupBulkRoster } from './bulkRoster.js';
+import '../../css/bulk-roster.css';
 import { setupFishCarousels } from './fishAngles.js';
 import { focusedSpecies, focusedClasses } from './speciesFocus.js';
 import { setupRosterTables, cardsToTable } from './rosterTables.js';
@@ -377,6 +379,10 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
     if (name === 'roster' && elements.roster) {
       elements.roster.innerHTML = adminRosterView(state.adminRoster, state.rosterPreview, state.activationCodes, state.rosterError);
       setupRosterTables(elements.roster);
+      setupBulkRoster(elements.roster, state.adminRoster?.classes || [], state.currentUser?.id, async result => {
+        state.activationCodes = result.activationCodes || [];
+        await refreshRoster();
+      });
     }
     if (name === 'assignments') {
       elements.assignments.innerHTML = assignmentView();
