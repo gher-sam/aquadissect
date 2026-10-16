@@ -24,8 +24,12 @@ eligibility rules or promotion instructions. Second-year and irregular students
 can enroll. Student identity persists across terms. Existing account fields,
 passwords, activation state, historical enrollments and results are retained.
 Conflicting account identities or another active section of the same course/term
-block the batch. Existing active enrollments are skipped. New accounts need valid
-emails; unique existing student numbers can suggest their recorded email for review.
+block the batch. Existing active enrollments are skipped. Email is optional when importing the roster. Blank emails are stored as NULL,
+not invented addresses. New accounts without email remain pending and receive no
+activation token. Existing email-based sign-in and activation still require email.
+Matching student numbers and names may reuse existing student accounts without
+changing their email, credentials or activation state. A supplied email must still
+match the same account. Unique existing IDs can suggest a recorded email for review.
 
 Drafts are encrypted under `storage/app/private/roster-drafts`, bound to the
 uploading administrator and expire after 30 minutes. Draft actions use exclusive
@@ -52,7 +56,7 @@ remain available, along with the single-student form. New administrator endpoint
 - `DELETE /api/admin/roster/uploads/{draft}`: cancel the owning administrator's draft.
 
 Engineering verification uses synthetic records only. Tests cover all six formats,
-Excel XML, worksheet/header mapping, Unicode, text IDs, missing emails, identity
+Excel XML, worksheet/header mapping, Unicode, text IDs, optional and invalid emails, identity
 conflicts, duplicate selections, separate destinations, later-year account reuse,
 selection exclusion, preview/cancellation, administrator ownership/access, expiry,
 stale revisions, changed enrollments/offerings, transaction rollback, repeated
@@ -60,6 +64,7 @@ submission and delayed cloning. Browser checks cover upload, mapping, filtering,
 review and completion with an isolated SQLite database at desktop and 390 px mobile
 widths. These are software checks, not faculty validation or research evaluation.
 
-The supplied masterlist and its 54 identified students are excluded from imports,
-source code and test fixtures. Live verification must stop at synthetic preview
-and cancel the draft; do not import production student records during QA.
+Private masterlists and real student records are excluded from source code and
+test fixtures. Software QA uses synthetic preview and cancellation. Actual
+production roster imports require the administrator's explicit selected-student
+and destination instructions.

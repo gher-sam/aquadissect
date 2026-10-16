@@ -100,7 +100,7 @@ class RosterUploadDrafts
             $row['emailSuggested'] = false;
             if ($row['email'] === '' && $row['identityNumber'] !== '') {
                 $matches = User::query()->whereRaw('UPPER(identity_number) = ?', [mb_strtoupper($row['identityNumber'])])->get();
-                if ($matches->count() === 1 && $matches->first()->role === User::ROLE_STUDENT) {
+                if ($matches->count() === 1 && $matches->first()->role === User::ROLE_STUDENT && $matches->first()->email) {
                     $row['email'] = $matches->first()->email;
                     $row['emailSuggested'] = true;
                 }

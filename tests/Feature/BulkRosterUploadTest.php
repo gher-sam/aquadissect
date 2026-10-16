@@ -110,12 +110,60 @@ class BulkRosterUploadTest extends TestCase
         $this->deleteJson('/api/admin/roster/uploads/'.$draft['draftId'])->assertGone();
     }
 
+    public function test_blank_emails_create_distinct_pending_students_without_activation_tokens_and_repeat_safely(): void
+    {
+        $a = $this->offering();
+        $b = $this->offering(section: 'B');
+        $draft = $this->upload("StudentNo,First Name,Surname,Email\n0001-DEMO,Zoë,試験,\n0002-DEMO,Other,Learner,\n");
+        $mapped = $this->map($draft);
+        $review = $this->review($draft, $mapped, [['id' => 2, 'email' => '', 'offeringId' => $a->id], ['id' => 3, 'email' => null, 'offeringId' => $b->id]]);
+        $this->assertSame(0, $review['counts']['errors']);
+        $this->assertSame(2, $review['counts']['new']);
+        $this->postJson('/api/admin/roster/uploads/'.$draft['draftId'].'/import', ['revision' => $review['revision']])
+            ->assertOk()->assertJsonPath('counts.new', 2)->assertJsonPath('activationCodes', []);
+        foreach (['0001-DEMO' => $a, '0002-DEMO' => $b] as $id => $section) {
+            $student = User::where('identity_number', $id)->firstOrFail();
+            $this->assertNull($student->email);
+            $this->assertSame('pending', $student->status);
+            $this->assertDatabaseHas('class_enrollments', ['user_id' => $student->id, 'class_id' => $section->id, 'status' => 'active']);
+            $this->assertDatabaseMissing('account_activation_tokens', ['user_id' => $student->id]);
+            $this->postJson('/api/admin/students/'.$student->id.'/activation')->assertUnprocessable();
+        }
+        $draft = $this->upload("StudentNo,First Name,Surname,Email\n0001-DEMO,Zoë,試験,\n");
+        $mapped = $this->map($draft);
+        $this->assertSame('', $mapped['rows'][0]['email']);
+        $this->assertFalse($mapped['rows'][0]['emailSuggested']);
+        $review = $this->review($draft, $mapped, [['id' => 2, 'email' => '', 'offeringId' => $a->id]]);
+        $this->postJson('/api/admin/roster/uploads/'.$draft['draftId'].'/import', ['revision' => $review['revision']])
+            ->assertOk()->assertJsonPath('counts.new', 0)->assertJsonPath('counts.already_enrolled', 1);
+    }
+
+    public function test_id_only_enrollment_preserves_existing_account_and_rejects_wrong_names_and_staff_ids(): void
+    {
+        $a = $this->offering();
+        $student = User::where('role', 'student')->firstOrFail();
+        $before = $student->getAttributes();
+        $draft = $this->upload("StudentNo,First Name,Surname,Email\n{$student->identity_number},{$student->first_name},{$student->last_name},\n");
+        $mapped = $this->map($draft);
+        $review = $this->review($draft, $mapped, [['id' => 2, 'email' => '', 'offeringId' => $a->id]]);
+        $this->postJson('/api/admin/roster/uploads/'.$draft['draftId'].'/import', ['revision' => $review['revision']])
+            ->assertOk()->assertJsonPath('counts.existing_student', 1);
+        $this->assertSame($before, $student->fresh()->getAttributes());
+        foreach ([$student, $this->admin] as $existing) {
+            $draft = $this->upload("StudentNo,First Name,Surname,Email\n{$existing->identity_number},Wrong,Name,\n");
+            $mapped = $this->map($draft);
+            $review = $this->review($draft, $mapped, [['id' => 2, 'email' => '', 'offeringId' => $a->id]]);
+            $this->assertSame(1, $review['counts']['errors']);
+            $this->postJson('/api/admin/roster/uploads/'.$draft['draftId'].'/import', ['revision' => $review['revision']])->assertUnprocessable();
+        }
+    }
+
     public function test_invalid_email_duplicates_account_conflicts_and_stale_reviews_do_not_write(): void
     {
         $a = $this->offering();
         $draft = $this->upload();
         $mapped = $this->map($draft);
-        $review = $this->review($draft, $mapped, [['id' => 2, 'email' => '', 'offeringId' => $a->id]]);
+        $review = $this->review($draft, $mapped, [['id' => 2, 'email' => 'invalid-address', 'offeringId' => $a->id]]);
         $this->assertSame(1, $review['counts']['errors']);
         $this->postJson('/api/admin/roster/uploads/'.$draft['draftId'].'/import', ['revision' => $review['revision']])->assertUnprocessable();
         $review = $this->review($draft, $review, [['id' => 2, 'email' => 'zoe@example.test', 'offeringId' => $a->id]]);

@@ -71,7 +71,7 @@ class StudentRoster
             $validation = Validator::make($row, [
                 'firstName' => ['required', 'string', 'max:80'],
                 'lastName' => ['required', 'string', 'max:80'],
-                'email' => ['required', 'email', 'max:255'],
+                'email' => ['nullable', 'email', 'max:255'],
                 'identityNumber' => ['required', 'string', 'max:80'],
             ]);
             $status = 'new';
@@ -80,11 +80,13 @@ class StudentRoster
             if ($validation->fails()) {
                 $status = 'invalid';
                 $message = $validation->errors()->first();
-            } elseif (isset($seenEmails[$row['email']]) || isset($seenIds[$row['identityNumber']])) {
+            } elseif (($row['email'] !== '' && isset($seenEmails[$row['email']])) || isset($seenIds[$row['identityNumber']])) {
                 $status = 'conflict';
                 $message = 'This email or institutional ID appears more than once in the import.';
             } else {
-                $seenEmails[$row['email']] = true;
+                if ($row['email'] !== '') {
+                    $seenEmails[$row['email']] = true;
+                }
                 $seenIds[$row['identityNumber']] = true;
                 [$status, $message] = $this->classify($row, $class, $lock);
             }
@@ -119,18 +121,20 @@ class StudentRoster
                     $user = User::query()->create([
                         'first_name' => $row['firstName'],
                         'last_name' => $row['lastName'],
-                        'email' => $row['email'],
+                        'email' => $row['email'] !== '' ? $row['email'] : null,
                         'identity_number' => $row['identityNumber'],
                         'role' => User::ROLE_STUDENT,
                         'status' => User::STATUS_PENDING,
                         'class_code' => $class->code,
                         'password' => Str::random(64),
                     ]);
-                    $codes[] = [
-                        'name' => trim($user->first_name.' '.$user->last_name),
-                        'email' => $user->email,
-                        'code' => $this->issueActivationCode($user, $admin),
-                    ];
+                    if ($user->email) {
+                        $codes[] = [
+                            'name' => trim($user->first_name.' '.$user->last_name),
+                            'email' => $user->email,
+                            'code' => $this->issueActivationCode($user, $admin),
+                        ];
+                    }
                     $action = 'student_created';
                 } else {
                     $action = 'student_enrolled';
@@ -169,11 +173,14 @@ class StudentRoster
                 $row = [...$source, ...$this->preview([$source], $class, $lock)[0], 'row' => $source['id']];
                 $id = mb_strtoupper(trim($row['identityNumber']));
                 $email = mb_strtolower(trim($row['email']));
-                if (isset($seenIds[$id]) || isset($seenEmails[$email])) {
+                if (isset($seenIds[$id]) || ($email !== '' && isset($seenEmails[$email]))) {
                     $row['status'] = 'conflict';
                     $row['message'] = 'Select each student only once per batch.';
                 }
-                $seenIds[$id] = $seenEmails[$email] = true;
+                $seenIds[$id] = true;
+                if ($email !== '') {
+                    $seenEmails[$email] = true;
+                }
                 $key = (string) $class->id;
                 $destinations[$key] ??= ['id' => $class->id, 'name' => $class->name, 'academicYear' => $class->academic_year, 'semester' => $class->semester, 'count' => 0];
                 $destinations[$key]['count']++;
@@ -189,6 +196,9 @@ class StudentRoster
     {
         if ($student->role !== User::ROLE_STUDENT || $student->status !== User::STATUS_PENDING) {
             throw ValidationException::withMessages(['student' => 'Only pending student accounts can receive activation codes.']);
+        }
+        if (! $student->email) {
+            throw ValidationException::withMessages(['student' => 'Add the student email before issuing an activation code.']);
         }
         $code = bin2hex(random_bytes(24));
         AccountActivationToken::query()->updateOrCreate(
@@ -210,14 +220,20 @@ class StudentRoster
      */
     private function classify(array $row, LearningClass $class, bool $lock = false): array
     {
-        $emailMatch = User::query()->whereRaw('LOWER(email) = ?', [$row['email']])->when($lock, fn ($query) => $query->lockForUpdate())->first();
+        $emailMatch = $row['email'] !== ''
+            ? User::query()->whereRaw('LOWER(email) = ?', [$row['email']])->when($lock, fn ($query) => $query->lockForUpdate())->first()
+            : null;
         $idMatch = User::query()->whereRaw('UPPER(identity_number) = ?', [$row['identityNumber']])->when($lock, fn ($query) => $query->lockForUpdate())->first();
         if (! $emailMatch && ! $idMatch) {
-            return ['new', 'New student account and section enrollment.'];
+            return ['new', $row['email'] === ''
+                ? 'New pending account and enrollment. Email is needed before activation.'
+                : 'New student account and section enrollment.'];
         }
-        if (! $emailMatch || ! $idMatch || $emailMatch->id !== $idMatch->id || $emailMatch->role !== User::ROLE_STUDENT) {
+        if (! $idMatch || $idMatch->role !== User::ROLE_STUDENT
+            || ($row['email'] !== '' && (! $emailMatch || $emailMatch->id !== $idMatch->id))) {
             return ['conflict', 'The email or institutional ID belongs to another record; review manually.'];
         }
+        $emailMatch = $idMatch;
         if (Str::lower(trim($emailMatch->first_name)) !== Str::lower($row['firstName'])
             || Str::lower(trim($emailMatch->last_name)) !== Str::lower($row['lastName'])) {
             return ['conflict', 'The name differs from the existing account; review manually.'];
@@ -242,7 +258,7 @@ class StudentRoster
     /** @param array<string, mixed> $row */
     private function matchingStudent(array $row): ?User
     {
-        return User::query()->whereRaw('LOWER(email) = ?', [$row['email']])
+        return User::query()->when($row['email'] !== '', fn ($query) => $query->whereRaw('LOWER(email) = ?', [$row['email']]))
             ->whereRaw('UPPER(identity_number) = ?', [$row['identityNumber']])->first();
     }
 }
