@@ -280,6 +280,7 @@ function renderQuiz() {
   elements.quiz.innerHTML = isQuiz ? state.questions.map((question, index) => `<fieldset class="quiz-question"><legend><span>${index + 1}</span>${escapeHtml(question.question)}</legend><div class="quiz-options">${question.options.map((option) => `<label><input type="radio" name="${escapeHtml(question.id)}" value="${escapeHtml(option)}"><span>${escapeHtml(option)}</span></label>`).join('')}</div></fieldset>`).join('') : '';
 }
 
+let quizSaving = false;
 function updatePrimaryAction() {
   const definition = state.steps[state.step];
   let disabled = ['targets', 'ordered-targets', 'action-target'].includes(definition.kind) && !targetComplete();
@@ -292,8 +293,8 @@ function updatePrimaryAction() {
       return;
     }
   }
-  elements.primaryAction.disabled = disabled;
-  elements.primaryAction.querySelector('span').textContent = definition.action;
+  elements.primaryAction.disabled = disabled || quizSaving;
+  elements.primaryAction.querySelector('span').textContent = quizSaving ? 'Saving answers…' : definition.action;
 }
 
 function renderAnatomyList() {
@@ -379,6 +380,10 @@ function renderStep(direction = 0) {
 }
 
 async function submitQuiz() {
+  if (quizSaving) return;
+  quizSaving = true;
+  updatePrimaryAction();
+  const submittedPackageId = state.manifest.id;
   const data = new FormData(elements.quiz);
   const answers = Object.fromEntries(state.questions.map((question) => [question.id, data.get(question.id)]));
   const localScore = state.questions.filter((question) => answers[question.id] === question.answer).length;
@@ -391,11 +396,13 @@ async function submitQuiz() {
       completedAt: new Date().toISOString(),
       answers,
     });
+    if (state.manifest.id !== submittedPackageId) return;
     const result = response.result || { score: localScore, total: state.questions.length };
     elements.scoreValue.textContent = `${result.score} / ${result.total}`;
     elements.completionCopy.textContent = response.queued ? 'Your answers are stored on this device and will synchronize when you reconnect.' : 'Your answers were scored by the server and saved with this package version.';
     query('#completionDialog').showModal();
   } catch (error) { showToast(error.message, 'hint'); }
+  finally { quizSaving = false; updatePrimaryAction(); }
 }
 
 elements.primaryAction.addEventListener('click', async () => {

@@ -1,4 +1,5 @@
 import { appUrl, request } from './portal/api.js';
+import { queuedModuleProgress } from './portal/moduleProgress.js';
 
 const DOWNLOAD_KEY = 'aquadissect.offline-packages.v1';
 const MODULE_DOWNLOAD_KEY = 'aquadissect.offline-learning-modules.v1';
@@ -293,13 +294,7 @@ export async function submitOrQueueModuleProgress(versionId, progress) {
   await storeModuleProgress({ queueId, versionId, ...progress, ownerId, source: 'offline' });
   return {
     queued: true,
-    progress: {
-      completedStepIds: progress.completedStepIds,
-      completedSteps: progress.completedStepIds.length,
-      totalSteps: progress.totalSteps,
-      completed: Boolean(progress.answers),
-      completedAt: progress.answers ? progress.completedAt : null,
-    },
+    progress: queuedModuleProgress(progress),
     attempt: null,
   };
 }

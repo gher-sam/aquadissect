@@ -76,9 +76,9 @@ function packageCard(item, { manager = false, offline = false, isAdmin = false, 
         ${item.slug === 'rabbitfish' ? '<span class="status-badge">Development focus · Rabbitfish</span>' : ''}
         <h2>${escapeHtml(item.commonName)}</h2>
         <p class="scientific-name"><em>${escapeHtml(item.scientificName || '')}</em></p>
-        <p>${escapeHtml(item.description || '')}</p>
+        <p>${escapeHtml(item.slug === 'rabbitfish' && item.status === 'published' ? 'Explore the assigned Rabbitfish anatomy lesson and complete its guided activities.' : item.description || '')}</p>
         <div class="lesson-meta"><span>${escapeHtml(item.duration || 'Guided activity')}</span>${item.hasVideo ? '<span class="is-featured">Swimming video</span>' : ''}<span>2.5D layers</span>${item.has3d ? '<span>Optional 3D</span>' : ''}</div>
-        ${item.draftNotice ? `<div class="draft-notice">${escapeHtml(item.draftNotice)}</div>` : ''}
+        ${item.draftNotice && item.status !== 'published' ? `<div class="draft-notice">${escapeHtml(item.draftNotice)}</div>` : ''}
         ${item.locked ? `<div class="prerequisite-notice"><i data-lucide="lock-keyhole" aria-hidden="true"></i><span>${escapeHtml(item.lockReason || 'Complete Safety & Tools before opening this lesson.')}</span><button type="button" data-portal-page="safety">Open prerequisite</button></div>` : ''}
         <div class="package-score"><span>Progress</span><strong>${score}</strong></div>
         <div class="package-actions">${mainAction}${offlineAction}</div>
@@ -90,7 +90,7 @@ function packageCard(item, { manager = false, offline = false, isAdmin = false, 
 
 function motionFeature(item) {
   if (item?.locked) {
-    return `<section class="motion-feature" aria-labelledby="motionFeatureTitle"><div class="motion-feature-copy"><span class="motion-feature-kicker"><span aria-hidden="true"></span>Required preparation</span><h2 id="motionFeatureTitle">Complete Safety &amp; Tools first</h2><p>${escapeHtml(item.lockReason || 'Finish the assigned prerequisite before opening anatomy lessons.')}</p><div class="motion-feature-points"><span>8 required steps</span><span>15 tools and safety items</span><span>Unlimited formative retries</span></div><button class="portal-primary motion-feature-action" type="button" data-portal-page="safety">Open Safety &amp; Tools</button></div><div class="motion-feature-stage" aria-hidden="true"><span class="motion-orbit motion-orbit-one"></span><span class="motion-orbit motion-orbit-two"></span><i class="motion-feature-shield" data-lucide="shield-check"></i><span class="motion-feature-label">Prerequisite</span></div></section>`;
+    return `<section class="motion-feature" aria-labelledby="motionFeatureTitle"><div class="motion-feature-copy"><span class="motion-feature-kicker"><span aria-hidden="true"></span>Required preparation</span><h2 id="motionFeatureTitle">Complete Safety &amp; Tools first</h2><p>${escapeHtml(item.lockReason || 'Finish the assigned prerequisite before opening anatomy lessons.')}</p><div class="motion-feature-points"><span>Required safety steps</span><span>Tools and PPE</span><span>Unlimited formative retries</span></div><button class="portal-primary motion-feature-action" type="button" data-portal-page="safety">Open Safety &amp; Tools</button></div><div class="motion-feature-stage" aria-hidden="true"><span class="motion-orbit motion-orbit-one"></span><span class="motion-orbit motion-orbit-two"></span><i class="motion-feature-shield" data-lucide="shield-check"></i><span class="motion-feature-label">Prerequisite</span></div></section>`;
   }
   if (!item?.hasVideo && !item?.has3d) return '';
 

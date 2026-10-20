@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\ClassModuleAssignment;
+use App\Models\LearningModuleAttempt;
 use App\Models\LearningModuleProgress;
 use App\Models\LearningModuleVersion;
 use App\Models\User;
@@ -71,6 +72,8 @@ class LearningModuleCatalog
                 'totalSteps' => count($required),
                 'completed' => $progress?->completed_at !== null,
                 'completedAt' => $progress?->completed_at?->toIso8601String(),
+                'activitySubmitted' => LearningModuleAttempt::query()->where('learning_module_version_id', $version->id)
+                    ->where('user_id', $user->id)->where('class_id', $assignment->class_id)->exists(),
                 'overrideActive' => $this->gate->hasOverride($user, $assignment),
             ],
             'manifestUrl' => url("/api/learning-modules/{$version->id}/manifest?classId={$assignment->class_id}"),

@@ -21,16 +21,22 @@ const visibleSpecies = window.AQUADISSECT_VISIBLE_SPECIES || ['rabbitfish'];
 const focusSpecies = records => focusedSpecies(records, visibleSpecies);
 const focusClasses = (classes, species) => focusedClasses(classes, species, visibleSpecies);
 const offlineContextKey = 'aquadissect.offline-context.v2';
+function saveOfflineContext(data) {
+  const learner = data.user?.role === 'student';
+  const offlineCatalog = records => (records || []).filter(r=>r.status==='published').map(({latestReview, importedBy, events, ...record})=>record);
+  try {
+    localStorage.setItem(offlineContextKey, JSON.stringify({
+      user: learner ? { id: data.user.id, firstName: 'Learner', lastName: '', role: 'student', status: 'active' } : null,
+      species: learner ? offlineCatalog(data.species) : [],
+      learningModules: learner ? offlineCatalog(data.learningModules) : [],
+      classes: learner ? (data.classes || []).map(c => ({ id:c.id, name:c.name, status:c.status, assignments:c.assignments })) : [],
+    }));
+  } catch { /* Storage restrictions must not prevent online learning. */ }
+}
 if (bootstrap.offlineShell) {
   try { Object.assign(bootstrap, JSON.parse(localStorage.getItem(offlineContextKey) || '{}')); } catch { /* Empty offline context. */ }
 } else if (bootstrap.user) {
-  const learner = bootstrap.user.role === 'student';
-  const offlineCatalog = records => (records || []).filter(r=>r.status==='published').map(({latestReview, importedBy, events, ...record})=>record);
-  localStorage.setItem(offlineContextKey, JSON.stringify({
-    user: learner ? { id: bootstrap.user.id, firstName: 'Learner', lastName: '', role: 'student', status: 'active' } : null,
-    species: offlineCatalog(bootstrap.species), learningModules: offlineCatalog(bootstrap.learningModules),
-    classes: learner ? (bootstrap.classes || []).map(c => ({ id:c.id, name:c.name, status:c.status, assignments:c.assignments })) : [],
-  }));
+  saveOfflineContext(bootstrap);
 }
 
 bootstrap.classes = focusClasses(bootstrap.classes, bootstrap.species);
@@ -241,6 +247,8 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
   }
 
   function updateSession() {
+    bootstrap.user = state.currentUser;
+    if (state.currentUser) saveOfflineContext({ user: state.currentUser, species: state.species, learningModules: state.learningModules, classes: state.classes });
     const user = state.currentUser;
     const authenticated = Boolean(user);
     portal.classList.toggle('is-authenticated', authenticated);
@@ -587,23 +595,21 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
             ...progress,
             classId: record.classId,
             totalSteps: response.module.requiredStepIds?.length || 0,
+            requiredStepIds: response.module.requiredStepIds || [],
           });
-          record.progress = { ...record.progress, ...result.progress };
-          if (result.progress?.completed) {
-            state.species.forEach((species) => {
-              if (species.locked) {
-                species.locked = false;
-                species.availableClassId = record.classId;
-                species.lockReason = null;
-              }
-            });
-          }
+          record.progress = { ...record.progress, ...result.progress, pendingSync: Boolean(result.queued) };
+          saveOfflineContext({ user: state.currentUser, species: state.species, learningModules: state.learningModules, classes: state.classes });
           if (result.queued) showToast('Progress saved offline and queued for synchronization');
           return result;
         } : undefined,
-        onComplete: async () => {
-          showToast('Safety & Tools completed. Assigned anatomy lessons are now available.');
-          if (navigator.onLine) await refreshData();
+        onComplete: async (result) => {
+          showToast(result?.queued
+            ? 'Steps and activity saved on this device. Reconnect to confirm completion and lesson access.'
+            : 'Safety & Tools saved. Check Species lessons for your assigned activities.');
+          if (!result?.queued && navigator.onLine) {
+            try { await refreshData(); }
+            catch { showToast('Safety progress is saved. Reopen the page to refresh lesson availability.', { tone: 'error', persistent: true }); }
+          }
         },
         onError: (error) => showToast(error.message, { tone: 'error', persistent: true }),
       });
@@ -679,7 +685,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
       state.openLearningModuleId = null;
       elements.safetyExperience.hidden = true;
       elements.safety.hidden = false;
-      renderPage('safety');
+      renderPage();
       const restoreModuleTriggerFocus = () => {
         if (![document.body, document.documentElement].includes(document.activeElement)) return;
         elements.safety.querySelector(`[data-open-learning-module="${returningModuleId}"]`)?.focus({ preventScroll: true });
@@ -1139,7 +1145,8 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
       if (response.queued) showToast('Attempt saved offline and queued for synchronization');
       else {
         state.latestResult = response.result;
-        await refreshData();
+        try { await refreshData(); }
+        catch { showToast('Your answers are saved. Reopen the page to refresh your dashboard.', { tone: 'error', persistent: true }); }
       }
       return response;
     },

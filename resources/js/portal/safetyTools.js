@@ -1,4 +1,5 @@
 import { escapeHtml, titleCase } from './format.js';
+import { moduleSaveMessage } from './moduleProgress.js';
 
 const moduleExperienceControllers = new WeakMap();
 
@@ -7,6 +8,7 @@ function statusLabel(status) {
 }
 
 function progressLabel(module) {
+  if (module.progress?.pendingSync) return 'Saved on device · awaiting sync';
   if (module.progress?.completed) return 'Complete';
   if (module.progress?.overrideActive) return 'Access exception active';
   return `${module.progress?.completedSteps || 0} of ${module.progress?.totalSteps || 0} steps`;
@@ -161,6 +163,8 @@ export function createModuleExperience(container, manifest, record, callbacks = 
   const { signal } = eventController;
   const steps = manifest.steps || [];
   const completed = new Set(record.progress?.completedStepIds || []);
+  let saving = false;
+  let activitySubmitted = Boolean(record.progress?.activitySubmitted);
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let index = Math.max(0, steps.findIndex((step) => !completed.has(step.id)));
   if (index < 0) index = 0;
@@ -285,12 +289,14 @@ export function createModuleExperience(container, manifest, record, callbacks = 
   async function saveProgress(answers = null) {
     const result = await callbacks.onProgress?.({
       completedStepIds: [...completed],
+      activitySubmitted,
       ...(answers ? { answers, clientAttemptUuid: crypto.randomUUID() } : {}),
       completedAt: new Date().toISOString(),
     });
     if (result?.progress) {
       completed.clear();
       result.progress.completedStepIds.forEach((id) => completed.add(id));
+      activitySubmitted = Boolean(result.progress.activitySubmitted);
     }
     return result;
   }
@@ -329,16 +335,28 @@ export function createModuleExperience(container, manifest, record, callbacks = 
     if (event.target.closest('[data-module-previous]')) { index = Math.max(0, index - 1); selectedKey = null; renderStep(); return; }
     if (event.target.closest('[data-module-motion]') && !reducedMotion) toggleMotion();
     if (event.target.closest('[data-module-complete-step]')) {
+      if (saving) return;
       const step = steps[index];
+      const savedIndex = index;
+      const previous = [...completed];
+      saving = true;
+      const button = container.querySelector('[data-module-complete-step]');
+      button.disabled = true;
+      button.textContent = 'Saving step…';
       completed.add(step.id);
       try {
-        await saveProgress();
+        const result = await saveProgress();
         if (signal.aborted) return;
-        if (index < steps.length - 1) index += 1;
+        if (index === savedIndex && index < steps.length - 1) index += 1;
         selectedKey = null;
         renderStep();
+        if (result?.progress?.completed) callbacks.onComplete?.(result);
       } catch (error) {
-        if (!signal.aborted) callbacks.onError?.(error);
+        completed.clear();
+        previous.forEach(id => completed.add(id));
+        if (!signal.aborted) { renderStep(); callbacks.onError?.(error); }
+      } finally {
+        saving = false;
       }
     }
   }, { signal });
@@ -347,7 +365,8 @@ export function createModuleExperience(container, manifest, record, callbacks = 
     if (!event.target.matches('[data-module-activity]')) return;
     event.preventDefault();
     const activityForm = event.target;
-    if (activityForm.getAttribute('aria-busy') === 'true') return;
+    if (saving || activityForm.getAttribute('aria-busy') === 'true') return;
+    saving = true;
     const submitButton = activityForm.querySelector('button[type="submit"]');
     const submitLabel = submitButton?.textContent || 'Submit formative activity';
     activityForm.setAttribute('aria-busy', 'true');
@@ -356,25 +375,27 @@ export function createModuleExperience(container, manifest, record, callbacks = 
       submitButton.textContent = 'Saving activity…';
     }
     const answers = Object.fromEntries(new FormData(activityForm));
+    const previous = [...completed];
     completed.add('tool-selection');
     const resultNode = activityForm.querySelector('.module-activity-result');
     try {
       const result = await saveProgress(answers);
       if (signal.aborted) return;
       renderStep();
-      const score = result?.attempt;
       const currentResult = activitySlot.querySelector('.module-activity-result');
       if (currentResult) {
-        currentResult.textContent = score ? `Score retained: ${score.score} of ${score.total}. Module complete.` : callbacks.onProgress ? 'Activity saved. Module complete.' : 'Preview only. No learner result was saved.';
+        currentResult.textContent = moduleSaveMessage(result, Boolean(callbacks.onProgress));
         currentResult.focus({ preventScroll: true });
       }
-      if (callbacks.onProgress) callbacks.onComplete?.(result);
+      if (callbacks.onProgress && result?.progress?.completed) callbacks.onComplete?.(result);
     } catch (error) {
       if (signal.aborted) return;
-      completed.delete('tool-selection');
+      completed.clear();
+      previous.forEach(id => completed.add(id));
       resultNode.textContent = error.message;
       resultNode.focus({ preventScroll: true });
     } finally {
+      saving = false;
       activityForm.removeAttribute('aria-busy');
       if (submitButton) {
         submitButton.disabled = false;

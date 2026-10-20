@@ -52,7 +52,7 @@ class LearningModuleProgressRecorder
             $attempt = LearningModuleAttempt::query()->where('user_id', $user->id)
                 ->where('attempt_uuid', $data['clientAttemptUuid'])->first();
             if ($attempt) {
-                abort_unless($attempt->learning_module_version_id === $version->id, 409, 'That attempt identifier is already used for another module.');
+                abort_unless($attempt->learning_module_version_id === $version->id && $attempt->class_id === $class->id, 409, 'That attempt identifier is already used for another module or section.');
                 $duplicate = true;
             } else {
                 $questions = collect($manifest['activity']['questions'] ?? []);
@@ -92,6 +92,7 @@ class LearningModuleProgressRecorder
                 'totalSteps' => $required->count(),
                 'completed' => $progress->completed_at !== null,
                 'completedAt' => $progress->completed_at?->toIso8601String(),
+                'activitySubmitted' => (bool) $hasAttempt,
             ],
             'attempt' => $attempt ? ['score' => $attempt->score, 'total' => $attempt->total] : null,
             'duplicate' => $duplicate,

@@ -314,3 +314,16 @@ The user approved CSV, XLSX, XLS, XML, JSON and TSV uploads with private expirin
 
 
 October 16 roster follow-up: The user authorized Section A and Section B for AY 2026-2027, first semester, and student import without emails for now. Bulk import accepts blank emails as NULL and retains pending account status, with no activation token until email is available. Existing email sign-in, activation verification, credentials and historical records remain intact. Real roster import is an authorized administrative data action, separate from synthetic engineering QA and research participation. Private student data is never embedded in source or tests.
+
+## October 20, 2026: Student journey engineering verification
+
+The user requested end-to-end student workflow checks and corrections. Test
+activation, orientation, safety completion, Rabbitfish activities, offline
+synchronization and saved results with synthetic accounts in an isolated database.
+Retain existing faculty review/publication gates and live academic records.
+Corrections distinguish queued work from confirmed completion, preserve account
+and section scope, and report actual saved outcomes accurately. Observation
+notebooks remain session drafts with downloads; this increment does not introduce
+durable anatomy browsing-state storage. Status: Implemented but awaiting faculty
+and research validation. Engineering evidence and limits are recorded in
+`docs/student-journey-verification.md`.

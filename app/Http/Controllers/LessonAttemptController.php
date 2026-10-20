@@ -27,6 +27,7 @@ class LessonAttemptController extends Controller
             ->first();
         if ($existing) {
             abort_if($existing->species_package_id !== (int) $validated['packageId'], 409, 'That attempt identifier is already used for another package.');
+            abort_if(isset($validated['classId']) && $existing->class_id !== (int) $validated['classId'], 409, 'That attempt identifier is already used for another section.');
 
             return response()->json(['result' => $existing->portalPayload(), 'duplicate' => true]);
         }
