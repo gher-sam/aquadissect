@@ -1,4 +1,5 @@
 import { setupBulkRoster } from './bulkRoster.js';
+import { setupStudentEmailFlow, setupStudentCodeBatch } from './studentSetup.js';
 import '../../css/bulk-roster.css';
 import { setupFishCarousels } from './fishAngles.js';
 import { focusedSpecies, focusedClasses } from './speciesFocus.js';
@@ -387,6 +388,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
     if (name === 'roster' && elements.roster) {
       elements.roster.innerHTML = adminRosterView(state.adminRoster, state.rosterPreview, state.activationCodes, state.rosterError);
       setupRosterTables(elements.roster);
+      setupStudentCodeBatch(elements.roster, state.adminRoster?.classes || [], confirmPortalAction);
       setupBulkRoster(elements.roster, state.adminRoster?.classes || [], state.currentUser?.id, async result => {
         state.activationCodes = result.activationCodes || [];
         await refreshRoster();
@@ -1090,6 +1092,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
   }
 
   portal.addEventListener('click', handlePortalClick);
+  setupStudentEmailFlow();
   portal.addEventListener('submit', handlePortalSubmit);
   portal.addEventListener('change', handlePortalChange);
   elements.menuButton.addEventListener('click', () => {

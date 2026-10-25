@@ -35,6 +35,14 @@ foreach (\App\Support\PortalPages::PAGES as $page => [$path, $roles]) {
 }
 
 Route::prefix('api')->group(function (): void {
+    Route::prefix('student-setup')->middleware('throttle:student-setup')->group(function (): void {
+        Route::get('/status', [\App\Http\Controllers\StudentEmailSetupController::class, 'status']);
+        Route::post('/claim', [\App\Http\Controllers\StudentEmailSetupController::class, 'claim'])->middleware('throttle:student-setup-claim');
+        Route::post('/email', [\App\Http\Controllers\StudentEmailSetupController::class, 'send']);
+        Route::post('/verify', [\App\Http\Controllers\StudentEmailSetupController::class, 'verify']);
+        Route::post('/complete', [\App\Http\Controllers\StudentEmailSetupController::class, 'complete']);
+        Route::post('/cancel', [\App\Http\Controllers\StudentEmailSetupController::class, 'cancel']);
+    });
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
     Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:registration');
     Route::post('/activate', [AuthController::class, 'activate'])->middleware('throttle:registration');
@@ -107,6 +115,7 @@ Route::prefix('api')->group(function (): void {
             Route::post('/roster/import', [AdminRosterController::class, 'import']);
             Route::post('/students/{user}/activation', [AdminRosterController::class, 'issueActivation']);
             Route::patch('/students/{user}/email', [AdminRosterController::class, 'addStudentEmail']);
+            Route::post('/student-setup-codes', [\App\Http\Controllers\StudentEmailSetupController::class, 'issue']);
             Route::post('/species-packages/{package}/publish', [AdminSpeciesPackageController::class, 'publish']);
             Route::post('/species-packages/{package}/activate', [AdminSpeciesPackageController::class, 'activate']);
             Route::post('/species-packages/{package}/archive', [AdminSpeciesPackageController::class, 'archive']);

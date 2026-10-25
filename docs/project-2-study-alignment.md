@@ -345,3 +345,31 @@ automatic assignment to every active MB 304L section. Existing started progress,
 results and legacy exceptions are retained. Independent faculty review, current
 approval and administrator publication remain required; this work supplies no
 faculty approval, research validation or learner-effectiveness evidence.
+
+## October 25, 2026: Student-entered email and inbox verification
+
+The user approved student ID plus a private setup code, followed by entry of the
+student's own email, a six-digit inbox OTP, and password setup. This claims an
+existing administrator-provisioned pending roster account without email; it is
+not public registration and does not change enrollment, academic roles, research
+consent, content review or lesson prerequisites. Administrator email entry remains
+a support fallback. Existing Google and legacy activation-code access is retained.
+
+Administrators prepare codes only for explicitly selected eligible students and
+deliver each privately. Setup codes last seven days and are consumed on successful
+activation. Inbox codes last ten minutes, allow five attempts, and have a 60-second
+resend cooldown and five-send hourly limit per student. Verification and password
+completion are bound to the claiming browser session; email and activation status
+are saved only at successful completion. Temporary email data is encrypted and
+setup/OTP hashes are excluded from the delayed academic-data clone and reports.
+
+The existing mail service is to be configured privately. Student email setup stays
+disabled until authenticated SMTP configuration and actual designated-inbox delivery
+are confirmed. A provider accepting a message, local mail capture, synthetic tests
+or deploying code does not establish real inbox delivery. The user subsequently
+selected Google email as the sending service; the hosting-email purchase path is
+not required. Gmail SMTP must use an authorized sender and its private app
+credential; existing Google sign-in scopes remain unchanged. Status: Implemented
+but awaiting validation. Synthetic engineering checks cover activation and failure
+paths; actual Gmail inbox delivery, real-student use and physical-device checks
+remain pending. The feature stays disabled until the inbox-delivery gate passes.
