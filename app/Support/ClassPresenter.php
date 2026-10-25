@@ -49,6 +49,7 @@ class ClassPresenter
                         'email' => $enrollment->user->email,
                         'identityNumber' => $enrollment->user->identity_number,
                         'accountStatus' => $enrollment->user->status,
+                        'mustChangePassword' => (bool) $enrollment->user->must_change_password,
                         'enrollmentStatus' => $enrollment->status,
                         'attemptCount' => $attempts->count(),
                         'latestResult' => $attempts->first()?->portalPayload(),
@@ -68,6 +69,7 @@ class ClassPresenter
             'semester' => $class->semester,
             'sectionCode' => $class->section_code,
             'status' => $class->status,
+            'passwordResetsEnabled' => (bool) config('student-setup.initial_password_enabled'),
             'studentCount' => $class->enrollments->where('status', 'active')->count(),
             'instructors' => $class->instructors->map(fn ($item) => [
                 'id' => $item->user_id,

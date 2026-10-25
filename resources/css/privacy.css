@@ -14,5 +14,10 @@ small { color: #536579; }
 .email-delivery h1 { font-size: 20px; }
 .connect-email { min-height: 44px; padding: 10px 18px; border: 0; border-radius: 6px; background: #1649ac; color: #fff; font: inherit; cursor: pointer; }
 .connect-email:focus-visible { outline: 3px solid #1649ac; outline-offset: 4px; }
+.password-change h1 { font-size: 20px; }
+.password-change label { display: block; margin: 16px 0; }
+.password-change input { display: block; width: 100%; min-height: 44px; margin-top: 6px; padding: 10px; border: 1px solid #c8d7eb; border-radius: 6px; font: inherit; }
+.password-change input:focus-visible { outline: 3px solid #1649ac; outline-offset: 2px; }
+.password-sign-out { min-height: 44px; margin-top: 16px; padding: 8px; border: 0; background: none; color: #1649ac; font: inherit; cursor: pointer; }
 li { margin-bottom: 8px; }
 @media (max-width: 600px) { main { margin: 12px; padding: 20px; } }

@@ -18,6 +18,8 @@ use Illuminate\Notifications\Notifiable;
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
+    protected $attributes = ['must_change_password' => false, 'password_revision' => 0];
+
     use ReplicatesToDelayedClone;
 
     public const ROLE_STUDENT = 'student';
@@ -47,6 +49,9 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'must_change_password' => 'boolean',
+            'password_revision' => 'integer',
+            'password_changed_at' => 'datetime',
         ];
     }
 
@@ -103,6 +108,7 @@ class User extends Authenticatable
             'role' => $this->role,
             'status' => $this->status,
             'classCode' => $this->class_code,
+            'mustChangePassword' => (bool) $this->must_change_password,
         ];
     }
 }

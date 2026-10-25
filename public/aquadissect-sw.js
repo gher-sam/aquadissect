@@ -1,4 +1,4 @@
-const SHELL_CACHE = 'aquadissect-shell-v17';
+const SHELL_CACHE = 'aquadissect-shell-v18';
 const SHELL_CACHE_PREFIX = 'aquadissect-shell-';
 const scopeUrl = new URL(self.registration.scope);
 const withinScope = (url) => url.origin === scopeUrl.origin && url.pathname.startsWith(scopeUrl.pathname);
@@ -151,7 +151,7 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   if (!withinScope(url)) return;
   // Source handover must never fall back to any shared offline cache.
-  if (url.pathname.includes('/source-handover') || url.pathname.includes('/auth/google/') || url.pathname.includes('/auth/gmail/') || url.pathname.endsWith('/admin/email-delivery') || url.pathname.includes('/student-setup/') || url.pathname.includes('/student-password-setup/') || url.pathname.endsWith('/activate')) {
+  if (url.pathname.includes('/source-handover') || url.pathname.includes('/auth/google/') || url.pathname.includes('/auth/gmail/') || url.pathname.endsWith('/admin/email-delivery') || url.pathname.includes('/student-setup/') || url.pathname.includes('/student-password-setup/') || url.pathname.endsWith('/change-password') || url.pathname.endsWith('/activate')) {
     event.respondWith(fetch(event.request));
     return;
   }

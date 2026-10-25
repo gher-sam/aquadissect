@@ -130,7 +130,9 @@ class StudentRoster
                         'class_code' => $class->code,
                         'password' => Str::random(64),
                     ]);
-                    if ($user->email) {
+                    if (config('student-setup.initial_password_enabled')) {
+                        app(StudentPasswords::class)->initialize($user, $admin, $class->id);
+                    } elseif ($user->email) {
                         $codes[] = [
                             'name' => trim($user->first_name.' '.$user->last_name),
                             'email' => $user->email,
@@ -257,7 +259,7 @@ class StudentRoster
         $idMatch = User::query()->whereRaw('UPPER(identity_number) = ?', [$row['identityNumber']])->when($lock, fn ($query) => $query->lockForUpdate())->first();
         if (! $emailMatch && ! $idMatch) {
             return ['new', $row['email'] === ''
-                ? 'New pending account and enrollment. Email is needed before activation.'
+                ? 'New pending account and enrollment. Follow the enabled first-sign-in instructions.'
                 : 'New student account and section enrollment.'];
         }
         if (! $idMatch || $idMatch->role !== User::ROLE_STUDENT

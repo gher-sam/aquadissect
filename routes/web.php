@@ -24,6 +24,7 @@ use App\Http\Controllers\SpeciesController;
 use App\Http\Controllers\StaffLearningModuleController;
 use App\Http\Controllers\StaffRoleController;
 use App\Http\Controllers\StaffSpeciesPackageController;
+use App\Http\Controllers\StudentCredentialController;
 use App\Http\Controllers\StudentEmailSetupController;
 use App\Http\Controllers\StudentPasswordSetupController;
 use App\Http\Controllers\TutorialController;
@@ -37,6 +38,9 @@ Route::get('/offline', fn () => view('app', ['page' => 'downloads', 'bootstrap' 
 
 Route::get('/', fn (Request $request) => redirect()->route($request->user() ? 'portal.home' : 'login'));
 Route::view('/privacy', 'privacy')->name('privacy');
+Route::get('/change-password', [StudentCredentialController::class, 'edit'])->middleware('auth')->name('password.change');
+Route::post('/change-password', [StudentCredentialController::class, 'update'])->middleware(['auth', 'throttle:student-password-change'])->name('password.update');
+Route::post('/sign-out', [StudentCredentialController::class, 'signOut'])->middleware('auth')->name('password.sign-out');
 Route::get('/admin/email-delivery', [GmailSenderController::class, 'index'])
     ->middleware(['auth', 'role:admin'])->name('gmail-sender.index');
 Route::post('/auth/gmail/connect', [GmailSenderController::class, 'redirect'])
@@ -53,6 +57,7 @@ foreach (PortalPages::PAGES as $page => [$path, $roles]) {
 }
 
 Route::prefix('api')->group(function (): void {
+    Route::post('/change-password', [StudentCredentialController::class, 'update'])->middleware(['auth', 'throttle:student-password-change']);
     Route::prefix('student-password-setup')->middleware('throttle:student-setup')->group(function (): void {
         Route::get('/status', [StudentPasswordSetupController::class, 'status']);
         Route::post('/claim', [StudentPasswordSetupController::class, 'claim'])->middleware('throttle:student-setup-claim');
@@ -103,6 +108,8 @@ Route::prefix('api')->group(function (): void {
         Route::post('/lessons/{lessonKey}/attempts', [LessonAttemptController::class, 'store'])->middleware('role:student,instructor,admin');
 
         Route::middleware('role:instructor,admin')->prefix('staff')->group(function (): void {
+            Route::post('/students/{user}/reset-password', [StudentCredentialController::class, 'reset']);
+            Route::get('/students/{user}/password-history', [StudentCredentialController::class, 'history']);
             Route::post('/learning-module-versions/{version}/submit', [StaffLearningModuleController::class, 'submit']);
             Route::post('/learning-module-versions/{version}/assets', [LearningModuleAssetController::class, 'store']);
             Route::post('/media-prompts/preview', [MediaPromptController::class, 'preview']);

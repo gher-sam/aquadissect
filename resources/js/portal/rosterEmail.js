@@ -1,6 +1,8 @@
 import { escapeHtml } from './format.js';
+import { studentPasswordActions } from './studentPasswordView.js';
 
-export function studentEmailAction(student, passwordSetupEnabled = false) {
+export function studentEmailAction(student, passwordSetupEnabled = false, initialPasswordEnabled = false) {
+  if (initialPasswordEnabled) return studentPasswordActions(student);
   if (student.accountStatus !== 'pending') return '<span class="portal-muted">No action needed</span>';
   if (student.email) return `<button class="portal-secondary" type="button" data-issue-activation="${student.id}" aria-label="Issue new activation code for ${escapeHtml(student.name)}">Issue activation code</button>`;
   return `${passwordSetupEnabled ? '<p>Prepare a private setup code below. The student ID is the username; no email is required.</p>' : ''}<details class="workflow-disclosure"><summary>${passwordSetupEnabled ? 'Optional email support' : 'Add email for activation'}</summary>

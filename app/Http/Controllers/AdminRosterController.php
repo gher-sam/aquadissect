@@ -87,6 +87,7 @@ class AdminRosterController extends Controller
 
         return response()->json([
             'passwordSetupEnabled' => (bool) config('student-setup.password_enabled'),
+            'initialPasswordEnabled' => (bool) config('student-setup.initial_password_enabled'),
             'course' => ['id' => $course->id, 'code' => $course->code, 'name' => $course->name],
             'classes' => $classes,
             'report' => [

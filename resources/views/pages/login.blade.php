@@ -1,7 +1,7 @@
     <section class="portal-page auth-editorial-page auth-page login-concept" data-portal-panel="login">
       <form class="auth-card auth-card--login" id="loginForm">
         <h1>Welcome back</h1>
-        <p class="portal-muted">First session: activate your administrator-provided student account, sign in, then choose Start orientation on Home.</p>
+        <p class="portal-muted">{{ config('student-setup.initial_password_enabled') ? 'First time? Enter your student ID in both fields. You must choose a new password before opening your course.' : 'First session: activate your administrator-provided student account, sign in, then choose Start orientation on Home.' }}</p>
         @include('partials.google-access', ['intent' => 'signin'])
         @if(\App\Support\GoogleAccess::ready())<div class="auth-divider"><span>Or use your existing password</span></div>@endif
 
@@ -25,7 +25,7 @@
             <button class="portal-link" type="button" data-portal-page="activate">Activate student account</button>
             <button class="portal-link" type="button" data-portal-page="register">Request instructor access</button>
           </div>
-          <p class="portal-muted">Students: your student ID is your username. First-time users need the private setup code from their administrator to choose a password.</p>
+          <p class="portal-muted">{{ config('student-setup.initial_password_enabled') ? 'Your student ID is your username and first temporary password. After changing it, use your new password. Ask your administrator or assigned teacher if you need a reset.' : 'Students: your student ID is your username. First-time users need the private setup code from their administrator to choose a password.' }}</p>
         </div>
         @unless(app()->environment('production'))
         <details class="demo-access">

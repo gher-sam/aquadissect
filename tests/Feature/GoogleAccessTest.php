@@ -4,10 +4,12 @@ namespace Tests\Feature;
 
 use App\Models\AccountActivationToken;
 use App\Models\ExternalIdentity;
+use App\Models\LessonResult;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Laravel\Socialite\Contracts\Factory;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\GoogleProvider;
@@ -71,6 +73,25 @@ class GoogleAccessTest extends TestCase
         $this->assertSame($user->first_name, $user->fresh()->first_name);
         $this->assertDatabaseMissing('account_activation_tokens', ['user_id' => $user->id]);
         $this->assertDatabaseHas('roster_events', ['user_id' => $user->id, 'action' => 'student_activated']);
+    }
+
+    public function test_google_sign_in_cannot_bypass_a_required_student_password_change(): void
+    {
+        foreach (['active', 'pending'] as $status) {
+            $student = User::factory()->create(['role' => 'student', 'status' => $status, 'identity_number' => 'QA-GOOGLE-'.strtoupper($status),
+                'password' => 'QA-GOOGLE-RESET', 'must_change_password' => true, 'password_revision' => 1]);
+            $this->profile($student->email, 'qa-reset-'.$status);
+            $this->completeGoogleSignIn()->assertRedirect('/dashboard');
+            $this->assertSame($status, $student->fresh()->status);
+            $this->assertSame($student->password, $student->fresh()->password);
+            $this->get('/dashboard')->assertRedirect('/change-password');
+            $this->getJson('/api/classes')->assertForbidden()->assertJsonPath('passwordChangeRequired', true);
+            $this->postJson('/api/change-password', ['password' => 'GooglePrivate123!', 'password_confirmation' => 'GooglePrivate123!'])->assertOk();
+            $this->assertFalse($student->fresh()->must_change_password);
+            $this->assertSame('active', $student->fresh()->status);
+            $this->assertDatabaseHas('external_identities', ['user_id' => $student->id]);
+            $this->postJson('/api/logout')->assertOk();
+        }
     }
 
     public function test_pending_instructor_remains_pending(): void
@@ -236,17 +257,19 @@ class GoogleAccessTest extends TestCase
 
     public function test_additive_migration_preserves_existing_accounts_assignments_and_historical_results(): void
     {
-        \Illuminate\Support\Facades\Schema::table('users', fn ($table) => $table->string('password')->nullable(false)->change());
+        Schema::table('users', fn ($table) => $table->string('password')->nullable(false)->change());
         $this->seed(DatabaseSeeder::class);
         $student = User::where('role', 'student')->firstOrFail();
-        \App\Models\LessonResult::create(['user_id' => $student->id, 'lesson_key' => 'tilapia-guided-dissection',
+        LessonResult::create(['user_id' => $student->id, 'lesson_key' => 'tilapia-guided-dissection',
             'score' => 2, 'total' => 3, 'completed_at' => now(), 'submitted_at' => now(), 'synced_at' => now()]);
         $tables = ['users', 'classes', 'class_enrollments', 'class_instructors', 'species_assignments', 'lesson_results'];
         $before = collect($tables)->mapWithKeys(fn ($table) => [$table => DB::table($table)->orderBy('id')->get()->toJson()])->all();
-        \Illuminate\Support\Facades\Schema::drop('external_identities');
+        Schema::drop('external_identities');
         $migration = require database_path('migrations/2026_10_02_000001_add_google_external_identities.php');
         $migration->up();
-        foreach ($before as $table => $rows) $this->assertSame($rows, DB::table($table)->orderBy('id')->get()->toJson());
+        foreach ($before as $table => $rows) {
+            $this->assertSame($rows, DB::table($table)->orderBy('id')->get()->toJson());
+        }
         $this->assertDatabaseCount('external_identities', 0);
     }
 }

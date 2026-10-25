@@ -1,4 +1,5 @@
 import { setupBulkRoster } from './bulkRoster.js';
+import { setupStudentPasswordActions } from './studentPasswords.js';
 import { setupStudentEmailFlow, setupStudentCodeBatch } from './studentSetup.js';
 import '../../css/bulk-roster.css';
 import { setupFishCarousels } from './fishAngles.js';
@@ -485,6 +486,10 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
   }
 
   function signIn(payload) {
+    if (payload.passwordChangeRequired) {
+      window.location.assign(payload.passwordChangeUrl || appUrl('/change-password'));
+      return;
+    }
     onLeaveLesson();
     bootstrap.tutorials = payload.tutorials || { guides: [], progress: [] };
     state.currentUser = payload.user;
@@ -1092,6 +1097,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
   }
 
   portal.addEventListener('click', handlePortalClick);
+  setupStudentPasswordActions(portal, confirmPortalAction, showToast);
   setupStudentEmailFlow();
   portal.addEventListener('submit', handlePortalSubmit);
   portal.addEventListener('change', handlePortalChange);

@@ -85,7 +85,7 @@ class GoogleAuthController extends Controller
                 if (! $user->email_verified_at) {
                     $user->forceFill(['email_verified_at' => now()])->save();
                 }
-                if ($user->status === User::STATUS_PENDING && $user->role === User::ROLE_STUDENT) {
+                if ($user->status === User::STATUS_PENDING && $user->role === User::ROLE_STUDENT && ! $user->must_change_password) {
                     $user->update(['status' => User::STATUS_ACTIVE, 'password' => null]);
                     AccountActivationToken::query()->where('user_id', $user->id)->get()->each->delete();
                     RosterEvent::query()->create(['user_id' => $user->id, 'action' => 'student_activated', 'details' => ['method' => 'google']]);
@@ -94,11 +94,14 @@ class GoogleAuthController extends Controller
                 return $user;
             });
             if ($user) {
-                if (! $user->isActive()) {
+                if (! $user->isActive() && ! ($user->role === User::ROLE_STUDENT && $user->must_change_password)) {
                     return $this->failure('Your instructor request is waiting for administrator approval.');
                 }
                 Auth::login($user);
                 $request->session()->regenerate();
+                if ($user->role === User::ROLE_STUDENT) {
+                    $request->session()->put('student_password_revision', $user->password_revision);
+                }
 
                 return redirect()->route('portal.home')->header('Cache-Control', 'no-store');
             }

@@ -34,9 +34,19 @@ class StudentJourneyTest extends TestCase
         Mail::assertNothingSent();
     }
 
-    private function assertStudentJourney(bool $withoutEmail): void
+    public function test_initial_id_password_then_mandatory_change_supports_the_complete_course_journey(): void
+    {
+        Mail::fake();
+        $this->assertStudentJourney(true, true);
+        Mail::assertNothingSent();
+    }
+
+    private function assertStudentJourney(bool $withoutEmail, bool $initialPassword = false): void
     {
         $this->seed(DatabaseSeeder::class);
+        if ($initialPassword) {
+            config(['student-setup.initial_password_enabled' => true]);
+        }
         $admin = User::where('role', 'admin')->firstOrFail();
         $teacher = User::where('role', 'instructor')->firstOrFail();
         $reviewer = User::factory()->create(['first_name' => 'Faculty', 'last_name' => 'Demo', 'role' => 'instructor', 'status' => 'active']);
@@ -47,13 +57,17 @@ class StudentJourneyTest extends TestCase
         ])->assertCreated();
         $code = $created->json('activationCodes.0.code');
         $student = User::where('identity_number', 'JOURNEY-DEMO')->firstOrFail();
-        if ($withoutEmail) {
+        if ($withoutEmail && ! $initialPassword) {
             config(['student-setup.password_enabled' => true, 'student-setup.enabled' => false]);
             $code = $this->postJson('/api/admin/student-setup-codes', ['userIds' => [$student->id]])->assertOk()->json('codes.0.code');
         }
         auth()->logout();
         $activation = ['email' => $student->email, 'code' => $code, 'password' => 'JourneyTest123!', 'password_confirmation' => 'JourneyTest123!'];
-        if ($withoutEmail) {
+        if ($initialPassword) {
+            $this->postJson('/api/login', ['identifier' => $student->identity_number, 'password' => $student->identity_number])->assertOk()->assertJsonPath('passwordChangeRequired', true);
+            $this->getJson('/api/classes')->assertForbidden();
+            $this->postJson('/api/change-password', $activation)->assertOk();
+        } elseif ($withoutEmail) {
             $this->postJson('/api/student-password-setup/claim', ['identityNumber' => $student->identity_number, 'setupCode' => $code])->assertOk();
             $this->postJson('/api/student-password-setup/complete', $activation)->assertOk();
             $this->assertNull($student->fresh()->email);
@@ -121,7 +135,7 @@ class StudentJourneyTest extends TestCase
         $this->getJson('/api/tutorials')->assertOk()->assertJsonPath('progress.0.guide_key', 'student-orientation');
         $this->getJson('/api/learning-modules')->assertOk()->assertJsonPath('learningModules.0.progress.completed', true);
         $other = User::factory()->create(['first_name' => 'Other', 'last_name' => 'Demo', 'role' => 'student', 'status' => 'active']);
-        $this->actingAs($other)->getJson('/api/tutorials')->assertJsonCount(0,'progress');
+        $this->actingAs($other)->withSession(['student_password_revision' => 0])->getJson('/api/tutorials')->assertJsonCount(0, 'progress');
         $this->getJson($url)->assertForbidden();
     }
 }

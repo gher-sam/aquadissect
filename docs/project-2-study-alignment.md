@@ -406,3 +406,32 @@ Isolated engineering checks cover both account-activation methods and the comple
 student ID/password course journey, with synthetic desktop/mobile browser evidence
 recorded in `docs/student-password-access.md`. Real-student use, physical-device
 checks and faculty/research validation remain separate and pending.
+
+## October 25, 2026: Student ID initial password and audited resets
+
+The user corrected the first-time workflow: the student ID is both the username
+and initial temporary password. The student must save a different private password
+before opening course pages, content, reports or activities. Email, OTP and private
+setup codes are not prerequisites for this route. This supersedes the immediately
+preceding private-code-first decision. Existing active passwords remain unchanged
+unless an authorized staff member explicitly resets that student.
+
+New administrator-provisioned roster accounts receive a hashed student-ID initial
+password when this policy is enabled. The existing pending students in the approved
+current Section A and Section B offerings may be initialized through a scoped,
+audited, idempotent operation; accounts remain pending until their required password
+change completes. Existing identities, enrollment, Google links and learning records
+are retained. No plaintext password is stored in audit events, source or reports.
+
+An active administrator may reset a student. An active instructor may reset only
+a student actively enrolled in that instructor's active MB 304L section. Program
+Heads and students cannot reset accounts. A reset restores the student-ID temporary
+password, requires another password change, invalidates older online sessions and
+retains academic records. Audit events retain actor/target IDs, actor role, a
+controlled reason and timestamps. Authorized staff can inspect scoped password
+history. Email and code features remain disabled for the current rollout. Google
+sign-in does not bypass the mandatory password change. Faculty review/publication,
+section assignment, lesson prerequisites and research consent remain unchanged.
+Status: Implemented but awaiting validation. Engineering evidence is recorded in
+`docs/student-password-access.md`; real-student acceptance, physical-device checks
+and faculty/research validation remain separate and pending.

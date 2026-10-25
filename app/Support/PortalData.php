@@ -18,6 +18,9 @@ class PortalData
     /** @return array<string, mixed> */
     public function for(?User $user): array
     {
+        if ($user?->role === User::ROLE_STUDENT && $user->must_change_password) {
+            return ['user' => $user->portalProfile(), 'passwordChangeRequired' => true, 'passwordChangeUrl' => route('password.change')];
+        }
         if (! $user || ! $user->isActive()) {
             return $this->guest();
         }

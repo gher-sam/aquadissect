@@ -23,6 +23,9 @@ export async function request(path, { method = 'GET', body, signal } = {}) {
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
+    if (response.status === 403 && data.passwordChangeRequired) {
+      window.location.assign(data.passwordChangeUrl || appUrl('/change-password'));
+    }
     if ([401, 419].includes(response.status) && window.AQUADISSECT_BOOTSTRAP?.user) {
       window.location.assign(appUrl('/login'));
     }
