@@ -1,4 +1,5 @@
 import { request } from './api.js';
+import '../../css/student-passwords.css';
 import { escapeHtml as e } from './format.js';
 
 export function setupStudentPasswordActions(root, confirmAction, showMessage) {
