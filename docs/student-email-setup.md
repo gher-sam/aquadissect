@@ -45,7 +45,7 @@ sends a requested test without changing student records or enabling the feature.
 The operator must confirm actual inbox receipt; transport acceptance is insufficient.
 Only then set both flags true and refresh the production configuration cache.
 
-The feature fails closed for missing SMTP authentication, unverified delivery or
+The feature fails closed for missing sending authentication, unverified delivery or
 log/array/failover transports. It never treats log output as successful delivery.
 Disabling either flag stops student setup while retaining existing sign-in and
 activation. Do not remove live account or enrollment data to roll back application
@@ -88,7 +88,9 @@ faculty validation, research consent or learning effectiveness.
 
 ## Current operational prerequisite
 
-The selected sending service is Google email. Use smtp.gmail.com, port 465,
+The selected sending service is Google email. The user requested proceeding
+without enabling 2-Step Verification on the sender; use the OAuth route below.
+SMTP with an app password remains an optional alternative: smtp.gmail.com, port 465,
 MAIL_SCHEME=smtps, and the authorized Google sender as both MAIL_USERNAME and
 MAIL_FROM_ADDRESS. MAIL_PASSWORD must be a private Google app password, never the
 normal Google password. App-password availability depends on the account's
@@ -106,3 +108,37 @@ and the Dovecot service is failed. This does not establish an operational sendin
 service for AquaDissect. No SMTP credentials, mailbox, domain mail records or
 delivery confirmation have been invented. Keep the student flow disabled pending
 working authorized mail-service access and an actual inbox delivery check.
+
+## Google authorization alternative
+
+Use `MAIL_MAILER=gmail`, set MAIL_FROM_ADDRESS to the designated sender, and
+configure GMAIL_SENDER_CLIENT_ID, GMAIL_SENDER_CLIENT_SECRET,
+GMAIL_SENDER_REDIRECT_URI and GMAIL_SENDER_EMAIL privately. The redirect must be
+the registered AquaDissect `/auth/google/callback` URL. Mail credentials are
+configured separately from student sign-in; that sign-in still requests only
+openid/email/profile. Prefer a dedicated mail client where one is available.
+
+An active administrator opens People & sections → Prepare private student setup
+codes → Set up verification email delivery. Connect Google email requests only
+openid/email identity and `gmail.send`, with offline access, expiring session-bound
+state and PKCE. The callback rejects a different or unverified sender, missing
+send permission, missing refresh credential, expired state or a changed actor.
+The encrypted refresh credential remains in the private local disk under
+`mail/gmail-sender.enc`; it is never returned by an API, cloned or downloaded with
+source. Access tokens are short-lived in memory; provider diagnostics are redacted.
+Sending refreshes authorization and posts MIME messages to Gmail's sending API.
+There is no inbox-read permission or automatic retry of uncertain deliveries.
+
+The Cloud project must have Gmail API enabled and its OAuth consent configured.
+Google may require 2-Step Verification for the Cloud administrator even when the
+sender uses OAuth without an app password. No authentication or security control
+is bypassed. Google authorization and actual inbox delivery remain required before
+the two student-setup flags are enabled. Testing-mode refresh credentials may
+expire after seven days; verify the project's production consent status before
+rollout rather than treating a temporary test grant as durable readiness.
+
+Engineering checks: 121 PHP tests (1,864 assertions), including eight sender tests,
+passed after adding the OAuth route. These include state/PKCE, authorization denial,
+wrong account, encrypted storage, private refresh, MIME delivery, provider failures
+and changed sender/client rejection. Mock Google responses do not prove a live grant
+or inbox delivery. Full student activation browser evidence remains synthetic.

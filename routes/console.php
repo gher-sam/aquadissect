@@ -25,14 +25,14 @@ Schedule::command('roster:expire-uploads')->everyFiveMinutes()->withoutOverlappi
 
 Artisan::command('student-setup:status', function () {
     $setup = app(StudentEmailSetup::class);
-    $this->line('Authenticated SMTP configured: '.($setup->mailConfigured() ? 'yes' : 'no'));
+    $this->line('Authenticated email delivery configured: '.($setup->mailConfigured() ? 'yes' : 'no'));
     $this->line('Inbox delivery confirmed: '.(config('student-setup.delivery_verified') ? 'yes' : 'no'));
     $this->line('Student email setup available: '.($setup->ready() ? 'yes' : 'no'));
 })->purpose('Check student email setup readiness without exposing mail credentials');
 
 Artisan::command('student-setup:test-email {recipient}', function () {
     if (! app(StudentEmailSetup::class)->mailConfigured() || ! filter_var($this->argument('recipient'), FILTER_VALIDATE_EMAIL)) {
-        $this->error('Configure authenticated SMTP and supply a valid designated test recipient first.');
+        $this->error('Connect authenticated email delivery and supply a valid designated test recipient first.');
 
         return 1;
     }
@@ -44,7 +44,7 @@ Artisan::command('student-setup:test-email {recipient}', function () {
 
         return 0;
     } catch (Throwable) {
-        $this->error('The delivery test could not be sent. Check the private SMTP settings. No credentials have been printed.');
+        $this->error('The delivery test could not be sent. Check the private sending connection. No credentials have been printed.');
 
         return 1;
     }

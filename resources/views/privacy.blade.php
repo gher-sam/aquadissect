@@ -11,7 +11,7 @@
 <main id="main">
   <nav aria-label="Page navigation"><strong>AquaDissect</strong><a href="{{ route('login') }}">Return to sign in</a></nav>
   <h1>Privacy policy</h1>
-  <small>Updated October 2, 2026</small>
+  <small>Updated October 25, 2026</small>
   <p>AquaDissect supports guided fish-anatomy learning and preparation for faculty-supervised laboratory activities. This page explains how the application handles account and learning information.</p>
 
   <h2>Information used by the application</h2>
@@ -26,9 +26,11 @@
   <h2>When students enter their own email</h2>
   <p>When enabled, a student uses their institutional ID and a privately supplied setup code to claim an existing roster account. AquaDissect sends a short-lived verification code to the email they enter. The email is saved on the account only after verification and completion of password setup. This process does not create a new enrollment, grant access to unpublished lessons, or constitute research consent.</p>
   <p>Temporary verification email data is encrypted. Setup codes and verification codes are stored as protected hashes, expire, and are not included in learning reports or the delayed academic-data clone. The configured email service processes the recipient address and verification message for delivery. Do not share setup codes, inbox codes, or passwords.</p>
+  <h2>Google sending account</h2>
+  <p>An administrator may separately connect the designated sending account with Google's send-email permission. The application stores an encrypted refresh credential privately on the server so it can send verification messages. This connection does not read inbox messages, enter the academic-data clone or grant Gmail access to students. The account owner can revoke sending access through Google. Student Google sign-in is separate and does not retain these sending credentials.</p>
   <h2>When you choose Google sign-in</h2>
   <p>AquaDissect requests only your basic profile and verified email through Google’s <code>openid</code>, <code>email</code> and <code>profile</code> permissions. Your verified email is used to match an existing account, activate an administrator-provisioned student account, or prepare an instructor access request.</p>
-  <p>The application stores the Google account identifier, verified email, verification time and link to your AquaDissect account. For a new instructor request, your profile name and email are held in a short-lived verification session; the details you confirm are saved when you submit the request. Google sign-in does not give the application access to Gmail, Drive, Calendar or your Google password. Google access tokens, refresh tokens and profile pictures are not retained by the application.</p>
+  <p>The application stores the Google account identifier, verified email, verification time and link to your AquaDissect account. For a new instructor request, your profile name and email are held in a short-lived verification session; the details you confirm are saved when you submit the request. Google sign-in does not give the application access to Gmail, Drive, Calendar or your Google password. Tokens and profile pictures from student or instructor sign-in are not retained by the application.</p>
   <p>Google processes sign-in under its own <a href="https://policies.google.com/privacy">privacy policy</a>. Google sign-in does not determine your academic role, enrollment, research consent or instructor approval.</p>
 
   <h2>Who can see records</h2>

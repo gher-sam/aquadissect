@@ -369,7 +369,14 @@ are confirmed. A provider accepting a message, local mail capture, synthetic tes
 or deploying code does not establish real inbox delivery. The user subsequently
 selected Google email as the sending service; the hosting-email purchase path is
 not required. Gmail SMTP must use an authorized sender and its private app
-credential; existing Google sign-in scopes remain unchanged. Status: Implemented
+credential; existing Google sign-in scopes remain unchanged. The user subsequently
+requested proceeding without enabling 2-Step Verification on the sender. An
+administrator-only OAuth connection with the Gmail send-only permission is the
+approved alternative; it does not add Gmail permissions to student sign-in.
+The private encrypted sender refresh credential is excluded from academic clones,
+source downloads and public browser storage. Google may independently require
+2-Step Verification for the Cloud account configuring the API. No Google security
+setting is bypassed or changed automatically. Status: Implemented
 but awaiting validation. Synthetic engineering checks cover activation and failure
 paths; actual Gmail inbox delivery, real-student use and physical-device checks
 remain pending. The feature stays disabled until the inbox-delivery gate passes.

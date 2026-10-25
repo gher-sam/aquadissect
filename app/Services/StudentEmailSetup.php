@@ -21,6 +21,10 @@ class StudentEmailSetup
 {
     public function mailConfigured(): bool
     {
+        if (config('mail.default') === 'gmail') {
+            return app(GmailSender::class)->connected();
+        }
+
         return config('mail.default') === 'smtp'
             && (bool) config('mail.mailers.smtp.host')
             && (bool) config('mail.mailers.smtp.username')

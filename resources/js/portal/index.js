@@ -6,7 +6,7 @@ import { focusedSpecies, focusedClasses } from './speciesFocus.js';
 import { setupRosterTables, cardsToTable } from './rosterTables.js';
 import { setupWorkspaceShell, setupWorkspacePage } from './workspace.js';
 import { setupTutorials, startHereCard, setupStaffRoles } from './tutorials.js';
-import { request } from './api.js';
+import { request, appUrl } from './api.js';
 import { adminDashboard, adminRosterView, classCards, instructorDashboard, managerView, speciesLibrary, studentDashboard, studentOrientationPath } from './dashboards.js';
 import { escapeHtml, titleCase } from './format.js';
 import { createModuleExperience, promptStudio, safetyWorkspace } from './safetyTools.js';
@@ -386,7 +386,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
       if (state.currentUser?.role !== 'student') cardsToTable(elements.classes, '.class-card', 'classes', 'Class sections', state.classes);
     }
     if (name === 'roster' && elements.roster) {
-      elements.roster.innerHTML = adminRosterView(state.adminRoster, state.rosterPreview, state.activationCodes, state.rosterError);
+      elements.roster.innerHTML = adminRosterView(state.adminRoster, state.rosterPreview, state.activationCodes, state.rosterError, appUrl('/admin/email-delivery'));
       setupRosterTables(elements.roster);
       setupStudentCodeBatch(elements.roster, state.adminRoster?.classes || [], confirmPortalAction);
       setupBulkRoster(elements.roster, state.adminRoster?.classes || [], state.currentUser?.id, async result => {

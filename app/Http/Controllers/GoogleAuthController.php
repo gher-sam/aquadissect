@@ -7,6 +7,7 @@ use App\Models\ExternalIdentity;
 use App\Models\RosterEvent;
 use App\Models\User;
 use App\Services\DelayedCloneWrite;
+use App\Services\GmailSender;
 use App\Support\GoogleAccess;
 use GuzzleHttp\Client;
 use Illuminate\Database\QueryException;
@@ -25,6 +26,7 @@ class GoogleAuthController extends Controller
             return redirect()->route('portal.home');
         }
         $request->session()->forget('google_registration');
+        $request->session()->forget('gmail_sender_intent');
         $request->session()->put('google_intent', ['action' => $intent, 'expires' => now()->addMinutes(10)->timestamp]);
 
         return Socialite::driver('google')->setScopes(['openid', 'email', 'profile'])
@@ -33,6 +35,10 @@ class GoogleAuthController extends Controller
 
     public function callback(Request $request, DelayedCloneWrite $writes)
     {
+        if ($request->session()->has('gmail_sender_intent')) {
+            return app(GmailSenderController::class)->callback($request, app(GmailSender::class));
+        }
+
         $intent = $request->session()->pull('google_intent');
         if (! GoogleAccess::ready() || ! is_array($intent) || ($intent['expires'] ?? 0) < now()->timestamp) {
             return $this->failure('This sign-in has expired. Please start again.');
