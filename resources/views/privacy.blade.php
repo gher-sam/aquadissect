@@ -24,6 +24,7 @@
   <p>These records support account access, class activities, saved progress, reports, content review and operation of the service. Research participation and consent are separate from account activation and tutorial or lesson completion.</p>
 
   <h2>When students enter their own email</h2>
+  <p>Email is not required for student ID and password access. When that setup option is enabled, students claim an existing roster account with their student ID and a private administrator-supplied setup code, then choose their own password. This does not verify an email address, create an enrollment or grant access to unpublished lessons.</p>
   <p>When enabled, a student uses their institutional ID and a privately supplied setup code to claim an existing roster account. AquaDissect sends a short-lived verification code to the email they enter. The email is saved on the account only after verification and completion of password setup. This process does not create a new enrollment, grant access to unpublished lessons, or constitute research consent.</p>
   <p>Temporary verification email data is encrypted. Setup codes and verification codes are stored as protected hashes, expire, and are not included in learning reports or the delayed academic-data clone. The configured email service processes the recipient address and verification message for delivery. Do not share setup codes, inbox codes, or passwords.</p>
   <h2>Google sending account</h2>

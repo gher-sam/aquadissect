@@ -38,6 +38,11 @@ class StudentEmailSetup
         return config('student-setup.enabled') && config('student-setup.delivery_verified') && $this->mailConfigured();
     }
 
+    public function passwordReady(): bool
+    {
+        return (bool) config('student-setup.password_enabled');
+    }
+
     public function digest(string $value): string
     {
         return hash_hmac('sha256', $value, (string) config('app.key'));
@@ -83,8 +88,22 @@ class StudentEmailSetup
 
     public function claim(Request $request, string $identity, string $plain): array
     {
+        $this->createClaim($request, $identity, $plain, 'email');
+
+        return $this->status($request);
+    }
+
+    public function claimPassword(Request $request, string $identity, string $plain): array
+    {
+        $this->createClaim($request, $identity, $plain, 'password');
+
+        return $this->passwordStatus($request);
+    }
+
+    private function createClaim(Request $request, string $identity, string $plain, string $method): void
+    {
         $nonce = Str::random(64);
-        $challenge = DB::transaction(function () use ($identity, $plain, $nonce) {
+        $challenge = DB::transaction(function () use ($identity, $plain, $nonce, $method) {
             $user = User::whereRaw('UPPER(identity_number) = ?', [strtoupper(trim($identity))])->lockForUpdate()->first();
             $code = $user ? StudentSetupCode::where('user_id', $user->id)->lockForUpdate()->first() : null;
             $hash = $this->digest(strtoupper(str_replace(['-', ' '], '', $plain)));
@@ -95,16 +114,14 @@ class StudentEmailSetup
             StudentSetupChallenge::where('user_id', $user->id)->delete();
 
             return StudentSetupChallenge::create(['id' => (string) Str::uuid(), 'user_id' => $user->id,
-                'student_setup_code_id' => $code->id, 'setup_hash' => $code->code_hash,
+                'student_setup_code_id' => $code->id, 'setup_hash' => $code->code_hash, 'method' => $method,
                 'account_hash' => $this->accountDigest($user),
                 'session_hash' => $this->digest($nonce), 'expires_at' => now()->addMinutes(30)]);
         });
         $request->session()->put('student_setup', ['id' => $challenge->id, 'nonce' => $nonce]);
-
-        return $this->status($request);
     }
 
-    private function locked(Request $request): array
+    private function locked(Request $request, string $method = 'email'): array
     {
         $session = $request->session()->get('student_setup', []);
         $reference = StudentSetupChallenge::find($session['id'] ?? '');
@@ -112,7 +129,7 @@ class StudentEmailSetup
         $code = $reference ? StudentSetupCode::whereKey($reference->student_setup_code_id)->lockForUpdate()->first() : null;
         $challenge = $reference ? StudentSetupChallenge::whereKey($reference->id)->lockForUpdate()->first() : null;
         if (! $user || ! $this->eligible($user) || ! $code || $code->consumed_at || $code->expires_at->isPast()
-            || ! $challenge || $challenge->expires_at->isPast()
+            || ! $challenge || $challenge->method !== $method || $challenge->expires_at->isPast()
             || ! hash_equals($challenge->setup_hash, $code->code_hash)
             || ! hash_equals($challenge->account_hash, $this->accountDigest($user))
             || ! hash_equals($challenge->session_hash, $this->digest((string) ($session['nonce'] ?? '')))) {
@@ -120,6 +137,35 @@ class StudentEmailSetup
         }
 
         return [$user, $code, $challenge];
+    }
+
+    public function passwordStatus(Request $request): array
+    {
+        if (! $this->passwordReady()) {
+            return ['enabled' => false, 'stage' => 'claim'];
+        }
+        try {
+            return DB::transaction(function () use ($request) {
+                $this->locked($request, 'password');
+
+                return ['enabled' => true, 'stage' => 'password'];
+            });
+        } catch (ValidationException) {
+            return ['enabled' => true, 'stage' => 'claim'];
+        }
+    }
+
+    public function completePassword(Request $request, string $password): void
+    {
+        DB::transaction(function () use ($request, $password) {
+            [$user, $code] = $this->locked($request, 'password');
+            $user->forceFill(['password' => $password, 'status' => User::STATUS_ACTIVE])->save();
+            $code->update(['consumed_at' => now()]);
+            AccountActivationToken::where('user_id', $user->id)->get()->each->delete();
+            RosterEvent::create(['user_id' => $user->id, 'action' => 'student_activated', 'details' => ['method' => 'student_id_password']]);
+            StudentSetupChallenge::where('user_id', $user->id)->delete();
+        });
+        $request->session()->forget('student_setup');
     }
 
     public function status(Request $request): array

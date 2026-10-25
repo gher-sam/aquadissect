@@ -6,8 +6,8 @@
         @if(\App\Support\GoogleAccess::ready())<div class="auth-divider"><span>Or use your existing password</span></div>@endif
 
         <label class="portal-field" for="loginEmail">
-          <span>Email address</span>
-          <span class="portal-input-control"><i data-lucide="mail" aria-hidden="true"></i><input id="loginEmail" name="email" type="email" placeholder="Enter your email" autocomplete="username" required value="{{ app()->environment('production') ? '' : 'student@aquadissect.local' }}"></span>
+          <span>Student ID or email</span>
+          <span class="portal-input-control"><i data-lucide="user" aria-hidden="true"></i><input id="loginEmail" name="identifier" type="text" placeholder="Enter your student ID or email" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="255" required value="{{ app()->environment('production') ? '' : 'student@aquadissect.local' }}"></span>
         </label>
         <label class="portal-field" for="loginPassword">
           <span>Password</span>
@@ -25,7 +25,7 @@
             <button class="portal-link" type="button" data-portal-page="activate">Activate student account</button>
             <button class="portal-link" type="button" data-portal-page="register">Request instructor access</button>
           </div>
-          <p class="portal-muted">{{ \App\Support\GoogleAccess::ready() ? 'Students: use your registered Google email or activation code.' : 'Students: use the activation code provided by your administrator.' }}</p>
+          <p class="portal-muted">Students: your student ID is your username. First-time users need the private setup code from their administrator to choose a password.</p>
         </div>
         @unless(app()->environment('production'))
         <details class="demo-access">

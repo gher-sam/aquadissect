@@ -5,17 +5,19 @@ export function setupStudentEmailFlow() {
   const root = document.querySelector('#studentEmailSetup');
   if (!root || root.dataset.initialized || window.AQUADISSECT_BOOTSTRAP?.user) return;
   root.dataset.initialized = 'true';
+  const passwordOnly = root.dataset.setupMode === 'password';
+  const endpoint = passwordOnly ? '/api/student-password-setup' : '/api/student-setup';
   let stage = 'claim', email = '', maskedEmail = '', busy = false;
   const field = (label, name, attrs = '') => `<label class="portal-field portal-wide">${label}<input name="${name}" ${attrs} required></label>`;
   function render(message = '') {
     let fields = '', label = '';
     if (stage === 'complete') {
-      root.innerHTML = `<h2 tabindex="-1">Account activated</h2><p>Sign in, then open Home → Start orientation.</p><a class="portal-primary" href="${e(appUrl('/login'))}">Go to sign in</a>`;
+      root.innerHTML = `<h2 tabindex="-1">Account activated</h2><p>${passwordOnly ? 'Sign in with your student ID and password, then open Home → Start orientation.' : 'Sign in, then open Home → Start orientation.'}</p><a class="portal-primary" href="${e(appUrl('/login'))}">Go to sign in</a>`;
       root.querySelector('h2').focus();
       return;
     }
     if (stage === 'unavailable') {
-      root.innerHTML = '<p role="status">Student email setup is temporarily unavailable. Existing account access is still available below.</p>';
+      root.innerHTML = '<p role="status">Student account setup is temporarily unavailable. Ask your administrator for help.</p>';
       return;
     }
     if (stage === 'claim') {
@@ -28,10 +30,10 @@ export function setupStudentEmailFlow() {
       fields = `<p>Check ${e(maskedEmail || 'your inbox')} for the six-digit code. Check Spam or Junk too. Only the newest code works, for 10 minutes.</p>${field('Email verification code', 'otp', 'inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" minlength="6" maxlength="6"')}<button class="portal-link" type="button" data-setup-email>Change email or request a new code</button><small>Wait 60 seconds between requests. Up to five codes can be requested per hour.</small>`;
       label = 'Verify my email';
     } else {
-      fields = `<p>Email verified. Create a password within five minutes to finish setup.</p>${field('New password', 'password', 'type="password" autocomplete="new-password" minlength="8"')}${field('Confirm password', 'password_confirmation', 'type="password" autocomplete="new-password" minlength="8"')}<small>Use at least eight characters, including a letter and a number.</small><button class="portal-link" type="button" data-setup-email>Use a different email</button>`;
+      fields = `<p>${passwordOnly ? 'Your setup code is confirmed. Choose your private password. No email is required.' : 'Email verified. Create a password within five minutes to finish setup.'}</p>${field('New password', 'password', 'type="password" autocomplete="new-password" minlength="8"')}${field('Confirm password', 'password_confirmation', 'type="password" autocomplete="new-password" minlength="8"')}<small>Use at least eight characters, including a letter and a number.</small>${passwordOnly ? '' : '<button class="portal-link" type="button" data-setup-email>Use a different email</button>'}`;
       label = 'Activate my account';
     }
-    root.innerHTML = `<h2>First-time student setup</h2><p>Use the private setup code your administrator gave you. This activates your existing roster account.</p><form data-student-setup-form><div class="registration-grid">${fields}</div><p role="alert" data-setup-error ${message ? '' : 'hidden'}>${e(message)}</p><div class="registration-actions"><button type="button" class="portal-secondary" data-setup-cancel>Cancel setup</button><button type="submit" class="portal-primary">${label}</button></div></form>`;
+    root.innerHTML = `<h2>First-time student setup</h2><p>Use the private setup code your administrator gave you. ${passwordOnly ? 'Set your password, then use your student ID as your username. No email is required.' : 'This activates your existing roster account.'}</p><form data-student-setup-form><div class="registration-grid">${fields}</div><p role="alert" data-setup-error ${message ? '' : 'hidden'}>${e(message)}</p><div class="registration-actions"><button type="button" class="portal-secondary" data-setup-cancel>Cancel setup</button><button type="submit" class="portal-primary">${label}</button></div></form>`;
   }
   function showError(message) {
     const target = root.querySelector('[data-setup-error]');
@@ -47,14 +49,14 @@ export function setupStudentEmailFlow() {
     form.setAttribute('aria-busy', 'true');
     try {
       let result;
-      if (stage === 'claim') result = await request('/api/student-setup/claim', { method: 'POST', body: { identityNumber: data.get('identityNumber'), setupCode: data.get('setupCode') } });
+      if (stage === 'claim') result = await request(`${endpoint}/claim`, { method: 'POST', body: { identityNumber: data.get('identityNumber'), setupCode: data.get('setupCode') } });
       else if (stage === 'email') {
         email = String(data.get('email')).trim().toLowerCase();
         result = await request('/api/student-setup/email', { method: 'POST', body: { email } });
       } else if (stage === 'otp') result = await request('/api/student-setup/verify', { method: 'POST', body: { otp: String(data.get('otp')).trim() } });
       else {
         if (data.get('password') !== data.get('password_confirmation')) throw new Error('The password confirmation does not match.');
-        await request('/api/student-setup/complete', { method: 'POST', body: { password: data.get('password'), password_confirmation: data.get('password_confirmation') } });
+        await request(`${endpoint}/complete`, { method: 'POST', body: { password: data.get('password'), password_confirmation: data.get('password_confirmation') } });
         form.reset(); email = ''; stage = 'complete'; render(); return;
       }
       stage = result.stage; maskedEmail = result.maskedEmail || ''; render();
@@ -66,19 +68,19 @@ export function setupStudentEmailFlow() {
     if (event.target.closest('[data-setup-email]') && !busy) { stage = 'email'; render(); root.querySelector('input')?.focus(); }
     if (!event.target.closest('[data-setup-cancel]') || busy) return;
     busy = true;
-    try { await request('/api/student-setup/cancel', { method: 'POST' }); email = ''; stage = 'claim'; render(); }
+    try { await request(`${endpoint}/cancel`, { method: 'POST' }); email = ''; stage = 'claim'; render(); }
     catch (error) { showError(error.message); }
     finally { busy = false; }
   });
   render();
-  request('/api/student-setup/status').then(result => { stage = result.enabled ? result.stage : 'unavailable'; maskedEmail = result.maskedEmail || ''; render(); }).catch(error => showError(error.message));
+  request(`${endpoint}/status`).then(result => { stage = result.enabled ? result.stage : 'unavailable'; maskedEmail = result.maskedEmail || ''; render(); }).catch(error => showError(error.message));
 }
 
 export function setupStudentCodeBatch(root, classes, confirmAction) {
   const holder = root.querySelector('#studentSetupCodeBatch');
   if (!holder) return;
   const active = classes.filter(item => item.status === 'active');
-  holder.innerHTML = `<p>Choose a section and the pending students who need to enter their own email. New setup codes replace any previous setup codes for the selected accounts.</p><p>Students can use these codes only after email delivery has been enabled. Give each student only their own code through your private delivery workflow.</p><form data-setup-code-batch><label class="portal-field">Class section<select name="section" required><option value="">Choose a section</option>${active.map(item => `<option value="${item.id}">${e(item.name)} · ${e(item.academicYear)} · semester ${e(item.semester)}</option>`).join('')}</select></label><div data-setup-students></div><p data-setup-count role="status">0 students selected</p><button type="submit" class="portal-primary" disabled>Prepare selected setup codes</button><p data-setup-batch-message role="status" hidden></p></form><div data-setup-codes-output></div>`;
+  holder.innerHTML = `<p>Choose a section and the pending students who need to set a password. New setup codes replace any previous setup codes for the selected accounts.</p><p>Give each student only their own code privately. With student ID and password setup enabled, students can activate without an email address.</p><form data-setup-code-batch><label class="portal-field">Class section<select name="section" required><option value="">Choose a section</option>${active.map(item => `<option value="${item.id}">${e(item.name)} · ${e(item.academicYear)} · semester ${e(item.semester)}</option>`).join('')}</select></label><div data-setup-students></div><p data-setup-count role="status">0 students selected</p><button type="submit" class="portal-primary" disabled>Prepare selected setup codes</button><p data-setup-batch-message role="status" hidden></p></form><div data-setup-codes-output></div>`;
   const form = holder.querySelector('form');
   function count() {
     const n = form.querySelectorAll('[name="userId"]:checked').length;

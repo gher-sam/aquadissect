@@ -380,3 +380,29 @@ setting is bypassed or changed automatically. Status: Implemented
 but awaiting validation. Synthetic engineering checks cover activation and failure
 paths; actual Gmail inbox delivery, real-student use and physical-device checks
 remain pending. The feature stays disabled until the inbox-delivery gate passes.
+
+## October 25, 2026: Defer email and use student ID with password
+
+The user deferred email configuration and email OTP for now. Students may access
+their existing roster account with student ID as the username and a private
+password. A first-time pending student without email uses the administrator's
+private seven-day setup code to claim the account and choose a password directly.
+Email entry and inbox verification are not required in this mode, and no address
+or email-verification timestamp is invented. This supersedes email verification as
+an immediate student-access prerequisite, while retaining the disabled email
+implementation for a future separately authorized rollout.
+
+Student setup remains restricted to existing eligible pending roster accounts;
+there is no public registration, shared default password or automatic activation
+of the imported roster. Codes and browser sessions remain expiring and single-use
+on completion. Email and password-only setup sessions cannot be substituted for
+each other. Successful setup retains the account ID, enrollment, learning records
+and academic permissions. Existing email/password and Google access remain valid.
+Single-student administrator provisioning also permits an omitted email, consistent
+with the existing bulk-roster workflow. Gmail work is deferred; its student OTP
+flags stay off. Content review, publication, section assignment, safety prerequisites
+and research consent remain separate. Status: Implemented but awaiting validation.
+Isolated engineering checks cover both account-activation methods and the complete
+student ID/password course journey, with synthetic desktop/mobile browser evidence
+recorded in `docs/student-password-access.md`. Real-student use, physical-device
+checks and faculty/research validation remain separate and pending.

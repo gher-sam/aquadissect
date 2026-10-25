@@ -5,12 +5,14 @@
       </article>
       <div class="registration-card auth-card--registration">
         <div class="registration-heading"><span class="portal-kicker">Student access</span><h1>Activate your account</h1><p>Use the account already provided through your class roster.</p></div>
-        @if(app(\App\Services\StudentEmailSetup::class)->ready())
+        @if(app(\App\Services\StudentEmailSetup::class)->passwordReady())
+          <div id="studentEmailSetup" data-setup-mode="password"></div>
+        @elseif(app(\App\Services\StudentEmailSetup::class)->ready())
           <div id="studentEmailSetup"></div>
         @else
           <p class="page-guidance">Student-entered email verification is not available yet. If your roster account has no email, ask your administrator when setup will open.</p>
         @endif
-        <details class="workflow-disclosure" @if(!app(\App\Services\StudentEmailSetup::class)->ready()) open @endif>
+        <details class="workflow-disclosure" @if(!app(\App\Services\StudentEmailSetup::class)->passwordReady() && !app(\App\Services\StudentEmailSetup::class)->ready()) open @endif>
         <summary>Use an existing activation code or Google account</summary>
       <form id="activationForm">
         <div class="registration-heading"><button class="auth-back-button" type="button" data-portal-page="login"><i data-lucide="arrow-left" aria-hidden="true"></i><span>Back to sign in</span></button><span class="portal-kicker">Existing account access</span><h2>Use your existing activation details</h2><p>{{ \App\Support\GoogleAccess::ready() ? 'The administrator must provide your account first. Activate with the matching Google email or use a one-time code below.' : 'Use the email and one-time code supplied by the administrator. Codes expire after three days.' }}</p></div>

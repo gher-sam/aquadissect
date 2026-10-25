@@ -86,6 +86,7 @@ class AdminRosterController extends Controller
         $overallAvailable = $results->sum(fn ($row) => (int) $row->available);
 
         return response()->json([
+            'passwordSetupEnabled' => (bool) config('student-setup.password_enabled'),
             'course' => ['id' => $course->id, 'code' => $course->code, 'name' => $course->name],
             'classes' => $classes,
             'report' => [
@@ -202,7 +203,7 @@ class AdminRosterController extends Controller
             'classId' => ['required', 'integer', 'exists:classes,id'],
             'firstName' => ['required', 'string', 'max:80'],
             'lastName' => ['required', 'string', 'max:80'],
-            'email' => ['required', 'email', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255'],
             'identityNumber' => ['required', 'string', 'max:80'],
         ]);
         $class = LearningClass::query()->where('status', 'active')->findOrFail($validated['classId']);

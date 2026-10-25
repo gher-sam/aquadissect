@@ -1,5 +1,10 @@
 # Student email setup
 
+Current operational decision: email setup and delivery configuration are deferred.
+Students use student ID and password as described in `student-password-access.md`.
+The email implementation below is retained but disabled; inbox delivery is not
+a prerequisite for the separately enabled password-only account setup.
+
 This addition lets a student claim an existing pending roster account without an
 email. It does not create accounts, enrollments, approvals or research consent.
 

@@ -24,7 +24,7 @@ class AuthController extends Controller
     ): JsonResponse {
         return $writes->transaction(function () use ($request, $portalData): JsonResponse {
             if (! Auth::attempt($request->credentials(), $request->boolean('remember'))) {
-                throw ValidationException::withMessages(['email' => 'The email or password is incorrect.']);
+                throw ValidationException::withMessages(['identifier' => 'The student ID, email or password is incorrect.']);
             }
 
             $request->session()->regenerate();
@@ -33,7 +33,7 @@ class AuthController extends Controller
             if (! $user->isActive()) {
                 Auth::logout();
                 $request->session()->invalidate();
-                throw ValidationException::withMessages(['email' => $user->role === User::ROLE_STUDENT
+                throw ValidationException::withMessages(['identifier' => $user->role === User::ROLE_STUDENT
                     ? 'This student account needs activation. Use the code supplied by the administrator.'
                     : 'This account is waiting for administrator approval.']);
             }

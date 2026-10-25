@@ -1,9 +1,9 @@
 import { escapeHtml } from './format.js';
 
-export function studentEmailAction(student) {
+export function studentEmailAction(student, passwordSetupEnabled = false) {
   if (student.accountStatus !== 'pending') return '<span class="portal-muted">No action needed</span>';
   if (student.email) return `<button class="portal-secondary" type="button" data-issue-activation="${student.id}" aria-label="Issue new activation code for ${escapeHtml(student.name)}">Issue activation code</button>`;
-  return `<details class="workflow-disclosure"><summary>Add email for activation</summary>
+  return `${passwordSetupEnabled ? '<p>Prepare a private setup code below. The student ID is the username; no email is required.</p>' : ''}<details class="workflow-disclosure"><summary>${passwordSetupEnabled ? 'Optional email support' : 'Add email for activation'}</summary>
     <form data-student-email="${student.id}" class="package-import-card package-import-card--nested">
       <p><strong>${escapeHtml(student.name)}</strong><br>Institutional ID: ${escapeHtml(student.identityNumber || '—')}</p>
       <input type="hidden" name="identityNumber" value="${escapeHtml(student.identityNumber || '')}">

@@ -25,6 +25,7 @@ use App\Http\Controllers\StaffLearningModuleController;
 use App\Http\Controllers\StaffRoleController;
 use App\Http\Controllers\StaffSpeciesPackageController;
 use App\Http\Controllers\StudentEmailSetupController;
+use App\Http\Controllers\StudentPasswordSetupController;
 use App\Http\Controllers\TutorialController;
 use App\Http\Controllers\WorkspaceNotificationController;
 use App\Http\Controllers\WorkspaceReportController;
@@ -52,6 +53,12 @@ foreach (PortalPages::PAGES as $page => [$path, $roles]) {
 }
 
 Route::prefix('api')->group(function (): void {
+    Route::prefix('student-password-setup')->middleware('throttle:student-setup')->group(function (): void {
+        Route::get('/status', [StudentPasswordSetupController::class, 'status']);
+        Route::post('/claim', [StudentPasswordSetupController::class, 'claim'])->middleware('throttle:student-setup-claim');
+        Route::post('/complete', [StudentPasswordSetupController::class, 'complete']);
+        Route::post('/cancel', [StudentEmailSetupController::class, 'cancel']);
+    });
     Route::prefix('student-setup')->middleware('throttle:student-setup')->group(function (): void {
         Route::get('/status', [StudentEmailSetupController::class, 'status']);
         Route::post('/claim', [StudentEmailSetupController::class, 'claim'])->middleware('throttle:student-setup-claim');

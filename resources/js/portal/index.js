@@ -870,7 +870,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
     if (event.target === elements.loginForm) {
       event.preventDefault();
       const data = new FormData(elements.loginForm);
-      try { signIn(await request('/api/login', { method: 'POST', body: { email: String(data.get('email')).trim().toLowerCase(), password: String(data.get('password')), remember: data.get('remember') === 'on' } })); }
+      try { signIn(await request('/api/login', { method: 'POST', body: { identifier: String(data.get('identifier')).trim(), password: String(data.get('password')), remember: data.get('remember') === 'on' } })); }
       catch (error) { setMessage(elements.loginMessage, error.message); }
       return;
     }
