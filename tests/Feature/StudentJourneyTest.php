@@ -43,7 +43,7 @@ class StudentJourneyTest extends TestCase
         $modules = app(LearningModuleLifecycle::class);
         $module = $modules->submit($module,$admin);
         $module = $modules->review($module,$reviewer,'approved','Synthetic QA-only workflow fixture.','QA fixture, not actual faculty evidence',true);
-        $modules->publish($module,$admin);
+        $modules->publish($module,$admin,[$class->id]);
         $species = app(SpeciesPackageLifecycle::class);
         $package = $species->review($package,$reviewer,'approved','Synthetic QA-only workflow fixture.','QA fixture, not actual faculty evidence',true,true);
         $species->publish($package,$admin);

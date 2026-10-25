@@ -40,7 +40,11 @@ class StaffLearningModuleController extends Controller
 
     public function publish(Request $request, LearningModuleVersion $version, LearningModuleLifecycle $lifecycle, LearningModuleCatalog $catalog): JsonResponse
     {
-        $result = $lifecycle->publish($version, $request->user());
+        $data = $request->validate([
+            'classIds' => ['present', 'array', 'max:1000'],
+            'classIds.*' => ['integer', 'distinct'],
+        ]);
+        $result = $lifecycle->publish($version, $request->user(), $data['classIds']);
 
         return response()->json([
             'module' => $catalog->staffPayload($result['version']->load(['module', 'assets', 'reviews'])),

@@ -327,3 +327,21 @@ notebooks remain session drafts with downloads; this increment does not introduc
 durable anatomy browsing-state storage. Status: Implemented but awaiting faculty
 and research validation. Engineering evidence and limits are recorded in
 `docs/student-journey-verification.md`.
+
+## October 25, 2026: Student access readiness corrections
+
+The user authorized the recommendations following a live readiness inspection.
+Administrators may add a verified email only to an existing pending student account
+that has no email. The action records the administrator and student IDs, retains
+identity, credentials, enrollment and results, and does not activate the account,
+verify the address, or issue a code automatically. Existing account emails are not
+replaced through this workflow. Actual email values and instructor assignments
+still require verified operational input.
+
+Safety & Tools publication now requires an explicit section selection. An empty
+selection publishes without changing assignments; selected active MB 304L sections
+receive the required version, while other sections remain unchanged. This replaces
+automatic assignment to every active MB 304L section. Existing started progress,
+results and legacy exceptions are retained. Independent faculty review, current
+approval and administrator publication remain required; this work supplies no
+faculty approval, research validation or learner-effectiveness evidence.

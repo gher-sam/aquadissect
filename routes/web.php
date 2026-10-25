@@ -106,6 +106,7 @@ Route::prefix('api')->group(function (): void {
             Route::delete('/roster/uploads/{draft}', [AdminRosterController::class, 'cancelUpload']);
             Route::post('/roster/import', [AdminRosterController::class, 'import']);
             Route::post('/students/{user}/activation', [AdminRosterController::class, 'issueActivation']);
+            Route::patch('/students/{user}/email', [AdminRosterController::class, 'addStudentEmail']);
             Route::post('/species-packages/{package}/publish', [AdminSpeciesPackageController::class, 'publish']);
             Route::post('/species-packages/{package}/activate', [AdminSpeciesPackageController::class, 'activate']);
             Route::post('/species-packages/{package}/archive', [AdminSpeciesPackageController::class, 'archive']);

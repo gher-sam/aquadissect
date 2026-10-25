@@ -241,4 +241,15 @@ class AdminRosterController extends Controller
             'expiresAt' => now()->addDays(3)->toIso8601String(),
         ]));
     }
+
+    public function addStudentEmail(Request $request, User $user, StudentRoster $roster): JsonResponse
+    {
+        $data = $request->validate([
+            'email' => ['required', 'string', 'email', 'max:255'],
+            'identityNumber' => ['required', 'string', 'max:80'],
+        ]);
+        $roster->addMissingEmail($user, $data['email'], $data['identityNumber'], $request->user());
+
+        return response()->json(['message' => 'Email saved. The account remains pending; issue an activation code when ready.']);
+    }
 }

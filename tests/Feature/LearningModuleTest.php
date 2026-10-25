@@ -94,7 +94,7 @@ class LearningModuleTest extends TestCase
         $instructor = $this->instructor();
         $version = $this->version();
 
-        $this->actingAs($instructor)->postJson("/api/admin/learning-module-versions/{$version->id}/publish")
+        $this->actingAs($instructor)->postJson("/api/admin/learning-module-versions/{$version->id}/publish", ['classIds' => [$this->learningClass()->id]])
             ->assertForbidden();
         $this->actingAs($admin)->postJson("/api/staff/learning-module-versions/{$version->id}/submit")
             ->assertOk()->assertJsonPath('module.status', 'review');
@@ -106,7 +106,7 @@ class LearningModuleTest extends TestCase
         ])->assertUnprocessable()->assertJsonValidationErrors('evidenceReference');
         $this->actingAs($instructor)->postJson("/api/staff/learning-module-versions/{$version->id}/review", $this->reviewPayload())
             ->assertOk()->assertJsonPath('module.latestReview.decision', 'approved');
-        $this->actingAs($admin)->postJson("/api/admin/learning-module-versions/{$version->id}/publish")
+        $this->actingAs($admin)->postJson("/api/admin/learning-module-versions/{$version->id}/publish", ['classIds' => [$this->learningClass()->id]])
             ->assertOk()->assertJsonPath('module.status', 'published');
 
         $this->assertDatabaseHas('class_module_assignments', [
@@ -302,7 +302,7 @@ class LearningModuleTest extends TestCase
         ], ['Accept' => 'application/json'])->assertCreated();
 
         $this->assertSame(LearningModuleVersion::STATUS_DRAFT, $version->fresh()->status);
-        $this->actingAs($admin)->postJson("/api/admin/learning-module-versions/{$version->id}/publish")
+        $this->actingAs($admin)->postJson("/api/admin/learning-module-versions/{$version->id}/publish", ['classIds' => [$this->learningClass()->id]])
             ->assertUnprocessable()->assertJsonValidationErrors('module');
 
         $this->actingAs($admin)->postJson("/api/staff/learning-module-versions/{$version->id}/submit")->assertOk();
@@ -310,7 +310,7 @@ class LearningModuleTest extends TestCase
             "/api/staff/learning-module-versions/{$version->id}/review",
             $this->reviewPayload(),
         )->assertOk()->assertJsonPath('module.approvalCurrent', true);
-        $this->actingAs($admin)->postJson("/api/admin/learning-module-versions/{$version->id}/publish")
+        $this->actingAs($admin)->postJson("/api/admin/learning-module-versions/{$version->id}/publish", ['classIds' => [$this->learningClass()->id]])
             ->assertOk()->assertJsonPath('module.status', 'published');
     }
 
@@ -347,7 +347,7 @@ class LearningModuleTest extends TestCase
     {
         $this->actingAs($this->admin())->postJson("/api/staff/learning-module-versions/{$version->id}/submit")->assertOk();
         $this->actingAs($this->instructor())->postJson("/api/staff/learning-module-versions/{$version->id}/review", $this->reviewPayload())->assertOk();
-        $this->actingAs($this->admin())->postJson("/api/admin/learning-module-versions/{$version->id}/publish")->assertOk();
+        $this->actingAs($this->admin())->postJson("/api/admin/learning-module-versions/{$version->id}/publish", ['classIds' => [$this->learningClass()->id]])->assertOk();
     }
 
     /** @return array<string, mixed> */

@@ -88,7 +88,7 @@ class LearningModuleLifecycle
     }
 
     /** @return array{version: LearningModuleVersion, assignments: int, pinned: int, legacyOverrides: int} */
-    public function publish(LearningModuleVersion $version, User $actor): array
+    public function publish(LearningModuleVersion $version, User $actor, array $classIds = []): array
     {
         if ($version->status !== LearningModuleVersion::STATUS_REVIEW) {
             throw ValidationException::withMessages(['module' => 'Only a reviewed module version can be published.']);
@@ -118,7 +118,12 @@ class LearningModuleLifecycle
             throw ValidationException::withMessages(['assets' => 'Every uploaded asset requires a supported type, provenance, caption, licence, checksum, and faculty validation.']);
         }
 
-        return DB::transaction(function () use ($version, $actor): array {
+        return DB::transaction(function () use ($version, $actor, $classIds): array {
+            $classes = LearningClass::query()->whereIn('id', $classIds)->where('status', 'active')
+                ->whereHas('course', fn ($query) => $query->where('code', 'MB-304L'))->lockForUpdate()->get();
+            if ($classes->count() !== count($classIds)) {
+                throw ValidationException::withMessages(['classIds' => 'Choose distinct active MB 304L sections. Refresh the section list if it has changed.']);
+            }
             LearningModuleVersion::query()->where('learning_module_id', $version->learning_module_id)
                 ->where('id', '<>', $version->id)->where('is_current', true)->update(['is_current' => false]);
             $version->update([
@@ -131,8 +136,6 @@ class LearningModuleLifecycle
             $assigned = 0;
             $pinned = 0;
             $legacyOverrides = 0;
-            $classes = LearningClass::query()->where('status', 'active')
-                ->whereHas('course', fn ($query) => $query->where('code', 'MB-304L'))->get();
             foreach ($classes as $class) {
                 $assignment = ClassModuleAssignment::query()->where([
                     'class_id' => $class->id,

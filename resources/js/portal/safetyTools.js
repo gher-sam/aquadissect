@@ -71,7 +71,7 @@ function assetForm(module) {
   </form></details>`;
 }
 
-function staffCard(module, role, currentUser) {
+function staffCard(module, role, currentUser, classes = []) {
   const validated = module.tools.filter((tool) => tool.validationStatus === 'faculty_validated').length;
   return `<article class="learning-module-manager-card" data-learning-module-card="${module.id}">
     <div class="learning-module-manager-card__heading">
@@ -81,6 +81,7 @@ function staffCard(module, role, currentUser) {
     <p>${escapeHtml(module.description)}</p>
     <dl class="module-audit-grid"><div><dt>Tools</dt><dd>${module.toolCount}</dd></div><div><dt>Validated</dt><dd>${validated}</dd></div><div><dt>Assets</dt><dd>${module.assetCount}</dd></div><div><dt>Reviews</dt><dd>${module.reviewCount}</dd></div></dl>
     ${module.latestReview ? `<div class="module-review-summary"><strong>${escapeHtml(titleCase(module.latestReview.decision.replace('_', ' ')))}</strong><span>${escapeHtml(module.latestReview.reviewerRole)}</span><p>${escapeHtml(module.latestReview.notes)}</p>${module.latestReview.evidenceReference ? `<small>Evidence: ${escapeHtml(module.latestReview.evidenceReference)}</small>` : ''}</div>` : ''}
+    ${role === 'admin' && module.status === 'review' && module.approvalCurrent ? `<fieldset><legend>Assign this version to sections</legend><p>Choose the sections that should receive this required module. Leave every box clear to publish without changing assignments.</p>${classes.filter(item => item.status === 'active' && item.courseCode === 'MB-304L').map(item => `<label class="portal-check"><input type="checkbox" data-module-publish-section value="${item.id}"><span>${escapeHtml(item.name)} · ${escapeHtml(item.academicYear)} · semester ${escapeHtml(item.semester)} · ${item.studentCount} learners</span></label>`).join('')}</fieldset>` : ''}
     <div class="package-actions">
       <button class="portal-secondary" type="button" data-open-learning-module="${module.id}">Preview module</button>
       ${role !== 'program_head' && module.status === 'draft' ? `<button class="portal-primary" type="button" data-submit-learning-module="${module.id}">Send for faculty review</button>` : ''}
@@ -98,7 +99,7 @@ export function safetyWorkspace(modules, role, currentUser, options = {}) {
     return '<div class="empty-state"><strong>No Safety &amp; Tools module is assigned</strong><span>Students receive only an independently reviewed and administrator-published version.</span></div>';
   }
   if (role === 'student') return `<div class="learning-module-grid">${modules.map((module) => studentCard(module, options)).join('')}</div>`;
-  return `<div class="learning-module-manager-grid">${modules.map((module) => staffCard(module, role, currentUser)).join('')}</div>`;
+  return `<div class="learning-module-manager-grid">${modules.map((module) => staffCard(module, role, currentUser, options.classes)).join('')}</div>`;
 }
 
 export function promptStudio(modules) {

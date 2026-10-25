@@ -377,7 +377,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
     if (name === 'safety') {
       elements.safety.hidden = false;
       elements.safetyExperience.hidden = true;
-      elements.safety.innerHTML = safetyWorkspace(state.learningModules, state.currentUser?.role, state.currentUser);
+      elements.safety.innerHTML = safetyWorkspace(state.learningModules, state.currentUser?.role, state.currentUser, { classes: state.classes });
       if (state.currentUser?.role !== 'student') cardsToTable(elements.safety, '.learning-module-manager-card', 'safety-records', 'Safety module versions', state.learningModules);
     }
     if (name === 'classes') {
@@ -643,10 +643,10 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
     } catch (error) { showToast(error.message, { tone: 'error', persistent: true }); }
   }
 
-  async function moduleLifecycleAction(action, versionId) {
+  async function moduleLifecycleAction(action, versionId, body = undefined) {
     const prefix = action === 'publish' || action === 'archive' ? '/api/admin' : '/api/staff';
     try {
-      const response = await request(`${prefix}/learning-module-versions/${versionId}/${action}`, { method: 'POST' });
+      const response = await request(`${prefix}/learning-module-versions/${versionId}/${action}`, { method: 'POST', body });
       await refreshData();
       focusAfterRender(() => findDataElement('data-learning-module-card', versionId)?.querySelector('h2'));
       const detail = action === 'publish' ? ` ${response.assignments || 0} section assignment(s) updated; ${response.legacyOverrides || 0} legacy exception(s) retained.` : '';
@@ -756,9 +756,15 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
     for (const action of ['submit', 'publish', 'archive']) {
       const button = event.target.closest(`[data-${action}-learning-module]`);
       if (!button) continue;
-      if (action === 'publish' && !await confirmPortalAction({ title: 'Publish this Safety & Tools version?', description: 'Unstarted section assignments will move to this approved version. Started learners will keep their current version.', confirmLabel: 'Publish module' })) return;
+      const classIds = action === 'publish' ? [...button.closest('[data-learning-module-card]').querySelectorAll('[data-module-publish-section]:checked')].map(input => Number(input.value)) : [];
+      if (action === 'publish') {
+        const selected = state.classes.filter(item => classIds.includes(Number(item.id)));
+        const destinations = selected.map(item => `${item.name} (${item.academicYear}, semester ${item.semester})`).join('; ');
+        const description = selected.length ? `Publish and assign this required module to: ${destinations}. Other section assignments remain unchanged. Started learners keep their version.` : 'Publish this approved version without creating or changing any section assignments.';
+        if (!await confirmPortalAction({ title: 'Publish this Safety & Tools version?', description, confirmLabel: 'Publish module' })) return;
+      }
       if (action === 'archive' && !await confirmPortalAction({ title: 'Archive this module version?', description: 'Its history will be retained and the version will no longer be available for new assignments.', confirmLabel: 'Archive version' })) return;
-      await moduleLifecycleAction(action, button.dataset[`${action}LearningModule`]);
+      await moduleLifecycleAction(action, button.dataset[`${action}LearningModule`], action === 'publish' ? { classIds } : undefined);
       return;
     }
     const revokeOverride = event.target.closest('[data-revoke-module-override]');
@@ -842,6 +848,23 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
   }
 
   async function handlePortalSubmitAction(event) {
+    if (event.target.matches('[data-student-email]')) {
+      event.preventDefault();
+      const form = event.target;
+      const data = new FormData(form);
+      const email = String(data.get('email')).trim().toLowerCase();
+      const identityNumber = String(data.get('identityNumber'));
+      const message = form.querySelector('[data-email-message]');
+      setMessage(message);
+      if (!await confirmPortalAction({ title: 'Save this student email?', description: `Institutional ID ${identityNumber}: ${email}. Confirm the address with the student before saving. The account stays pending and no activation code is issued.`, confirmLabel: 'Save email' })) return;
+      try {
+        const result = await request(`/api/admin/students/${form.dataset.studentEmail}/email`, { method: 'PATCH', body: { email, identityNumber } });
+        await refreshRoster();
+        focusAfterRender(() => findDataElement('data-issue-activation', form.dataset.studentEmail) || currentPageHeading());
+        showToast(result.message);
+      } catch (error) { setMessage(message, error.message); }
+      return;
+    }
     if (event.target === elements.loginForm) {
       event.preventDefault();
       const data = new FormData(elements.loginForm);

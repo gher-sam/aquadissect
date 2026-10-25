@@ -4,9 +4,11 @@ namespace App\Services;
 
 use App\Models\AccountActivationToken;
 use App\Models\ClassEnrollment;
+use App\Models\ExternalIdentity;
 use App\Models\LearningClass;
 use App\Models\RosterEvent;
 use App\Models\User;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -213,6 +215,35 @@ class StudentRoster
         ]);
 
         return $code;
+    }
+
+    public function addMissingEmail(User $student, string $email, string $identityNumber, User $admin): void
+    {
+        $email = Str::lower(trim($email));
+        try {
+            app(DelayedCloneWrite::class)->transaction(function () use ($student, $email, $identityNumber, $admin): void {
+                $student = User::query()->lockForUpdate()->findOrFail($student->id);
+                if ($student->role !== User::ROLE_STUDENT || $student->status !== User::STATUS_PENDING
+                    || $student->email !== null && $student->email !== ''
+                    || ExternalIdentity::query()->where('user_id', $student->id)->exists()) {
+                    throw ValidationException::withMessages(['email' => 'Only a pending student account without an email can use this action. Refresh the roster.']);
+                }
+                if (! hash_equals((string) $student->identity_number, $identityNumber)) {
+                    throw ValidationException::withMessages(['identityNumber' => 'The student record changed. Refresh the roster and check the institutional ID.']);
+                }
+                if (User::query()->whereRaw('LOWER(email) = ?', [$email])->exists()) {
+                    throw ValidationException::withMessages(['email' => 'This email is already attached to an account. Review the existing records.']);
+                }
+                $student->forceFill(['email' => $email, 'email_verified_at' => null])->save();
+                RosterEvent::query()->create([
+                    'actor_id' => $admin->id,
+                    'user_id' => $student->id,
+                    'action' => 'student_email_added',
+                ]);
+            });
+        } catch (UniqueConstraintViolationException) {
+            throw ValidationException::withMessages(['email' => 'This email is already attached to an account. Refresh the roster.']);
+        }
     }
 
     /** @param array<string, string> $row

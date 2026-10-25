@@ -1,4 +1,5 @@
 import { fishCarousel } from './fishAngles.js';
+import { studentEmailAction } from './rosterEmail.js';
 import { escapeHtml, titleCase } from './format.js';
 import { rosterTable } from './rosterTables.js';
 import { staffLessonVersions } from './speciesFocus.js';
@@ -234,7 +235,7 @@ export function adminRosterView(data, preview = [], activationCodes = [], error 
     if (!people.has(student.id)) people.set(student.id, { ...student, sections: [] });
     people.get(student.id).sections.push(section.name);
   }));
-  const peopleRows = [...people.values()].map((student) => `<tr data-table-row><td>${escapeHtml(student.name)}</td><td>${escapeHtml(student.identityNumber || '—')}</td><td>${escapeHtml(student.sections.join(', '))}</td><td><span class="roster-status ${student.accountStatus === 'active' ? 'is-active' : ''}">${escapeHtml(titleCase(student.accountStatus))}</span></td><td>${student.accountStatus === 'pending' && !student.email ? '<span class="portal-muted">Email needed for activation</span>' : student.accountStatus === 'pending' ? `<button class="portal-secondary" type="button" data-issue-activation="${student.id}" aria-label="Issue new activation code for ${escapeHtml(student.name)}">Issue activation code</button>` : '<span class="portal-muted">No action needed</span>'}</td></tr>`).join('');
+  const peopleRows = [...people.values()].map((student) => `<tr data-table-row><td>${escapeHtml(student.name)}</td><td>${escapeHtml(student.identityNumber || '—')}</td><td>${escapeHtml(student.sections.join(', '))}</td><td><span class="roster-status ${student.accountStatus === 'active' ? 'is-active' : ''}">${escapeHtml(titleCase(student.accountStatus))}</span></td><td>${studentEmailAction(student)}</td></tr>`).join('');
   const peopleTable = rosterTable('students', 'Enrolled students', ['Student', 'Institutional ID', 'Sections', 'Account', 'Actions'], peopleRows);
 
   return `${issued}${sectionsTable}${peopleTable}<div class="roster-grid roster-create-tools">
