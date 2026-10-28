@@ -69,6 +69,7 @@ class ClassPresenter
             'semester' => $class->semester,
             'sectionCode' => $class->section_code,
             'status' => $class->status,
+            'prerequisiteStatus' => $viewer->role === User::ROLE_STUDENT ? $this->gate->status($viewer, $class->id) : null,
             'passwordResetsEnabled' => (bool) config('student-setup.initial_password_enabled'),
             'studentCount' => $class->enrollments->where('status', 'active')->count(),
             'instructors' => $class->instructors->map(fn ($item) => [

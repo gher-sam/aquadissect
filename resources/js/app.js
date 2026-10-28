@@ -209,12 +209,12 @@ async function buildViewer(type = '2d') {
   state.motion?.revealViewer(elements.scene);
 }
 
-async function openPackage(manifest, record, { viewerType = 'auto' } = {}) {
+async function openPackage(manifest, record, { viewerType = 'auto', classId = null } = {}) {
   if (!state.motion) {
     const { LessonMotion } = await import('./lessonMotion.js');
     state.motion = new LessonMotion(app);
   }
-  notebook.load(manifest);
+  if (!await notebook.load(manifest, { packageId: record.id, classId })) throw new Error('The previous notebook is still open. Download your entries before leaving.');
   state.manifest = manifest;
   state.record = record;
   state.anatomy = anatomyMap(manifest.contentData.anatomy.structures);
@@ -468,5 +468,5 @@ query('#reviewLesson').addEventListener('click', async () => {
 query('#completionDashboard').addEventListener('click', () => { query('#completionDialog').close(); portal.openDashboard(); });
 query('#portalReturnButton').addEventListener('click', () => portal.openDashboard());
 
-portal = setupAquaPortal({ app, onOpenPackage: openPackage, onLeaveLesson: () => notebook.clear() });
+portal = setupAquaPortal({ app, onOpenPackage: openPackage, onLeaveLesson: options => notebook.clear(options) });
 refreshIcons();

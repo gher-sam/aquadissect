@@ -3,6 +3,7 @@ import { setupStudentPasswordActions } from './studentPasswords.js';
 import { offlineContextKey, pendingSignOutKey, signOutPending, beginLocalSignOut, confirmServerSignOut, clearLearnerContext, prepareSessionContext } from './sessionAccess.js';
 import { setupStudentEmailFlow, setupStudentCodeBatch } from './studentSetup.js';
 import '../../css/bulk-roster.css';
+import '../../css/student-readiness.css';
 import { setupFishCarousels } from './fishAngles.js';
 import { focusedSpecies, focusedClasses } from './speciesFocus.js';
 import { setupRosterTables, cardsToTable } from './rosterTables.js';
@@ -138,6 +139,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
     toastTimer: null,
     toastReturnFocus: null,
     currentPage: 'home',
+    readinessConfirmed: !bootstrap.offlineShell && navigator.onLine,
   };
   app.hidden = true;
 
@@ -246,8 +248,11 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
 
   function updateNetworkStatus() {
     const online = navigator.onLine;
+    if (!online) state.readinessConfirmed = false;
     elements.systemStatus.classList.toggle('is-offline', !online);
     elements.systemStatus.querySelector('.dashboard-system-status-label').textContent = online ? 'Online' : 'Offline';
+    const checklist = elements.dashboardContent?.querySelector('#studentOrientationPath');
+    if (checklist && state.currentUser?.role === 'student') checklist.outerHTML = studentOrientationPath(bootstrap.tutorials, state.classes, { user: state.currentUser, packages: state.species, learningModules: state.learningModules, offline: !state.readinessConfirmed || bootstrap.offlineShell });
   }
 
   function updateSession() {
@@ -378,7 +383,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
           : user.role === 'program_head'
             ? `<div class="workspace-panel"><h2>Academic oversight</h2><p>${state.classes.length} sections available for review. Content decisions require an independent review; administrators handle publication.</p><div class="package-actions"><button type="button" class="portal-primary" data-portal-page="classes">Review sections</button><button type="button" class="portal-secondary" data-portal-page="reports">View learning reports</button><button type="button" class="portal-secondary" data-portal-page="manager">Review species content</button><button type="button" class="portal-secondary" data-portal-page="safety">Review Safety &amp; Tools</button></div></div>`
             : adminDashboard(state.pendingUsers, state.species, state.classes);
-      elements.dashboardContent.insertAdjacentHTML('afterbegin', user.role === 'student' ? studentOrientationPath(bootstrap.tutorials, state.classes) : startHereCard(bootstrap.tutorials));
+      elements.dashboardContent.insertAdjacentHTML('afterbegin', user.role === 'student' ? studentOrientationPath(bootstrap.tutorials, state.classes, { user, packages: state.species, learningModules: state.learningModules, offline: !state.readinessConfirmed || bootstrap.offlineShell || !navigator.onLine }) : startHereCard(bootstrap.tutorials));
     }
     if (name === 'library') elements.library.innerHTML = speciesLibrary(state.species, { singleSpecies: state.currentUser?.role !== 'student' });
     if (name === 'safety') {
@@ -497,9 +502,10 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
       window.location.assign(payload.passwordChangeUrl || appUrl('/change-password'));
       return;
     }
-    onLeaveLesson();
+    void onLeaveLesson({ force: true });
     bootstrap.tutorials = payload.tutorials || { guides: [], progress: [] };
     state.currentUser = payload.user;
+    state.readinessConfirmed = true;
     state.latestResult = payload.lessonResult || null;
     state.pendingUsers = payload.pendingUsers || [];
     state.species = focusSpecies(payload.species);
@@ -514,11 +520,13 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
   }
 
   async function refreshData() {
+    const ownerId = state.currentUser?.id;
     const [speciesResponse, classesResponse, modulesResponse] = await Promise.all([request('/api/species'), request('/api/classes'), request('/api/learning-modules')]);
-    if (signOutPending() || !state.currentUser) return;
+    if (signOutPending() || !state.currentUser || state.currentUser.id !== ownerId) return;
     state.species = focusSpecies(speciesResponse.species);
     state.classes = classesResponse.classes || [];
     state.learningModules = modulesResponse.learningModules || [];
+    state.readinessConfirmed = navigator.onLine && !bootstrap.offlineShell;
     updateSession();
     renderPage();
   }
@@ -540,7 +548,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
   }
 
   function showSignedOut() {
-    onLeaveLesson();
+    void onLeaveLesson({ force: true });
     portal.hidden = false;
     app.hidden = true;
     document.body.classList.remove('lesson-is-open');
@@ -609,7 +617,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
       const classQuery = state.activeClassId ? `?classId=${state.activeClassId}` : '';
       const response = await request(`/api/species/${record.slug}/packages/${record.id}/manifest${classQuery}`);
       if (signOutPending() || !state.currentUser) return;
-      await onOpenPackage(response.package, record, { viewerType });
+      await onOpenPackage(response.package, record, { viewerType, classId: state.activeClassId });
       if (signOutPending() || !state.currentUser) { app.hidden = true; return; }
       portal.hidden = true;
       app.hidden = false;
@@ -664,8 +672,8 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
     } catch (error) { showToast(error.message, { tone: 'error', persistent: true }); }
   }
 
-  function openDashboard() {
-    onLeaveLesson();
+  async function openDashboard() {
+    if (await onLeaveLesson() === false) return;
     app.hidden = true;
     portal.hidden = false;
     document.body.classList.remove('lesson-is-open');
@@ -1182,6 +1190,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
     if (!state.currentUser || bootstrap.offlineShell || synchronizationInFlight) return;
     synchronizationInFlight = true;
     try {
+      if (!state.readinessConfirmed && navigator.onLine) await refreshData();
       const [attempts, modules] = await Promise.all([synchronizeQueuedAttempts(), synchronizeQueuedModuleProgress()]);
       const synced = attempts.synced + modules.synced;
       const failed = attempts.failed + modules.failed;

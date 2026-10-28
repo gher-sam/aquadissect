@@ -460,3 +460,30 @@ This addition does not introduce saved observation notebooks, new publication
 decisions, research instruments, consent collection or research outcomes. Status:
 Implemented but awaiting validation. Engineering evidence and the deployment
 verification outcome are recorded in `docs/offline-reliability-verification.md`.
+
+## October 28, 2026: Notebook draft recovery and student next steps
+
+The user approved notebook autosave, same-account recovery, validated JSON import,
+save-failure warnings, and a student checklist. This supersedes the session-only
+notebook retention decision for this increment. Device drafts are keyed by account,
+section, package identity and version. They remain separate from submitted work,
+grades, research instruments and learning completion. JSON backups exclude account
+identifiers; incomplete draft backups are supported alongside earlier exports.
+Unknown, not observed, not applicable and observed zero remain distinct.
+
+Sign-out immediately closes the notebook and its visible contents. Another account
+cannot restore the draft through the application. Local browser-profile access is
+outside that account boundary; use a trusted device, avoid personal identifiers,
+and retain downloadable backups. No server notebook persistence, new research
+collection, email requirement or academic-record migration is introduced. Storage
+failure leaves entries visible with retry/download options and a leave warning.
+Conflicting changes from another tab do not silently replace the saved copy.
+
+The student checklist uses confirmed account, guide-version, enrollment and existing
+prerequisite status for each active section. It distinguishes documented exceptions,
+pending synchronization, missing assignments and available assigned versions.
+Cached/offline information is labeled as needing online confirmation. The checklist
+does not add a new access gate or bypass faculty review, publication or prerequisites.
+Status: Implemented but awaiting validation. Engineering evidence is recorded in
+`docs/notebook-readiness-verification.md`; faculty, real-student and research
+validation remain separate.

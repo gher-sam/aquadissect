@@ -1,0 +1,7 @@
+.student-orientation-path .readiness-list { list-style: none; padding: 0; margin: 12px 0; display: grid; gap: 0 24px; }
+.student-orientation-path .readiness-step { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 16px; padding: 14px 0; border-bottom: 1px solid var(--color-border); }
+.readiness-step p { margin: 4px 0 0; font-size: 14px; }
+.readiness-step .status-badge { align-self: start; white-space: normal; text-align: center; }
+.readiness-step .package-actions { grid-column: 1 / -1; margin: 0; }
+.readiness-section h3 { margin: 22px 0 4px; font-size: 16px; }
+@media (max-width: 600px) { .student-orientation-path .readiness-step { grid-template-columns: 1fr; } .readiness-step .status-badge { justify-self: start; } }
