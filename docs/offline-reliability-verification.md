@@ -17,8 +17,10 @@ participation or completed learning records. It adds no database migration.
 - A learner can inspect pending counts/errors and retry synchronization. Account
   guidance describes the enabled access policy and existing scoped reset history.
 - The standard release script requires isolated PHP tests, JavaScript tests,
-  deployment recovery scenarios and a production asset build. An additional GitHub
-  workflow repeats the checks against new changes without production credentials.
+  deployment recovery scenarios and a production asset build. An additional cloud
+  workflow was prepared privately but could not be published: the saved GitHub
+  OAuth login lacks workflow permission. Required local release checks remain
+  enforced; no cloud CI job is claimed as enabled.
 - Server deployment builds a candidate outside the live checkout. Previous code,
   dependencies, compiled assets and bootstrap caches can be recovered on failure.
   Health checks cover the application, sign-in, manifest and main script. No database
