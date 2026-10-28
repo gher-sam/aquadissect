@@ -1,3 +1,5 @@
+import { signOutPending } from './sessionAccess.js';
+
 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 const baseUrl = String(window.AQUADISSECT_BASE_URL || '').replace(/\/$/, '');
 
@@ -8,6 +10,9 @@ export function appUrl(path = '') {
 }
 
 export async function request(path, { method = 'GET', body, signal } = {}) {
+  if (path !== '/api/logout' && signOutPending()) {
+    throw Object.assign(new Error('Reconnect to finish signing out, then sign in again.'), { status: 401 });
+  }
   const isFormData = body instanceof FormData;
   const response = await fetch(appUrl(path), {
     method,
@@ -30,7 +35,7 @@ export async function request(path, { method = 'GET', body, signal } = {}) {
       window.location.assign(appUrl('/login'));
     }
     const validationMessage = Object.values(data.errors || {}).flat()[0];
-    throw new Error(validationMessage || data.message || 'The request could not be completed.');
+    throw Object.assign(new Error(validationMessage || data.message || 'The request could not be completed.'), { status: response.status });
   }
 
   return data;

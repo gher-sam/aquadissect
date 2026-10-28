@@ -1,5 +1,6 @@
 import { setupBulkRoster } from './bulkRoster.js';
 import { setupStudentPasswordActions } from './studentPasswords.js';
+import { offlineContextKey, pendingSignOutKey, signOutPending, beginLocalSignOut, confirmServerSignOut, clearLearnerContext, prepareSessionContext } from './sessionAccess.js';
 import { setupStudentEmailFlow, setupStudentCodeBatch } from './studentSetup.js';
 import '../../css/bulk-roster.css';
 import { setupFishCarousels } from './fishAngles.js';
@@ -14,16 +15,17 @@ import { createModuleExperience, promptStudio, safetyWorkspace } from './safetyT
 import {
   downloadedVersionFor, downloadLearningModule, downloadPackage, isDownloaded, isLearningModuleDownloaded,
   listDownloadedLearningModules, listDownloadedPackages, removeDownloadedLearningModule, removeDownloadedPackage,
-  submitOrQueueAttempt, submitOrQueueModuleProgress, synchronizeQueuedAttempts, synchronizeQueuedModuleProgress,
+  submitOrQueueAttempt, submitOrQueueModuleProgress, synchronizeQueuedAttempts, synchronizeQueuedModuleProgress, queuedLearningRecords,
 } from '../offlinePackages.js';
 import { setupProgressiveWebApp } from '../pwa.js';
 
 const bootstrap = window.AQUADISSECT_BOOTSTRAP || {};
+prepareSessionContext(bootstrap);
 const visibleSpecies = window.AQUADISSECT_VISIBLE_SPECIES || ['rabbitfish'];
 const focusSpecies = records => focusedSpecies(records, visibleSpecies);
 const focusClasses = (classes, species) => focusedClasses(classes, species, visibleSpecies);
-const offlineContextKey = 'aquadissect.offline-context.v2';
 function saveOfflineContext(data) {
+  if (signOutPending()) return;
   const learner = data.user?.role === 'student';
   const offlineCatalog = records => (records || []).filter(r=>r.status==='published').map(({latestReview, importedBy, events, ...record})=>record);
   try {
@@ -35,9 +37,9 @@ function saveOfflineContext(data) {
     }));
   } catch { /* Storage restrictions must not prevent online learning. */ }
 }
-if (bootstrap.offlineShell) {
+if (bootstrap.offlineShell && !signOutPending()) {
   try { Object.assign(bootstrap, JSON.parse(localStorage.getItem(offlineContextKey) || '{}')); } catch { /* Empty offline context. */ }
-} else if (bootstrap.user) {
+} else if (bootstrap.user && !signOutPending()) {
   saveOfflineContext(bootstrap);
 }
 
@@ -265,6 +267,9 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
       elements.userRole.textContent = titleCase(user.role.replaceAll('_', ' '));
       elements.roleLabel.textContent = `${titleCase(user.role.replaceAll('_', ' '))} workspace`;
     } else {
+      elements.userInitials.textContent = '';
+      elements.userName.textContent = 'AquaDissect user';
+      elements.userRole.textContent = 'Account';
       elements.roleLabel.textContent = 'AquaDissect';
     }
     const published = state.species.filter((item) => item.status === 'published').length;
@@ -461,6 +466,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
   }
 
   function showPage(name) {
+    if (signOutPending()) { showSignedOut(); return; }
     if (!state.currentUser && !(bootstrap.offlineShell && name === 'downloads') && !['login', 'register', 'activate', 'access', 'about'].includes(name)) name = 'login';
     if (name === 'roster' && state.currentUser?.role !== 'admin') name = state.currentUser ? 'home' : 'login';
     if (name === 'prompt-studio' && !['instructor', 'admin'].includes(state.currentUser?.role)) name = state.currentUser ? 'home' : 'login';
@@ -486,6 +492,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
   }
 
   function signIn(payload) {
+    if (signOutPending()) { showSignedOut(); return; }
     if (payload.passwordChangeRequired) {
       window.location.assign(payload.passwordChangeUrl || appUrl('/change-password'));
       return;
@@ -508,6 +515,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
 
   async function refreshData() {
     const [speciesResponse, classesResponse, modulesResponse] = await Promise.all([request('/api/species'), request('/api/classes'), request('/api/learning-modules')]);
+    if (signOutPending() || !state.currentUser) return;
     state.species = focusSpecies(speciesResponse.species);
     state.classes = classesResponse.classes || [];
     state.learningModules = modulesResponse.learningModules || [];
@@ -521,6 +529,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
     if (!state.adminRoster) renderPage('roster');
     try {
       state.adminRoster = await request('/api/admin/roster');
+      if (signOutPending() || !state.currentUser) { state.adminRoster = null; return; }
       state.classes = state.adminRoster.classes || [];
       renderPage();
     } catch (error) {
@@ -530,27 +539,54 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
     }
   }
 
-  async function signOut() {
+  function showSignedOut() {
     onLeaveLesson();
+    portal.hidden = false;
+    app.hidden = true;
+    document.body.classList.remove('lesson-is-open');
+    clearLearnerContext(bootstrap);
+    state.currentUser = null;
+    state.latestResult = null;
+    state.pendingUsers = [];
+    state.species = [];
+    state.classes = [];
+    state.learningModules = [];
+    state.adminRoster = null;
+    state.rosterError = null;
+    state.activationCodes = [];
+    state.rosterPreview = [];
+    state.rosterFile = null;
+    state.activeClassId = null;
+    state.openLearningModuleId = null;
+    updateSession();
+    setSidebarOpen(false, { restoreFocus: false });
+    elements.sidebar.style.display = 'none';
+    elements.pageLabel.textContent = 'Signed out';
+    state.currentPage = 'signed-out';
+    elements.portalMain.innerHTML = `<section class="workspace-panel"><h1 tabindex="-1">Signed out on this device</h1><p>Your account is closed here. Reconnect to finish server sign-out before signing in again.</p><p>Your queued work remains on this device for its original account.</p><button type="button" class="portal-primary" data-finish-signout>Finish signing out</button><a class="portal-link" href="${escapeHtml(appUrl('/login'))}">Return to sign in</a><p role="status" data-signout-status></p></section>`;
+    elements.portalMain.querySelector('h1')?.focus();
+  }
+
+  let finishingSignOut = false;
+  async function finishServerSignOut() {
+    if (!signOutPending() || finishingSignOut) return;
+    const feedback = elements.portalMain.querySelector('[data-signout-status]');
+    if (!navigator.onLine) { if (feedback) feedback.textContent = 'You are offline. Your account stays closed on this device.'; return; }
+    if (bootstrap.offlineShell) { window.location.replace(appUrl('/login')); return; }
+    finishingSignOut = true;
     try {
       await request('/api/logout', { method: 'POST' });
-      localStorage.removeItem(offlineContextKey);
-      state.currentUser = null;
-      state.latestResult = null;
-      state.pendingUsers = [];
-      state.species = [];
-      state.classes = [];
-      state.learningModules = [];
-      state.adminRoster = null;
-      state.rosterError = null;
-      state.activationCodes = [];
-      state.rosterPreview = [];
-      state.rosterFile = null;
-      state.activeClassId = null;
-      updateSession();
-      showPage('login');
-      showToast('Signed out');
-    } catch (error) { showToast(error.message, { tone: 'error', persistent: true }); }
+      confirmServerSignOut();
+      window.location.replace(appUrl('/login'));
+    } catch {
+      if (feedback) feedback.textContent = 'Server sign-out is still pending. Reconnect or try again.';
+    } finally { finishingSignOut = false; }
+  }
+
+  async function signOut() {
+    beginLocalSignOut();
+    showSignedOut();
+    await finishServerSignOut();
   }
 
   async function openPackage(id, viewerType = 'auto', selectedClassId = null) {
@@ -572,7 +608,9 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
     try {
       const classQuery = state.activeClassId ? `?classId=${state.activeClassId}` : '';
       const response = await request(`/api/species/${record.slug}/packages/${record.id}/manifest${classQuery}`);
+      if (signOutPending() || !state.currentUser) return;
       await onOpenPackage(response.package, record, { viewerType });
+      if (signOutPending() || !state.currentUser) { app.hidden = true; return; }
       portal.hidden = true;
       app.hidden = false;
       setSkipDestination('lesson');
@@ -593,6 +631,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
     try {
       const classQuery = state.currentUser?.role === 'student' ? `?classId=${record.classId}` : '';
       const response = await request(`/api/learning-modules/${record.id}/manifest${classQuery}`);
+      if (signOutPending() || !state.currentUser) return;
       state.openLearningModuleId = record.id;
       elements.safety.hidden = true;
       elements.safetyExperience.hidden = false;
@@ -606,7 +645,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
           });
           record.progress = { ...record.progress, ...result.progress, pendingSync: Boolean(result.queued) };
           saveOfflineContext({ user: state.currentUser, species: state.species, learningModules: state.learningModules, classes: state.classes });
-          if (result.queued) showToast('Progress saved offline and queued for synchronization');
+          if (result.queued) { showToast('Progress saved offline and queued for synchronization'); void refreshQueueStatus().catch(() => undefined); }
           return result;
         } : undefined,
         onComplete: async (result) => {
@@ -662,6 +701,9 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
   }
 
   async function handlePortalClick(event) {
+    if (event.target.closest('[data-finish-signout]')) { await finishServerSignOut(); return; }
+    if (signOutPending()) return;
+    if (event.target.closest('[data-retry-learning-sync]')) { await synchronizeLearningRecords(); return; }
     const visibilityButton = event.target.closest('[data-password-toggle]');
     if (visibilityButton) {
       const input = requireElement(portal, `#${visibilityButton.dataset.passwordToggle}`);
@@ -1118,25 +1160,45 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
   elements.toast.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && elements.toast.classList.contains('is-error')) dismissToast();
   });
-  portal.querySelector('#forgotPassword')?.addEventListener('click', () => showToast('Contact your administrator for account support.'));
+  portal.querySelector('#forgotPassword')?.addEventListener('click', () => showToast('Ask your administrator or assigned teacher to reset your password. You must choose a new password after the reset.'));
+  let synchronizationInFlight = false;
+  async function refreshQueueStatus() {
+    if (!state.currentUser || signOutPending()) return;
+    const ownerId = state.currentUser.id;
+    const records = await queuedLearningRecords();
+    if (signOutPending() || state.currentUser?.id !== ownerId) return;
+    let panel = elements.portalMain.querySelector('[data-queue-status]');
+    if (!panel) {
+      panel = document.createElement('section'); panel.className = 'workspace-panel'; panel.dataset.queueStatus = '';
+      const content = elements.portalMain.querySelector('[data-portal-panel]');
+      if (content) content.before(panel); else elements.portalMain.append(panel);
+    }
+    panel.hidden = records.length === 0;
+    panel.innerHTML = `<h2>Work waiting to synchronize</h2><p role="status">${records.length} record${records.length === 1 ? '' : 's'} saved on this device. These are not yet confirmed by the server.</p><button type="button" class="portal-secondary" data-retry-learning-sync ${synchronizationInFlight ? 'disabled' : ''}>Retry synchronization</button><ul>${records.map(item => `<li>${escapeHtml(item.kind)}${item.classId ? ` · section ${escapeHtml(state.classes.find(c => c.id === item.classId)?.name || item.classId)}` : ''}${item.syncError ? ` — ${escapeHtml(item.syncError)}` : ' — Waiting for a connection'}</li>`).join('')}</ul>`;
+  }
   async function synchronizeLearningRecords() {
     updateNetworkStatus();
-    if (!state.currentUser || bootstrap.offlineShell) return;
+    if (signOutPending()) { await finishServerSignOut(); return; }
+    if (!state.currentUser || bootstrap.offlineShell || synchronizationInFlight) return;
+    synchronizationInFlight = true;
     try {
       const [attempts, modules] = await Promise.all([synchronizeQueuedAttempts(), synchronizeQueuedModuleProgress()]);
-      if (attempts || modules) {
+      const synced = attempts.synced + modules.synced;
+      const failed = attempts.failed + modules.failed;
+      if (signOutPending() || !state.currentUser) return;
+      if (synced) {
         await refreshData();
-        showToast(`${attempts + modules} offline learning record${attempts + modules === 1 ? '' : 's'} synchronized`);
+        showToast(`${synced} offline learning record${synced === 1 ? '' : 's'} synchronized${failed ? `; ${failed} need attention` : ''}`);
       }
-    } catch { showToast('Offline learning records will retry when the connection is stable.', { tone: 'error', persistent: true }); }
+    } catch { if (!signOutPending()) showToast('Queued work remains on this device. Reconnect and use Retry synchronization.', { tone: 'error', persistent: true }); }
+    finally { synchronizationInFlight = false; await refreshQueueStatus().catch(() => undefined); }
   }
   window.addEventListener('online', synchronizeLearningRecords);
-  if (navigator.onLine) void synchronizeLearningRecords();
   window.addEventListener('offline', updateNetworkStatus);
 
   updateSession();
   portal.querySelectorAll('.portal-nav [data-portal-page]').forEach(link => { link.setAttribute('aria-label', link.textContent.trim()); link.title = link.textContent.trim(); });
-  window.addEventListener('pageshow', event => { if (event.persisted && navigator.onLine) window.location.reload(); });
+  window.addEventListener('pageshow', event => { if (event.persisted) window.location.reload(); });
   if (bootstrap.offlineShell) portal.querySelectorAll('[data-portal-page]').forEach(link => { if(link.dataset.portalPage !== 'downloads') link.addEventListener('click', event => { event.stopImmediatePropagation(); window.location.assign(window.AQUADISSECT_ROUTES[link.dataset.portalPage]); }); });
   const refreshNotificationCount = setupWorkspaceShell(portal, state.currentUser);
   void setupWorkspacePage(window.AQUADISSECT_PAGE, portal.querySelector('#workspaceTool'), state.currentUser, showToast, refreshNotificationCount);
@@ -1149,11 +1211,16 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
   });
   updatePasswordGuidance();
   showPage(window.AQUADISSECT_PAGE || (state.currentUser ? 'home' : 'login'));
+  window.addEventListener('storage', event => {
+    if (event.key === pendingSignOutKey && event.newValue === '1') showSignedOut();
+  });
+  if (signOutPending()) { showSignedOut(); if (navigator.onLine) void finishServerSignOut(); }
+  else { void refreshQueueStatus().catch(() => undefined); if (navigator.onLine) void synchronizeLearningRecords(); }
   if (state.currentUser && !bootstrap.offlineShell) {
     setupTutorials(bootstrap.tutorials, state.currentUser);
     if (window.AQUADISSECT_PAGE === 'access' && state.currentUser.role === 'admin') void setupStaffRoles(confirmPortalAction);
     const checkRole = async () => {
-      if (document.hidden || !navigator.onLine) return;
+      if (document.hidden || !navigator.onLine || !state.currentUser || signOutPending()) return;
       try {
         const session = await request('/api/session');
         if (session.user?.role !== state.currentUser.role || session.user?.status !== state.currentUser.status) window.location.reload();
@@ -1174,7 +1241,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
     async recordAttempt(lessonKey, attempt) {
       if (!state.currentUser) throw new Error('Reconnect and sign in to record an attempt.');
       const response = await submitOrQueueAttempt(lessonKey, { ...attempt, classId: state.activeClassId });
-      if (response.queued) showToast('Attempt saved offline and queued for synchronization');
+      if (response.queued) { showToast('Attempt saved offline and queued for synchronization'); void refreshQueueStatus().catch(() => undefined); }
       else {
         state.latestResult = response.result;
         try { await refreshData(); }

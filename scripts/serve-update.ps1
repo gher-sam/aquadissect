@@ -131,10 +131,8 @@ try {
     Invoke-Checked -Command 'php' -Arguments @('-l', 'routes/web.php') -FailureMessage 'php -l routes/web.php failed.'
     Invoke-Checked -Command 'php' -Arguments @('-l', 'routes/console.php') -FailureMessage 'php -l routes/console.php failed.'
 
-    if ($RunTests) {
-        Write-Host 'Running test validation...'
-        Invoke-Checked -Command 'php' -Arguments @('artisan', 'test') -FailureMessage 'Test validation failed.'
-    }
+    Write-Host 'Running required isolated release validation...'
+    & (Join-Path $scriptDir 'check-release.ps1')
 
     Write-Host 'Staging repository changes...'
     Invoke-Checked -Command 'git' -Arguments @('add', '-A') -FailureMessage 'git add -A failed.'

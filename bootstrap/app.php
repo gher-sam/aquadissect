@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\CompletePendingSignOut;
 use App\Http\Middleware\EnsureStudentPasswordChanged;
 use App\Http\Middleware\EnsureUserHasRole;
 use Illuminate\Foundation\Application;
@@ -14,7 +15,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->web(append: [EnsureStudentPasswordChanged::class]);
+        $middleware->encryptCookies(except: ['aquadissect_logout_pending']);
+        $middleware->web(append: [CompletePendingSignOut::class, EnsureStudentPasswordChanged::class]);
         $middleware->alias([
             'role' => EnsureUserHasRole::class,
         ]);

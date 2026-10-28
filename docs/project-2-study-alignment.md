@@ -435,3 +435,28 @@ section assignment, lesson prerequisites and research consent remain unchanged.
 Status: Implemented but awaiting validation. Engineering evidence is recorded in
 `docs/student-password-access.md`; real-student acceptance, physical-device checks
 and faculty/research validation remain separate and pending.
+
+## October 28, 2026: Offline access and release reliability
+
+The user authorized offline sign-out recovery, per-record offline synchronization,
+current account guidance, and mandatory release checks with deployment health
+verification and code/runtime recovery. Local sign-out immediately removes the
+learner context and blocks its restoration while server logout remains pending.
+Reconnection completes server logout before course access resumes. Queued learning
+records remain on the device under their original owner; rejected records remain
+visible and retryable without blocking unrelated valid work. Session, connection,
+rate-limit and server failures defer further requests rather than discarding work.
+
+Guidance follows the enabled account mode. The current mode remains student ID as
+username and initial password, mandatory password replacement, and audited resets
+by administrators or assigned active-section teachers. Email/OTP remains deferred.
+Release validation uses synthetic in-memory research-free test data. Deployment
+prepares dependencies/assets outside the live checkout, verifies application and
+asset health, and retains the previous runtime for recovery. Code/runtime recovery
+does not roll back the database, student identities, enrollments or learning records.
+If recovery fails health checks, maintenance remains enabled for operator action.
+
+This addition does not introduce saved observation notebooks, new publication
+decisions, research instruments, consent collection or research outcomes. Status:
+Implemented but awaiting validation. Engineering evidence and the deployment
+verification outcome are recorded in `docs/offline-reliability-verification.md`.
