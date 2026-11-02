@@ -46,6 +46,7 @@ class SpeciesPackageContent
         $manifest['id'] = $package->id;
         $manifest['status'] = $package->status;
         $manifest['isCurrent'] = $package->is_current;
+        $manifest['enhancementsApproved'] = $package->status === SpeciesPackage::STATUS_PUBLISHED || app(SpeciesPackageLifecycle::class)->approvalIsCurrent($package, $package->reviews()->latest('id')->first());
         $manifest['contentData'] = [
             'anatomy' => $this->readJson($package, $manifest['content']['anatomy']),
             'lesson' => $this->readJson($package, $manifest['content']['lesson']),

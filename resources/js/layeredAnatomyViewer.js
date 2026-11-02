@@ -1,3 +1,6 @@
+import { ImageMeasurement } from './imageMeasurement.js';
+import { fittedImageRect } from './imageMeasurementData.js';
+
 const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
 
 export class LayeredAnatomyViewer {
@@ -29,7 +32,7 @@ export class LayeredAnatomyViewer {
         <img class="anatomy-layer anatomy-layer--external" src="${assets.external.url}" alt="External anatomy illustration of ${manifest.species.commonName}">
         <img class="anatomy-layer anatomy-layer--internal" src="${assets.internal.url}" alt="Internal anatomy educational illustration of ${manifest.species.commonName}">
         <div class="image-hotspot-layer"></div>
-        <svg class="image-incision-guide" viewBox="0 0 100 100" aria-hidden="true"><path d="M55 69 C44 72, 35 72, 26 66" pathLength="1"></path></svg>
+        <svg class="image-incision-guide" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="M55 69 C44 72, 35 72, 26 66" pathLength="1"></path></svg>
       </div>
     `;
     container.prepend(this.root);
@@ -39,10 +42,13 @@ export class LayeredAnatomyViewer {
     this.internalImage = this.root.querySelector('.anatomy-layer--internal');
     this.hotspotLayer = this.root.querySelector('.image-hotspot-layer');
     this.incisionGuide = this.root.querySelector('.image-incision-guide');
+    this.measurement = new ImageMeasurement(this.frame, manifest, key => ({natural:this.naturalImage,external:this.externalImage,internal:this.internalImage})[key]);
     this.buildHotspots();
     this.bindInteractions();
+    this.layoutObserver = new ResizeObserver(() => this.layoutHotspots());
+    this.layoutObserver.observe(this.frame);
     this.setDepth(0, false);
-    this.ready = Promise.all([...this.root.querySelectorAll('img')].map((image) => image.decode?.().catch(() => undefined)));
+    this.ready = Promise.all([...this.root.querySelectorAll('img')].map((image) => image.decode?.().catch(() => undefined))).then(() => this.layoutHotspots());
   }
 
   buildHotspots() {
@@ -92,6 +98,7 @@ export class LayeredAnatomyViewer {
     this.internalImage.style.opacity = clamp((this.depth - 52) / 38, 0, 1);
     this.frame.style.setProperty('--image-scale', '1');
     this.updateHotspots();
+    this.measurement?.update(this.layerState().key);
     if (announce) this.onDepthChange?.(this.depth, this.layerState());
   }
 
@@ -123,7 +130,24 @@ export class LayeredAnatomyViewer {
 
   selectPart(id) { this.selectedId = id; this.updateHotspots(); }
 
+  layoutHotspots() {
+    const key = this.layerState().key;
+    const image = {natural:this.naturalImage,external:this.externalImage,internal:this.internalImage}[key];
+    if (!image?.naturalWidth) return;
+    const base = this.frame.getBoundingClientRect();
+    if (!(base.width>0 && base.height>0)) return;
+    const rect = fittedImageRect(image.naturalWidth,image.naturalHeight,base);
+    const left = rect.left-base.left, top=rect.top-base.top;
+    this.hotspotLayer.querySelectorAll('[data-part-id]').forEach(button => {
+      const item=this.anatomy[button.dataset.partId];
+      button.style.setProperty('--hotspot-x',(left+item.hotspot.x/100*rect.width)+'px');
+      button.style.setProperty('--hotspot-y',(top+item.hotspot.y/100*rect.height)+'px');
+    });
+    Object.assign(this.incisionGuide.style,{inset:'auto',left:left+'px',top:top+'px',width:rect.width+'px',height:rect.height+'px'});
+  }
+
   updateHotspots() {
+    this.layoutHotspots();
     const state = this.layerState();
     this.hotspotLayer.querySelectorAll('[data-part-id]').forEach((button) => {
       const id = button.dataset.partId;
@@ -165,6 +189,8 @@ export class LayeredAnatomyViewer {
   }
 
   destroy() {
+    this.layoutObserver?.disconnect();
+    this.measurement?.destroy();
     this.stopPlayback();
     this.hotspotLayer.removeEventListener('click', this.handleClick);
     this.container.removeEventListener('wheel', this.handleWheel);

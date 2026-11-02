@@ -487,3 +487,14 @@ does not add a new access gate or bypass faculty review, publication or prerequi
 Status: Implemented but awaiting validation. Engineering evidence is recorded in
 `docs/notebook-readiness-verification.md`; faculty, real-student and research
 validation remain separate.
+
+
+## November 2, 2026: Client feedback implementation
+
+The user authorized versioned fish details and sourced local names, instructor revision authoring, reviewed image-calibration measurement, anatomy correction/review support, and separate paired pretest/posttest score records. Existing accounts, enrollments, packages and learning records must be preserved. These are current-checkout software additions; no research population, instrument validity, consent, biological accuracy or effectiveness result is inferred.
+
+Changes create new draft package versions and use independent faculty review plus administrator publication. No real morphology, vernacular-name list, calibrated specimen length or corrected organ artwork is invented. The remaining biological inputs require faculty confirmation. Actual-size measurement is disabled without a matching approved image calibration; an illustration is labelled as an estimate. The observation notebook remains a separate draft aid.
+
+Formal assessment definitions/attempts are separate from formative lesson results. Draft forms remain disabled until independent evidence-backed approval and administrator activation for an assigned published lesson. One scored submission per phase, honest missing/zero/negative differences, retained void/disable history, scoped reports, online server grading and delayed-clone retention are implemented. No historical formative score is relabelled as a pretest or posttest; existing students are not retroactively blocked by a new research assignment. Faculty must approve actual forms, equivalence, timing and retake policy before activation. Engineering verification is not instrument validation or evidence of effectiveness.
+
+Implementation and remaining inputs are documented in docs/client-feedback-improvements.md. Release and live-record preservation must be verified before claiming deployment completion.

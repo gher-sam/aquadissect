@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Throwable;
@@ -348,6 +349,22 @@ class SpeciesPackageImporter
         if (! is_array($anatomy['structures'] ?? null) || ! is_array($lesson['steps'] ?? null) || ! is_array($quiz['questions'] ?? null) || ($quiz['formative'] ?? null) !== true) {
             $this->fail('content', 'Anatomy structures, lesson steps, and a formative quiz are required.');
         }
+
+        Validator::make($anatomy, [
+            'structures' => 'required|array|min:1|max:150',
+            'structures.*.id' => 'required|string|max:80|distinct|regex:/^[a-zA-Z0-9_-]+$/',
+            'structures.*.name' => 'required|string|max:200',
+            'structures.*.layer' => 'required|in:external,internal',
+            'structures.*.hotspot.x' => 'required|numeric|between:0,100',
+            'structures.*.hotspot.y' => 'required|numeric|between:0,100',
+        ])->validate();
+        $ids = array_column($anatomy['structures'], 'id');
+        foreach ($lesson['steps'] as $step) {
+            if (array_diff($step['targets'] ?? [], $ids)) {
+                $this->fail('anatomy', 'The anatomy file omits a structure required by a lesson step.');
+            }
+        }
+        FishProfileSchema::validate($manifest, $root);
 
         return $manifest;
     }

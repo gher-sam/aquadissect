@@ -1,3 +1,4 @@
+import { mountAssessmentPanel } from './fishEnhancements.js';
 import { setupBulkRoster } from './bulkRoster.js';
 import { setupStudentPasswordActions } from './studentPasswords.js';
 import { offlineContextKey, pendingSignOutKey, signOutPending, beginLocalSignOut, confirmServerSignOut, clearLearnerContext, prepareSessionContext } from './sessionAccess.js';
@@ -394,6 +395,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
     }
     if (name === 'classes') {
       elements.classes.innerHTML = classCards(state.classes, state.currentUser?.role);
+      void mountAssessmentPanel(elements.classes, state);
       if (state.currentUser?.role !== 'student') cardsToTable(elements.classes, '.class-card', 'classes', 'Class sections', state.classes);
     }
     if (name === 'roster' && elements.roster) {

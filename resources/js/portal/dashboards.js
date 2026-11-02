@@ -39,7 +39,7 @@ function speciesReviewForm(item, currentUser) {
 
   return `<form class="module-review-form species-review-form" data-species-review="${item.id}">
     <h3>Independent faculty review</h3>
-    <p>Check the lesson content, specimen identity, procedure sequence, and safety directions before making a decision.</p>
+    <p>Check specimen identity, fish details, local names, organ placement, hotspot alignment, procedure and safety. Review each calibration source and its permitted measurement scope before approving.</p>
     <label class="portal-field">Decision<select name="decision" required><option value="approved">Approve for administrator publication</option><option value="changes_requested">Request changes</option></select></label>
     <label class="portal-field">Review notes<textarea name="notes" rows="3" minlength="10" maxlength="3000" required></textarea></label>
     <label class="portal-field">Evidence reference<input name="evidenceReference" maxlength="500" placeholder="Faculty record, reviewed reference, or approved procedure"></label>
@@ -58,6 +58,7 @@ function packageCard(item, { manager = false, offline = false, isAdmin = false, 
     : '';
   const managerActions = manager ? `
     <div class="package-actions">
+      ${['admin','instructor'].includes(currentUser?.role) ? '<button class="portal-secondary" type="button" data-revise-package="'+item.id+'" data-manifest-url="'+escapeHtml(item.manifestUrl)+'">Revise fish details and imagery</button>' : ''}
       ${currentUser?.role !== 'program_head' && item.status === 'draft' ? `<button class="portal-primary" data-submit-package="${item.id}" type="button">Send for faculty review</button>` : ''}
       ${isAdmin && item.status === 'review' && item.approvalCurrent ? `<button class="portal-primary" data-publish-package="${item.id}" type="button">Publish approved version</button>` : ''}
       ${isAdmin && item.status === 'published' && !item.isCurrent ? `<button class="portal-secondary" data-activate-package="${item.id}" type="button">Set active version</button>` : ''}
@@ -78,7 +79,8 @@ function packageCard(item, { manager = false, offline = false, isAdmin = false, 
         ${item.slug === 'rabbitfish' ? '<span class="status-badge">Development focus · Rabbitfish</span>' : ''}
         <h2>${escapeHtml(item.commonName)}</h2>
         <p class="scientific-name"><em>${escapeHtml(item.scientificName || '')}</em></p>
-        <p>${escapeHtml(item.slug === 'rabbitfish' && item.status === 'published' ? 'Explore the assigned Rabbitfish anatomy lesson and complete its guided activities.' : item.description || '')}</p>
+        <p>${escapeHtml(item.description || '')}</p>
+        ${!item.locked ? '<button class="portal-secondary" type="button" data-fish-manifest="'+escapeHtml(item.manifestUrl)+(item.availableClassId?'?classId='+item.availableClassId:'')+'">Fish details</button>' : ''}
         <div class="lesson-meta"><span>${escapeHtml(item.duration || 'Guided activity')}</span>${item.hasVideo ? '<span class="is-featured">Swimming video</span>' : ''}<span>2.5D layers</span>${item.has3d ? '<span>Optional 3D</span>' : ''}</div>
         ${item.draftNotice && item.status !== 'published' ? `<div class="draft-notice">${escapeHtml(item.draftNotice)}</div>` : ''}
         ${item.locked ? `<div class="prerequisite-notice"><i data-lucide="lock-keyhole" aria-hidden="true"></i><span>${escapeHtml(item.lockReason || 'Complete Safety & Tools before opening this lesson.')}</span><button type="button" data-portal-page="safety">Open prerequisite</button></div>` : ''}

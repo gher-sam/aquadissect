@@ -1,4 +1,4 @@
-const SHELL_CACHE = 'aquadissect-shell-v20';
+const SHELL_CACHE = 'aquadissect-shell-v21';
 const SHELL_CACHE_PREFIX = 'aquadissect-shell-';
 const scopeUrl = new URL(self.registration.scope);
 const withinScope = (url) => url.origin === scopeUrl.origin && url.pathname.startsWith(scopeUrl.pathname);

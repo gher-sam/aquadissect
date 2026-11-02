@@ -127,7 +127,7 @@ class SpeciesCatalog
             'commonName' => $package->species->common_name,
             'scientificName' => $package->species->scientific_name,
             'taxonomicGroup' => $package->species->taxonomic_group,
-            'description' => $package->species->description,
+            'description' => $manifest['speciesProfile']['description'] ?? $manifest['species']['description'] ?? $package->species->description,
             'activityMode' => $package->species->activity_mode,
             'version' => $package->version,
             'status' => $package->status,
@@ -141,7 +141,7 @@ class SpeciesCatalog
             'draftNotice' => $manifest['draftNotice'] ?? null,
             'lessonKey' => $manifest['lessonKey'],
             'duration' => $this->lessonDuration($package),
-            'cardPreviewVideoUrl' => !$locked && $package->species->slug === 'rabbitfish' && $package->version === '1.1.0'
+            'cardPreviewVideoUrl' => ! $locked && $package->species->slug === 'rabbitfish' && $package->version === '1.1.0'
                 ? url("/api/species-packages/{$package->id}/card-preview").($availableClassId ? '?classId='.$availableClassId : '') : null,
             'naturalImageUrl' => $locked ? null : $this->assetUrl($package, 'natural', $availableClassId),
             'videoUrl' => $locked ? null : $this->assetUrl($package, 'video', $availableClassId),

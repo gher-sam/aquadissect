@@ -16,6 +16,9 @@ import { createObservationNotebook } from './observationNotebook.js';
 import { createViewer } from './viewerFactory.js';
 import { setupAquaPortal } from './portal/index.js';
 import '../css/style.css';
+import '../css/fishEnhancements.css';
+import { showFishDetails } from './fishDetails.js';
+import { setupFishEnhancements } from './portal/fishEnhancements.js';
 import '../css/portal.css';
 import '../css/threeViewer.css';
 import '../css/imageViewer.css';
@@ -40,6 +43,7 @@ app.innerHTML = `
       </div>
       <div class="header-actions">
         <button class="text-button compact-label" id="portalReturnButton" type="button" aria-label="Return to dashboard"><i data-lucide="arrow-left"></i><span>Dashboard</span></button>
+        <button class="text-button" id="fishDetailsButton" type="button">Fish details</button>
         <button class="icon-button" id="helpButton" type="button" aria-label="Open lesson information"><i data-lucide="circle-help"></i></button>
         <button class="text-button compact-label" id="sourcesButton" type="button" aria-label="Open references"><i data-lucide="book-open"></i><span>References</span></button>
       </div>
@@ -153,6 +157,7 @@ function showToast(message, tone = 'neutral') {
 async function buildViewer(type = '2d') {
   state.model?.destroy?.();
   state.viewerType = type;
+  elements.scene.classList.toggle('image-scene', type === '2d');
   const callbacks = {
     onSelect: handlePartSelection,
     onDepthChange: (depth, layer) => {
@@ -453,6 +458,8 @@ document.addEventListener('click', (event) => {
   if (dialogId) query(`#${dialogId}`).close();
 });
 elements.quiz.addEventListener('change', updatePrimaryAction);
+query('#fishDetailsButton').addEventListener('click', () => state.manifest && showFishDetails(state.manifest));
+setupFishEnhancements();
 query('#helpButton').addEventListener('click', () => query('#infoDialog').showModal());
 query('#sourcesButton').addEventListener('click', () => query('#referencesDialog').showModal());
 query('#reviewLesson').addEventListener('click', async () => {
