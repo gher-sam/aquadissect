@@ -94,8 +94,8 @@ try {
     }
 
     $originUrl = Get-CommandOutput -Command 'git' -Arguments @('remote', 'get-url', 'origin') -FailureMessage 'Remote origin is not configured.'
-    if ($originUrl -notmatch '^(https://github\.com/BBQ25/aquadissect(\.git)?|git@github\.com:BBQ25/aquadissect(\.git)?)$') {
-        throw "Remote origin must point to GitHub repository BBQ25/aquadissect. Current origin: $originUrl"
+    if ($originUrl -notmatch '^(https://github\.com/gher-sam/aquadissect(\.git)?|git@github\.com:gher-sam/aquadissect(\.git)?)$') {
+        throw "Remote origin must point to GitHub repository gher-sam/aquadissect. Current origin: $originUrl"
     }
 
     $gitDir = Get-CommandOutput -Command 'git' -Arguments @('rev-parse', '--absolute-git-dir') -FailureMessage 'Unable to resolve the git directory.'

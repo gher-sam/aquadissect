@@ -237,7 +237,7 @@ Prepare the updated codebase for deployment to GitHub (`origin/main`), validatin
 ### `/live-check`
 Verify that the latest intended update is live across the release path:
 1. Local git commit
-2. GitHub `origin/main` (`BBQ25/aquadissect`)
+2. GitHub `origin/main` (`gher-sam/aquadissect`)
 3. aaPanel webhook deployment trigger (`storage/app/deploy/github-webhook-trigger.json`)
 4. Server file updates and live application responses at `https://aquadissect.com`
 
