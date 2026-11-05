@@ -119,8 +119,11 @@ find "$SITE_DIR/bootstrap/cache" -maxdepth 1 -type f -name '*.php' -delete
 "$PHP_BIN" artisan migrate --force
 # Do not replay content setup during an unrelated code release. These seeders can
 # update existing class/module metadata even when no new bundle is being shipped.
-if ! git diff --quiet "$previous_sha" "$target_sha" -- database/seeders/SpeciesCatalogSeeder.php resources/species-packs; then
+if ! git diff --quiet "$previous_sha" "$target_sha" -- resources/species-packs ':(exclude)resources/species-packs/rabbitfish/1.2.0'; then
     "$PHP_BIN" artisan db:seed --class='Database\Seeders\SpeciesCatalogSeeder' --force
+fi
+if ! git diff --quiet "$previous_sha" "$target_sha" -- database/seeders/RabbitfishGuidedClipsSeeder.php resources/species-packs/rabbitfish/1.2.0; then
+    "$PHP_BIN" artisan db:seed --class='Database\Seeders\RabbitfishGuidedClipsSeeder' --force
 fi
 if ! git diff --quiet "$previous_sha" "$target_sha" -- database/seeders/LearningModuleSeeder.php resources/learning-modules; then
     "$PHP_BIN" artisan db:seed --class='Database\Seeders\LearningModuleSeeder' --force

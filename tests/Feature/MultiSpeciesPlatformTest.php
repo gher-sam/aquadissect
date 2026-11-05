@@ -9,6 +9,7 @@ use App\Models\SpeciesPackage;
 use App\Models\User;
 use App\Services\SpeciesPackageLifecycle;
 use Database\Seeders\DatabaseSeeder;
+use Database\Seeders\RabbitfishGuidedClipsSeeder;
 use Database\Seeders\SpeciesCatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -87,6 +88,32 @@ class MultiSpeciesPlatformTest extends TestCase
             ->assertJsonPath('package.assetProvenance.video.aiGenerated', false)
             ->assertJsonPath('package.assetProvenance.video.reviewStatus', 'awaiting_faculty_review')
             ->assertJsonCount(7, 'package.assetRecords');
+    }
+
+    public function test_guided_preparation_clips_are_available_to_staff_in_the_unpublished_version(): void
+    {
+        $this->seed(RabbitfishGuidedClipsSeeder::class);
+        $this->seed(RabbitfishGuidedClipsSeeder::class);
+        $package = SpeciesPackage::query()->whereHas('species', fn ($query) => $query->where('slug', 'rabbitfish'))
+            ->where('version', RabbitfishGuidedClipsSeeder::VERSION)->sole();
+        $instructor = User::query()->where('role', 'instructor')->firstOrFail();
+        $student = User::query()->where('role', 'student')->firstOrFail();
+        $manifestUrl = "/api/species/rabbitfish/packages/{$package->id}/manifest";
+
+        $this->assertSame(SpeciesPackage::STATUS_REVIEW, $package->status);
+        $this->assertFalse($package->is_current);
+        $this->assertSame(1, $package->events()->where('event', 'prepared_for_faculty_review')->count());
+
+        $response = $this->actingAs($instructor)->getJson($manifestUrl)->assertOk();
+        foreach (['clip-01', 'clip-02', 'clip-03', 'clip-04'] as $index => $key) {
+            $response->assertJsonPath("package.contentData.lesson.steps.{$index}.videoAsset", $key)
+                ->assertJsonPath("package.assetRecords.{$key}.mimeType", 'video/mp4');
+            $assetUrl = "/api/species-packages/{$package->id}/assets/".$response->json("package.assetRecords.{$key}.id");
+            $this->actingAs($instructor)->get($assetUrl)->assertOk()->assertHeader('Content-Type', 'video/mp4');
+            $this->actingAs($student)->get($assetUrl)->assertForbidden();
+        }
+        $response->assertJsonPath('package.contentData.lesson.steps.4.title', 'Meet the Goldspotted Rabbitfish');
+        $this->actingAs($student)->getJson($manifestUrl)->assertForbidden();
     }
 
     public function test_versioned_attempt_is_scored_by_server_and_client_uuid_is_idempotent(): void

@@ -1,0 +1,9 @@
+{
+  "formative":true,
+  "questions":[
+    {"id":"q1","question":"Which Rabbitfish structures require a specific puncture and envenomation safety warning?","options":["Fin spines","Lateral-line scales","Caudal-fin membrane"],"answer":"Fin spines"},
+    {"id":"q2","question":"Which measurement runs from the snout to the base of the caudal fin rather than to the tail tip?","options":["Standard length","Total length","Body depth"],"answer":"Standard length"},
+    {"id":"q3","question":"Which organ is the elongated gas-filled structure high in the body cavity?","options":["Swim bladder","Gallbladder","Spleen"],"answer":"Swim bladder"},
+    {"id":"q4","question":"What should an observation record do when specimen anatomy is uncertain?","options":["Separate observation from interpretation","Copy the expected result as fact","Omit the unusual finding"],"answer":"Separate observation from interpretation"}
+  ]
+}

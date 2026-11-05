@@ -297,6 +297,15 @@ svg {
   flex-direction: column;
 }
 
+.lesson-step-video:not([hidden]) {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  margin: 0 0 16px;
+  border-radius: 12px;
+  background: #15243a;
+}
+
 .lesson-panel__top,
 .panel-heading,
 .scene-topbar,

@@ -360,8 +360,17 @@ class SpeciesPackageImporter
         ])->validate();
         $ids = array_column($anatomy['structures'], 'id');
         foreach ($lesson['steps'] as $step) {
+            if (! is_array($step)) {
+                $this->fail('content', 'Each lesson step must be a JSON object.');
+            }
             if (array_diff($step['targets'] ?? [], $ids)) {
                 $this->fail('anatomy', 'The anatomy file omits a structure required by a lesson step.');
+            }
+            if (array_key_exists('videoAsset', $step)) {
+                $assetKey = $step['videoAsset'];
+                if (! is_string($assetKey) || ! preg_match('/\.(mp4|webm)$/i', $manifest['assets'][$assetKey] ?? '')) {
+                    $this->fail('content', 'Each lesson step video must refer to a declared MP4 or WebM asset.');
+                }
             }
         }
         FishProfileSchema::validate($manifest, $root);

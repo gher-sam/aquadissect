@@ -75,7 +75,7 @@ class SpeciesCatalogSeeder extends Seeder
         });
     }
 
-    private function installBundledPackage(string $slug, string $version, string $status, ?User $actor, bool $current): SpeciesPackage
+    protected function installBundledPackage(string $slug, string $version, string $status, ?User $actor, bool $current): SpeciesPackage
     {
         $sourceRoot = resource_path("species-packs/{$slug}/{$version}");
         $manifestPath = $sourceRoot.DIRECTORY_SEPARATOR.'manifest.json';

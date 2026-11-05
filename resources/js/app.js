@@ -52,6 +52,7 @@ app.innerHTML = `
       <aside class="lesson-panel panel-surface" aria-labelledby="stepTitle">
         <div class="lesson-panel__top"><span class="eyebrow" id="stepEyebrow">Orientation</span><span class="duration" id="lessonDuration"></span></div>
         <h1 id="stepTitle" tabindex="-1">Select a species</h1><p class="lesson-description" id="stepDescription"></p>
+        <video class="lesson-step-video" id="stepVideo" controls playsinline preload="metadata" hidden></video>
         <section class="task-card" aria-labelledby="taskHeading"><div class="task-card__icon" aria-hidden="true"><i data-lucide="scan-search"></i></div><div><span class="task-label" id="taskHeading">Your task</span><p id="stepPrompt"></p></div></section>
         <div class="target-list" id="targetList" aria-live="polite"></div>
         <form class="quiz" id="quiz" hidden></form>
@@ -101,7 +102,7 @@ const query = (selector) => document.querySelector(selector);
 const elements = {
   scene: query('#scene'), sceneLoader: query('#sceneLoader'), brandSubtitle: query('#lessonBrandSubtitle'),
   stepEyebrow: query('#stepEyebrow'), stepTitle: query('#stepTitle'), stepDescription: query('#stepDescription'),
-  stepPrompt: query('#stepPrompt'), targetList: query('#targetList'), primaryAction: query('#primaryAction'),
+  stepPrompt: query('#stepPrompt'), stepVideo: query('#stepVideo'), targetList: query('#targetList'), primaryAction: query('#primaryAction'),
   previousStep: query('#previousStep'), freeExplore: query('#freeExplore'), anatomyList: query('#anatomyList'),
   selectedCard: query('#selectedCard'), partCount: query('#partCount'), foundCount: query('#foundCount'),
   progressRegion: query('.header-progress'), progressLabel: query('#progressLabel'), progressPercent: query('#progressPercent'), progressBar: query('#progressBar'),
@@ -183,7 +184,7 @@ async function buildViewer(type = '2d') {
   elements.rotateToggle.setAttribute('aria-pressed', 'false');
 
   if (isVideo) {
-    const observationPrompt = String(state.steps[0]?.prompt || 'Observe the specimen movement')
+    const observationPrompt = String(state.steps.find((step) => step.kind !== 'preparation')?.prompt || 'Observe the specimen movement')
       .split(/,\s*then\s+/i)[0]
       .replace(/[.!?]+$/, '');
     elements.modeBadge.innerHTML = '<span></span>Swimming reference · Video';
@@ -247,7 +248,7 @@ async function openPackage(manifest, record, { viewerType = 'auto', classId = nu
   ];
   elements.viewerMode.innerHTML = viewerOptions.map((option) => `<option value="${option.value}">${option.label}</option>`).join('');
   let initialViewer = viewerType;
-  if (viewerType === 'auto') initialViewer = hasVideo ? 'video' : '2d';
+  if (viewerType === 'auto') initialViewer = hasVideo && state.steps[0]?.kind !== 'preparation' ? 'video' : '2d';
   if (!viewerOptions.some((option) => option.value === initialViewer)) initialViewer = '2d';
   elements.viewerMode.value = initialViewer;
   elements.viewerModeControl.hidden = viewerOptions.length < 2;
@@ -258,8 +259,9 @@ async function openPackage(manifest, record, { viewerType = 'auto', classId = nu
 
 function availableParts() {
   if (!state.model) return [];
-  if (state.step < 2) return state.model.externalIds;
-  if (state.step < 4) return [...state.model.externalIds, ...state.model.internalIds.filter((id) => id === 'gills')];
+  const anatomyStep = state.steps.slice(0, state.step).filter((step) => step.kind !== 'preparation').length;
+  if (anatomyStep < 2) return state.model.externalIds;
+  if (anatomyStep < 4) return [...state.model.externalIds, ...state.model.internalIds.filter((id) => id === 'gills')];
   return [...state.model.externalIds, ...state.model.internalIds];
 }
 
@@ -350,6 +352,15 @@ function renderStep(direction = 0) {
   elements.stepTitle.textContent = definition.title;
   elements.stepDescription.textContent = definition.description;
   elements.stepPrompt.textContent = definition.prompt;
+  const video = state.manifest.assetRecords?.[definition.videoAsset];
+  const videoUrl = ['video/mp4', 'video/webm'].includes(video?.mimeType) ? video.url : null;
+  elements.stepVideo.hidden = !videoUrl;
+  if (videoUrl) elements.stepVideo.setAttribute('aria-label', definition.title);
+  if (elements.stepVideo.getAttribute('src') !== videoUrl) {
+    if (videoUrl) elements.stepVideo.src = videoUrl;
+    else elements.stepVideo.removeAttribute('src');
+    elements.stepVideo.load();
+  }
   const percent = state.steps.length <= 1 ? 100 : Math.round((state.step / (state.steps.length - 1)) * 100);
   elements.progressLabel.textContent = definition.eyebrow;
   elements.progressPercent.textContent = `${percent}%`;
@@ -475,5 +486,13 @@ query('#reviewLesson').addEventListener('click', async () => {
 query('#completionDashboard').addEventListener('click', () => { query('#completionDialog').close(); portal.openDashboard(); });
 query('#portalReturnButton').addEventListener('click', () => portal.openDashboard());
 
-portal = setupAquaPortal({ app, onOpenPackage: openPackage, onLeaveLesson: options => notebook.clear(options) });
+portal = setupAquaPortal({
+  app,
+  onOpenPackage: openPackage,
+  onLeaveLesson: async (options) => {
+    const left = await notebook.clear(options);
+    if (left !== false) elements.stepVideo.pause();
+    return left;
+  },
+});
 refreshIcons();
