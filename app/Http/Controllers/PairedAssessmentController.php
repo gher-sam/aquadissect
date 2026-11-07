@@ -88,11 +88,9 @@ class PairedAssessmentController extends Controller
         if (count($d['preQuestions']) !== count($d['postQuestions'])) {
             throw ValidationException::withMessages(['questions' => 'Paired forms must have equal maximum scores in this release.']);
         }
-        foreach (array_merge($d['preQuestions'], $d['postQuestions']) as $q) {
-            if (count(array_unique($q['options'])) !== count($q['options']) || ! in_array($q['answer'], $q['options'], true)) {
-                throw ValidationException::withMessages(['questions' => 'Each answer must match one of the distinct options.']);
-            }
-        }
+        $d['preQuestions'] = $this->orderedQuestions($d['preQuestions']);
+        $d['postQuestions'] = $this->orderedQuestions($d['postQuestions']);
+        $this->validateChoices([...$d['preQuestions'], ...$d['postQuestions']]);
 
         return $writes->transaction(function () use ($d, $r) {
             $s = AssessmentStudy::create(['class_id' => $d['classId'], 'species_package_id' => $d['packageId'], 'author_id' => $r->user()->id,
@@ -146,15 +144,38 @@ class PairedAssessmentController extends Controller
     {
         $this->access($r, $study);
 
-        return response()->json(['preQuestions' => $study->pre_questions, 'postQuestions' => $study->post_questions]);
+        return response()->json([
+            'preQuestions' => $this->orderedQuestions($study->pre_questions),
+            'postQuestions' => $this->orderedQuestions($study->post_questions),
+        ]);
     }
 
     public function questions(Request $r, AssessmentStudy $study, string $phase)
     {
         $this->studentReady($r, $study, $phase);
-        $questions = $study->{$phase.'_questions'};
+        $questions = $this->orderedQuestions($study->{$phase.'_questions'});
+        $this->validateChoices($questions);
 
         return response()->json(['questions' => array_map(fn ($q) => array_diff_key($q, ['answer' => true]), $questions)]);
+    }
+
+    private function orderedQuestions(array $questions): array
+    {
+        return array_map(function (array $question) {
+            $question['options'] = array_values($question['options']);
+
+            return $question;
+        }, array_values($questions));
+    }
+
+    private function validateChoices(array $questions): void
+    {
+        foreach ($questions as $question) {
+            $options = $question['options'];
+            if (count(array_unique($options)) !== count($options) || ! in_array($question['answer'], $options, true)) {
+                throw ValidationException::withMessages(['questions' => 'Each answer must match one of the distinct options.']);
+            }
+        }
     }
 
     private function studentReady(Request $r, AssessmentStudy $s, string $phase): void
@@ -190,6 +211,7 @@ class PairedAssessmentController extends Controller
                 $s = AssessmentStudy::whereKey($study->id)->lockForUpdate()->firstOrFail();
                 $this->studentReady($r, $s, $phase);
                 $qs = $s->{$phase.'_questions'};
+                $this->validateChoices($qs);
                 $ids = array_column($qs, 'id');
                 if (count($d['answers']) !== count($qs) || array_diff(array_keys($d['answers']), $ids)) {
                     throw ValidationException::withMessages(['answers' => 'Answer every question in this form.']);

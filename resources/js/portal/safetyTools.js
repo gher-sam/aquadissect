@@ -14,7 +14,9 @@ function progressLabel(module) {
   return `${module.progress?.completedSteps || 0} of ${module.progress?.totalSteps || 0} steps`;
 }
 
-function studentCard(module, { offline = false } = {}) {
+function studentCard(module, { offline = false, classes = [] } = {}) {
+  const section = classes.find(item => item.id === module.classId);
+  const sectionAttribute = module.classId == null ? '' : ` data-module-class-id="${module.classId}"`;
   const complete = Boolean(module.progress?.completed);
   const progress = module.progress?.totalSteps
     ? Math.round(((module.progress?.completedSteps || 0) / module.progress.totalSteps) * 100)
@@ -29,12 +31,13 @@ function studentCard(module, { offline = false } = {}) {
     <div class="learning-module-card__body">
       <div class="species-card-topline"><span class="status-badge ${complete ? 'is-online' : ''}">${escapeHtml(progressLabel(module))}</span><small>v${escapeHtml(module.version)}</small></div>
       <h2>${escapeHtml(module.title)}</h2>
+      ${section ? `<p class="module-version-note">${escapeHtml(section.name)}</p>` : ''}
       <p>${escapeHtml(module.description)}</p>
       ${module.pinned ? '<p class="module-version-note"><i data-lucide="pin" aria-hidden="true"></i> Your started version remains pinned.</p>' : ''}
       <div class="module-progress-track" role="progressbar" aria-label="Module progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${progress}"><span style="width:${progress}%"></span></div>
       <div class="package-actions">
-        <button class="portal-primary" type="button" data-open-learning-module="${module.id}">${complete ? 'Review module' : module.progress?.completedSteps ? 'Resume module' : 'Start module'}</button>
-        ${offline ? `<button class="portal-secondary" type="button" data-offline-module-toggle="${module.id}"></button>` : ''}
+        <button class="portal-primary" type="button" data-open-learning-module="${module.id}"${sectionAttribute}>${complete ? 'Review module' : module.progress?.completedSteps ? 'Resume module' : 'Start module'}</button>
+        ${offline ? `<button class="portal-secondary" type="button" data-offline-module-toggle="${module.id}"${sectionAttribute}></button>` : ''}
       </div>
     </div>
   </article>`;

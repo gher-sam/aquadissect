@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { queuedModuleProgress, moduleSaveMessage } from '../../resources/js/portal/moduleProgress.js';
 
+import { safetyWorkspace } from '../../resources/js/portal/safetyTools.js';
+
 const requiredStepIds = ['orientation', 'handling', 'tool-selection'];
 test('early offline activity never completes missing steps', () => {
   const result = queuedModuleProgress({ requiredStepIds, completedStepIds:['tool-selection'], answers:{q1:'x'} });
@@ -24,4 +26,18 @@ test('zero score and incomplete status remain separate', () => {
   assert.match(moduleSaveMessage({attempt:{score:0,total:5},progress:{completed:false}}), /0 of 5.*Finish every remaining/);
   assert.match(moduleSaveMessage({attempt:{score:0,total:5},progress:{completed:true}}), /0 of 5.*Module complete/);
   assert.match(moduleSaveMessage({},false), /Preview only/);
+});
+
+test('a shared module version has distinct section controls in safety and offline lists', () => {
+  const classes = [{ id: 11, name: 'Demo Section A' }, { id: 12, name: 'Demo Section B' }];
+  const version = { id: 2, version: '0.2.0', title: 'Safety & Tools', description: 'Synthetic module' };
+  const modules = classes.map(section => ({ ...version, classId: section.id }));
+  const safety = safetyWorkspace(modules, 'student', null, { classes });
+  const offline = safetyWorkspace(modules, 'student', null, { classes, offline: true });
+
+  for (const section of classes) {
+    assert.match(safety, new RegExp(section.name));
+    assert.match(safety, new RegExp('data-open-learning-module="2" data-module-class-id="' + section.id + '"'));
+    assert.match(offline, new RegExp('data-offline-module-toggle="2" data-module-class-id="' + section.id + '"'));
+  }
 });

@@ -135,7 +135,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
     rosterClassId: null,
     activationCodes: [],
     activeClassId: null,
-    openLearningModuleId: null,
+    openLearningModule: null,
     rosterError: null,
     toastTimer: null,
     toastReturnFocus: null,
@@ -412,7 +412,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
       cardsToTable(elements.assignments, '.assignment-card', 'activities', 'Class activities', state.classes.filter(c=>c.status==='active'));
     }
     if (name === 'downloads') {
-      elements.downloads.innerHTML = `${bootstrap.offlineShell ? '<p class="page-guidance">Downloaded learning materials on this device. Reconnect and sign in to synchronize your own work.</p>' : ''}${bootstrap.offlineShell && state.classes.length > 1 ? `<label class="portal-field">Study section<select id="offlineSection"><option value="">Select a section before opening a lesson</option>${state.classes.map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('')}</select></label>` : ''}<div class="download-summary"><strong>${focusSpecies(listDownloadedPackages()).length + listDownloadedLearningModules().length}</strong><span>learning items saved on this device</span></div><div class="portal-page-title portal-page-title--compact"><span class="portal-kicker">Prerequisite</span><h2>Safety module</h2></div>${safetyWorkspace(state.learningModules, 'student', state.currentUser, { offline: true })}<div class="portal-page-title portal-page-title--compact"><span class="portal-kicker">Assigned anatomy</span><h2>Species lessons</h2></div><div class="species-library-grid">${speciesLibrary(state.species.filter((item) => item.status === 'published'), { offline: true })}</div>`;
+      elements.downloads.innerHTML = `${bootstrap.offlineShell ? '<p class="page-guidance">Downloaded learning materials on this device. Reconnect and sign in to synchronize your own work.</p>' : ''}${bootstrap.offlineShell && state.classes.length > 1 ? `<label class="portal-field">Study section<select id="offlineSection"><option value="">Select a section before opening a lesson</option>${state.classes.map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('')}</select></label>` : ''}<div class="download-summary"><strong>${focusSpecies(listDownloadedPackages()).length + listDownloadedLearningModules().length}</strong><span>learning items saved on this device</span></div><div class="portal-page-title portal-page-title--compact"><span class="portal-kicker">Prerequisite</span><h2>Safety module</h2></div>${safetyWorkspace(state.learningModules, 'student', state.currentUser, { offline: true, classes: state.classes })}<div class="portal-page-title portal-page-title--compact"><span class="portal-kicker">Assigned anatomy</span><h2>Species lessons</h2></div><div class="species-library-grid">${speciesLibrary(state.species.filter((item) => item.status === 'published'), { offline: true })}</div>`;
       state.species.forEach((item) => {
         const button = elements.downloads.querySelector(`[data-offline-toggle="${item.id}"]`);
         if (button) {
@@ -423,7 +423,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
         }
       });
       state.learningModules.forEach((module) => {
-        const button = elements.downloads.querySelector(`[data-offline-module-toggle="${module.id}"]`);
+        const button = findModuleControl(elements.downloads, 'data-offline-module-toggle', module);
         if (button) button.textContent = isLearningModuleDownloaded(module.id, module.version) ? 'Remove download' : 'Download for offline use';
       });
     }
@@ -567,7 +567,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
     state.rosterPreview = [];
     state.rosterFile = null;
     state.activeClassId = null;
-    state.openLearningModuleId = null;
+    state.openLearningModule = null;
     updateSession();
     setSidebarOpen(false, { restoreFocus: false });
     elements.sidebar.style.display = 'none';
@@ -635,14 +635,24 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
     } catch (error) { showToast(error.message, { tone: 'error', persistent: true }); }
   }
 
-  async function openLearningModule(id) {
-    const record = state.learningModules.find((item) => String(item.id) === String(id));
-    if (!record) return;
+  function findModuleAssignment(versionId, classId = '') {
+    return state.learningModules.find(module =>
+      String(module.id) === versionId && String(module.classId ?? '') === classId
+    );
+  }
+
+  function findModuleControl(container, attribute, record) {
+    const section = record.classId == null ? '' : `[data-module-class-id="${record.classId}"]`;
+    return container.querySelector(`[${attribute}="${record.id}"]${section}`);
+  }
+
+  async function openLearningModule(record) {
+    if (state.openLearningModule === record) return;
+    state.openLearningModule = record;
     try {
-      const classQuery = state.currentUser?.role === 'student' ? `?classId=${record.classId}` : '';
+      const classQuery = record.classId == null ? '' : `?classId=${record.classId}`;
       const response = await request(`/api/learning-modules/${record.id}/manifest${classQuery}`);
-      if (signOutPending() || !state.currentUser) return;
-      state.openLearningModuleId = record.id;
+      if (signOutPending() || !state.currentUser || state.openLearningModule !== record) return;
       elements.safety.hidden = true;
       elements.safetyExperience.hidden = false;
       createModuleExperience(elements.safetyExperience, response.module, record, {
@@ -671,7 +681,11 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
       });
       setSkipDestination('portal');
       window.scrollTo({ top: 0, behavior: 'instant' });
-    } catch (error) { showToast(error.message, { tone: 'error', persistent: true }); }
+    } catch (error) {
+      if (state.openLearningModule !== record) return;
+      state.openLearningModule = null;
+      showToast(error.message, { tone: 'error', persistent: true });
+    }
   }
 
   async function openDashboard() {
@@ -738,16 +752,20 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
     const openId = openButton?.dataset.openPackage;
     if (openId) await openPackage(openId, openButton.dataset.viewerMode || 'auto', openButton.dataset.classId ? Number(openButton.dataset.classId) : null);
     const openModuleButton = event.target.closest('[data-open-learning-module]');
-    if (openModuleButton) await openLearningModule(openModuleButton.dataset.openLearningModule);
+    if (openModuleButton) {
+      const { openLearningModule: versionId, moduleClassId } = openModuleButton.dataset;
+      const record = findModuleAssignment(versionId, moduleClassId);
+      if (record) await openLearningModule(record);
+    }
     if (event.target.closest('[data-close-learning-module]')) {
-      const returningModuleId = state.openLearningModuleId;
-      state.openLearningModuleId = null;
+      const returningModule = state.openLearningModule;
+      state.openLearningModule = null;
       elements.safetyExperience.hidden = true;
       elements.safety.hidden = false;
       renderPage();
       const restoreModuleTriggerFocus = () => {
         if (![document.body, document.documentElement].includes(document.activeElement)) return;
-        elements.safety.querySelector(`[data-open-learning-module="${returningModuleId}"]`)?.focus({ preventScroll: true });
+        if (returningModule) findModuleControl(elements.safety, 'data-open-learning-module', returningModule)?.focus({ preventScroll: true });
       };
       requestAnimationFrame(restoreModuleTriggerFocus);
       if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) setTimeout(restoreModuleTriggerFocus, 380);
@@ -863,7 +881,9 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
     }
     const offlineModuleButton = event.target.closest('[data-offline-module-toggle]');
     if (offlineModuleButton) {
-      const record = state.learningModules.find((item) => String(item.id) === offlineModuleButton.dataset.offlineModuleToggle);
+      const { offlineModuleToggle: versionId, moduleClassId } = offlineModuleButton.dataset;
+      const record = findModuleAssignment(versionId, moduleClassId);
+      if (!record) return;
       try {
         if (isLearningModuleDownloaded(record.id, record.version)) {
           await removeDownloadedLearningModule(record.id);
@@ -875,7 +895,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
           showToast('Safety & Tools verified and ready offline');
         }
         renderPage('downloads');
-        focusAfterRender(() => findDataElement('data-offline-module-toggle', offlineModuleButton.dataset.offlineModuleToggle));
+        focusAfterRender(() => findModuleControl(elements.downloads, 'data-offline-module-toggle', record));
       } catch (error) { showToast(error.message, { tone: 'error', persistent: true }); renderPage('downloads'); }
     }
   }

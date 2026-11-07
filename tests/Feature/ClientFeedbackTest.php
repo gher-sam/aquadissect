@@ -59,12 +59,12 @@ class ClientFeedbackTest extends TestCase
         return [['id' => 'q1', 'prompt' => 'Synthetic question one', 'options' => ['Correct', 'Other'], 'answer' => 'Correct'], ['id' => 'q2', 'prompt' => 'Synthetic question two', 'options' => ['Correct', 'Other'], 'answer' => 'Correct']];
     }
 
-    private function study(): AssessmentStudy
+    private function study(array $attributes = []): AssessmentStudy
     {
         $class = LearningClass::where('code', 'FISHBIO-101')->firstOrFail();
         ClassInstructor::firstOrCreate(['class_id' => $class->id, 'user_id' => $this->actor('instructor')->id]);
 
-        return AssessmentStudy::create(['class_id' => $class->id, 'species_package_id' => $this->package()->id, 'author_id' => $this->actor('instructor')->id, 'title' => 'Synthetic instrument', 'instrument_version' => 'synthetic-1', 'pre_questions' => $this->form(), 'post_questions' => $this->form(), 'status' => 'draft']);
+        return AssessmentStudy::create(['class_id' => $class->id, 'species_package_id' => $this->package()->id, 'author_id' => $this->actor('instructor')->id, 'title' => 'Synthetic instrument', 'instrument_version' => 'synthetic-1', 'pre_questions' => $this->form(), 'post_questions' => $this->form(), 'status' => 'draft', ...$attributes]);
     }
 
     public function test_profile_revision_preserves_existing_packages_accounts_enrollments_and_results(): void
@@ -172,6 +172,57 @@ class ClientFeedbackTest extends TestCase
         $body['postQuestions'] = $this->form();
         $body['preQuestions'][0]['answer'] = 'Outside choices';
         $this->postJson('/api/paired-assessments', $body)->assertUnprocessable();
+    }
+
+    public function test_keyed_forms_are_normalized_and_both_answer_keys_are_validated_on_import(): void
+    {
+        $study = $this->study();
+        $form = $this->form();
+        $keyed = ['first' => [...$form[0], 'options' => ['yes' => 'Correct', 'no' => 'Other']], 'second' => $form[1]];
+        $body = ['classId' => $study->class_id, 'packageId' => $study->species_package_id,
+            'title' => 'Keyed synthetic form', 'instrumentVersion' => 'new-keyed',
+            'preQuestions' => $keyed, 'postQuestions' => $keyed];
+        $teacher = $this->actor('instructor');
+        $created = $this->actingAs($teacher)->postJson('/api/paired-assessments', $body)->assertCreated();
+        $this->assertSame($form, AssessmentStudy::findOrFail($created->json('study.id'))->pre_questions);
+        $this->assertSame($form, AssessmentStudy::findOrFail($created->json('study.id'))->post_questions);
+
+        $body['preQuestions']['first']['answer'] = 'Not an option';
+        $this->postJson('/api/paired-assessments', $body)->assertUnprocessable()->assertJsonValidationErrors('questions');
+    }
+
+    public function test_a_saved_keyed_form_can_be_reviewed_and_taken_without_rewriting_it(): void
+    {
+        $form = $this->form();
+        $keyed = ['first' => [...$form[0], 'options' => ['yes' => 'Correct', 'no' => 'Other']], 'second' => $form[1]];
+        $study = $this->study(['pre_questions' => $keyed, 'post_questions' => $keyed]);
+        $path = '/api/paired-assessments/'.$study->id;
+        $this->actingAs($this->actor('instructor'))->getJson($path.'/definition')->assertOk()
+            ->assertJsonPath('preQuestions', $form)->assertJsonPath('postQuestions', $form);
+
+        $this->activate($study);
+        $this->actingAs($this->actor('student'))->getJson($path.'/pre/questions')->assertOk()
+            ->assertJsonPath('questions.0.options', ['Correct', 'Other'])
+            ->assertJsonMissingPath('questions.0.answer');
+        $this->postJson($path.'/pre/attempts', [
+            'attemptUuid' => (string) Str::uuid(), 'answers' => ['q1' => 'Correct', 'q2' => 'Other'],
+        ])->assertCreated()->assertJsonPath('result.score', 1);
+        $this->assertSame($keyed, $study->fresh()->pre_questions);
+    }
+
+    public function test_an_existing_ungradable_form_cannot_record_a_new_score(): void
+    {
+        $form = $this->form();
+        $form[0]['answer'] = 'Not an option';
+        $study = $this->study(['pre_questions' => $form]);
+        $this->activate($study);
+        $path = '/api/paired-assessments/'.$study->id.'/pre';
+
+        $this->actingAs($this->actor('student'))->getJson($path.'/questions')->assertUnprocessable();
+        $this->postJson($path.'/attempts', [
+            'attemptUuid' => (string) Str::uuid(), 'answers' => ['q1' => 'Correct', 'q2' => 'Other'],
+        ])->assertUnprocessable();
+        $this->assertDatabaseMissing('assessment_attempts', ['assessment_study_id' => $study->id]);
     }
 
     public function test_calibration_and_public_profile_follow_independent_package_review(): void
