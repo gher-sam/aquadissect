@@ -1,5 +1,6 @@
 import { escapeHtml, titleCase } from './format.js';
 import { moduleSaveMessage } from './moduleProgress.js';
+import { createUuid } from '../uuid.js';
 
 const moduleExperienceControllers = new WeakMap();
 
@@ -294,7 +295,7 @@ export function createModuleExperience(container, manifest, record, callbacks = 
     const result = await callbacks.onProgress?.({
       completedStepIds: [...completed],
       activitySubmitted,
-      ...(answers ? { answers, clientAttemptUuid: crypto.randomUUID() } : {}),
+      ...(answers ? { answers, clientAttemptUuid: createUuid() } : {}),
       completedAt: new Date().toISOString(),
     });
     if (result?.progress) {

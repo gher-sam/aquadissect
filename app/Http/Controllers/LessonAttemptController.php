@@ -33,8 +33,9 @@ class LessonAttemptController extends Controller
         }
 
         $package = SpeciesPackage::query()->with('assets')->findOrFail($validated['packageId']);
-        $content->authorize($request->user(), $package);
-        $classId = $offering->resolve($request->user(), $package->id, isset($validated['classId']) ? (int) $validated['classId'] : null);
+        $requestedClassId = isset($validated['classId']) ? (int) $validated['classId'] : null;
+        $content->authorize($request->user(), $package, $requestedClassId);
+        $classId = $offering->resolve($request->user(), $package->id, $requestedClassId);
         $manifest = $content->manifest($package);
         if (($manifest['lessonKey'] ?? null) !== $lessonKey || $package->version !== $validated['packageVersion']) {
             throw ValidationException::withMessages(['packageVersion' => 'The lesson key or package version does not match the selected package.']);

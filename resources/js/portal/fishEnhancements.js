@@ -2,6 +2,7 @@ import { request, appUrl } from './api.js';
 import { escapeHtml as e } from './format.js';
 import { showFishDetails, fishProfileFields } from '../fishDetails.js';
 import { signOutPending } from './sessionAccess.js';
+import { createUuid } from '../uuid.js';
 
 function routePath(url){const u=new URL(url,location.href);if(u.origin!==location.origin)throw new Error('Invalid lesson URL.');const base=String(window.AQUADISSECT_BASE_URL||'').replace(/\/$/,'');if(base && !u.pathname.startsWith(base+'/'))throw new Error('Invalid lesson path.');return u.pathname.slice(base.length)+u.search;}
 
@@ -83,6 +84,7 @@ export async function mountAssessmentPanel(container,state){
       const score=(a,state)=>state==='voided'?'Voided — history retained':a?`${a.score} / ${a.total}`:'Not yet taken';
       section.innerHTML=`<h3>${e(study.title)} · ${e(study.instrumentVersion)}</h3><p>Section ${study.classId} · ${e(study.status)}</p><div class="table-scroll"><table><thead><tr><th>Learner</th><th>Pretest</th><th>Posttest</th><th>Change</th></tr></thead><tbody>${study.rows.map(row=>`<tr><td>${e(learnerLabel(row.studentId))}</td><td>${score(row.pre,row.preState)}</td><td>${score(row.post,row.postState)}</td><td>${row.pointDifference===null?'Awaiting a complete pair':`${row.pointDifference>0?'+':''}${row.pointDifference} points · ${row.percentagePointDifference>0?'+':''}${row.percentagePointDifference} percentage points`}</td></tr>`).join('')}</tbody></table></div><a href="${appUrl('/api/paired-assessments/'+study.id+'/export')}">Download score CSV</a>`;
       host.append(section);
+      if(role!=='student'&&study.status==='approved')section.insertAdjacentHTML('beforeend','<p>Faculty approved · Awaiting administrator activation. Students cannot access this test pair yet. An administrator must publish and assign the reviewed lesson, then select “Activate approved tests” here.</p>');
       if(role==='student'){
         const row=study.rows.find(r=>r.studentId===owner);
         for(const phase of ['pre','post'])if(study.status==='active' && (!row || row[phase+'State']==='not_taken')){const b=document.createElement('button');b.textContent=phase==='pre'?'Take pretest':row?.pre?'Take posttest':'Posttest · take pretest first';b.disabled=phase==='post'&&!row?.pre;b.onclick=()=>void takeAssessment(study,phase,reload);section.append(b);}
@@ -113,6 +115,6 @@ async function takeAssessment(study,phase,reload){
     const data=await request('/api/paired-assessments/'+study.id+'/'+phase+'/questions');
     if(signOutPending())return;
     const d=dialog(phase==='pre'?'Pretest':'Posttest',`<p>One scored submission. Stay online to submit.</p><form>${data.questions.map((q,i)=>`<fieldset><legend>${i+1}. ${e(q.prompt)}</legend>${q.options.map((option,n)=>`<label><input type="radio" name="q${i}" value="${n}" required>${e(option)}</label>`).join('')}</fieldset>`).join('')}<button type="submit">Submit answers</button></form>`);
-    const uuid=crypto.randomUUID(),f=d.querySelector('form');f.onsubmit=async ev=>{ev.preventDefault();const b=f.querySelector('button');b.disabled=true;try{const answers=Object.fromEntries(data.questions.map((q,i)=>[q.id,q.options[Number(f.elements['q'+i].value)]]));const result=await request('/api/paired-assessments/'+study.id+'/'+phase+'/attempts',{method:'POST',body:{attemptUuid:uuid,answers}});message(d,'Saved: '+result.result.score+' / '+result.result.total);f.hidden=true;reload();}catch(err){message(d,err.message);}finally{b.disabled=false;}};
+    const uuid=createUuid(),f=d.querySelector('form');f.onsubmit=async ev=>{ev.preventDefault();const b=f.querySelector('button');b.disabled=true;try{const answers=Object.fromEntries(data.questions.map((q,i)=>[q.id,q.options[Number(f.elements['q'+i].value)]]));const result=await request('/api/paired-assessments/'+study.id+'/'+phase+'/attempts',{method:'POST',body:{attemptUuid:uuid,answers}});message(d,'Saved: '+result.result.score+' / '+result.result.total);f.hidden=true;reload();}catch(err){message(d,err.message);}finally{b.disabled=false;}};
   }catch(error){const d=dialog('Assessment unavailable','');message(d,error.message);}
 }

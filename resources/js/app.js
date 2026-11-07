@@ -19,6 +19,7 @@ import '../css/style.css';
 import '../css/fishEnhancements.css';
 import { showFishDetails } from './fishDetails.js';
 import { setupFishEnhancements } from './portal/fishEnhancements.js';
+import { createUuid } from './uuid.js';
 import '../css/portal.css';
 import '../css/threeViewer.css';
 import '../css/imageViewer.css';
@@ -407,7 +408,7 @@ async function submitQuiz() {
     const response = await portal.recordAttempt(state.manifest.lessonKey, {
       packageId: state.manifest.id,
       packageVersion: state.manifest.packageVersion,
-      clientAttemptUuid: crypto.randomUUID(),
+      clientAttemptUuid: createUuid(),
       source: navigator.onLine ? 'online' : 'offline',
       completedAt: new Date().toISOString(),
       answers,

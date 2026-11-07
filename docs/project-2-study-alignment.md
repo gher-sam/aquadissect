@@ -513,3 +513,17 @@ password hashes, enrollments, content versions, review history, progress, and
 results. Verify the source snapshot and the restored copy before switching local
 access. Keep the backup and runtime secrets in restricted storage outside Git and
 source downloads. Record actual restoration and release outcomes separately.
+
+## November 7, 2026: Classroom network quiz access
+
+The reported student use is a Laravel application hosted on a laptop, with student
+devices opening its network URL on the same Wi-Fi. Online assessment submissions
+must support that browser context. A shared cryptographic UUID fallback corrects
+the secure-context-only native UUID calls without changing grading, retained
+records, independent approval, administrator activation or lesson prerequisites.
+The staff panel must distinguish faculty approval from student release. Actual
+class approval and activation records remain private installation data; synthetic
+engineering checks are not proof that a real instrument is approved or deployed.
+Lesson completion must also carry the student's selected section through content
+authorization, so a student enrolled in multiple sections can save the correct
+lesson result. Completion continues to unlock only that section's posttest.

@@ -4,9 +4,11 @@ namespace Tests\Feature;
 
 use App\Models\AssessmentAttempt;
 use App\Models\AssessmentStudy;
+use App\Models\ClassEnrollment;
 use App\Models\ClassInstructor;
 use App\Models\LearningClass;
 use App\Models\LessonResult;
+use App\Models\SpeciesAssignment;
 use App\Models\SpeciesPackage;
 use App\Models\User;
 use App\Services\CloneRefresher;
@@ -117,8 +119,11 @@ class ClientFeedbackTest extends TestCase
         $this->actingAs($teacher)->postJson('/api/paired-assessments/'.$s->id.'/actions/approve', ['evidence' => 'Synthetic validation evidence', 'formsValidated' => true, 'policyConfirmed' => true])->assertUnprocessable();
         $this->actingAs($admin)->postJson('/api/paired-assessments/'.$s->id.'/actions/activate')->assertUnprocessable();
         $this->actingAs($admin)->postJson('/api/paired-assessments/'.$s->id.'/actions/approve', ['evidence' => 'Synthetic validation evidence', 'formsValidated' => true, 'policyConfirmed' => true])->assertOk();
+        $this->actingAs($student)->getJson('/api/paired-assessments')->assertJsonCount(0, 'studies');
+        $this->getJson('/api/paired-assessments/'.$s->id.'/pre/questions')->assertForbidden();
         $this->actingAs($teacher)->postJson('/api/paired-assessments/'.$s->id.'/actions/activate')->assertForbidden();
         $this->actingAs($admin)->postJson('/api/paired-assessments/'.$s->id.'/actions/activate')->assertOk();
+        $this->actingAs($student)->getJson('/api/paired-assessments')->assertJsonPath('studies.0.id', $s->id);
         $this->actingAs($student)->getJson('/api/paired-assessments/'.$s->id.'/definition')->assertForbidden();
         $q = $this->actingAs($student)->getJson('/api/paired-assessments/'.$s->id.'/pre/questions')->assertOk();
         $this->assertArrayNotHasKey('answer', $q->json('questions.0'));
@@ -131,6 +136,44 @@ class ClientFeedbackTest extends TestCase
         $admin = $this->actor('admin');
         $this->actingAs($admin)->postJson('/api/paired-assessments/'.$s->id.'/actions/approve', ['evidence' => 'Synthetic faculty evidence', 'formsValidated' => true, 'policyConfirmed' => true])->assertOk();
         $this->actingAs($admin)->postJson('/api/paired-assessments/'.$s->id.'/actions/activate')->assertOk();
+    }
+
+    public function test_multi_section_lesson_completion_unlocks_only_the_selected_sections_posttest(): void
+    {
+        $first = $this->study();
+        $student = $this->actor('student');
+        $package = $this->package();
+        $originalClass = LearningClass::findOrFail($first->class_id);
+        $secondClass = $originalClass->replicate();
+        $secondClass->fill(['code' => 'QA-SECOND-SECTION', 'name' => 'Synthetic second section', 'section_code' => 'QA-B'])->save();
+        ClassEnrollment::create(['class_id' => $secondClass->id, 'user_id' => $student->id, 'status' => 'active']);
+        SpeciesAssignment::create(['class_id' => $secondClass->id, 'species_id' => $package->species_id,
+            'species_package_id' => $package->id, 'active' => true, 'assigned_by' => $this->actor('admin')->id, 'assigned_at' => now()]);
+        $second = $this->study(['class_id' => $secondClass->id]);
+        $this->activate($first);
+        $this->activate($second);
+        $before = [User::count(), ClassEnrollment::count(), SpeciesPackage::count()];
+
+        foreach ([$first, $second] as $study) {
+            $this->actingAs($student)->postJson('/api/paired-assessments/'.$study->id.'/pre/attempts', [
+                'attemptUuid' => (string) Str::uuid(), 'answers' => ['q1' => 'Correct', 'q2' => 'Correct'],
+            ])->assertCreated();
+        }
+        $manifest = app(\App\Services\SpeciesPackageContent::class)->manifest($package);
+        $attempt = ['packageId' => $package->id, 'packageVersion' => $package->version,
+            'clientAttemptUuid' => (string) Str::uuid(), 'source' => 'online', 'completedAt' => now()->subSecond()->toIso8601String(),
+            'answers' => collect($manifest['contentData']['quiz']['questions'])->mapWithKeys(fn ($q) => [$q['id'] => $q['answer']])->all()];
+        $url = '/api/lessons/'.$manifest['lessonKey'].'/attempts';
+        $this->postJson($url, $attempt)->assertUnprocessable()->assertJsonValidationErrors('classId');
+        $this->postJson($url, [...$attempt, 'classId' => $secondClass->id])->assertCreated()->assertJsonPath('result.class_id', $secondClass->id);
+        $this->assertDatabaseHas('lesson_results', ['user_id' => $student->id, 'class_id' => $secondClass->id, 'species_package_id' => $package->id]);
+        $this->postJson('/api/paired-assessments/'.$first->id.'/post/attempts', [
+            'attemptUuid' => (string) Str::uuid(), 'answers' => ['q1' => 'Correct', 'q2' => 'Correct'],
+        ])->assertUnprocessable();
+        $this->postJson('/api/paired-assessments/'.$second->id.'/post/attempts', [
+            'attemptUuid' => (string) Str::uuid(), 'answers' => ['q1' => 'Correct', 'q2' => 'Correct'],
+        ])->assertCreated();
+        $this->assertSame($before, [User::count(), ClassEnrollment::count(), SpeciesPackage::count()]);
     }
 
     public function test_scores_are_server_graded_paired_idempotent_and_history_is_retained(): void

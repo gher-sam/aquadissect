@@ -54,6 +54,9 @@ The learner viewer uses code-rendered 2.5D layers, hotspots, handling overlays, 
 For a fresh Windows download, follow the [local demo setup](demo/README.md). Its
 launcher prepares the bundled lesson catalog and three synthetic accounts.
 
+For students opening the host laptop over Wi-Fi, follow the
+[classroom network and quiz release guide](docs/classroom-quiz-access.md).
+
 For this configured checkout, start Laragon's Apache and MySQL services and open:
 
 ```text

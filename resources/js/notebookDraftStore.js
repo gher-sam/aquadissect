@@ -1,3 +1,5 @@
+import { createUuid } from './uuid.js';
+
 const databaseName = 'aquadissect-notebook-drafts';
 const conflict = () => new Error('This draft changed in another tab. Download your entries, then reload to use the saved copy.');
 
@@ -36,7 +38,7 @@ export async function writeNotebookDraft(scope, fields, expectedRevision, remove
         if ((request.result?.revision || null) !== expectedRevision) { failure = conflict(); tx.abort(); return; }
         if (remove) store.delete(scope);
         else {
-          result = { scope, fields, revision: crypto.randomUUID(), savedAt: new Date().toISOString(), schemaVersion: 1 };
+          result = { scope, fields, revision: createUuid(), savedAt: new Date().toISOString(), schemaVersion: 1 };
           store.put(result);
         }
       };

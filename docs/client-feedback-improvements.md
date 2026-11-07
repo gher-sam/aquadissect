@@ -25,6 +25,13 @@ Physical units require a current independent approval or a published reviewed pa
 
 Class sections contains the pretest/posttest panel. Authorized section instructors and administrators prepare a draft test pair using two JSON question files. Each file is an array of objects with id, prompt, options and answer; each answer must equal one distinct option. The initial release requires equal item totals.
 
+Students open this panel through **My class**. An approved pair remains hidden
+until administrator activation; the staff panel now states that pending action
+explicitly. See [classroom quiz access](classroom-quiz-access.md) for release and
+shared Wi-Fi setup steps. Online browser UUID generation supports ordinary LAN
+HTTP addresses through cryptographic random bytes, while offline downloads still
+require a supported secure origin.
+
 An authorized independent reviewer opens the forms and answer keys and records validation evidence and policy confirmations. The author cannot approve the instrument. An administrator then activates the approved pair only when the selected lesson is published and assigned to an active section. No formal instrument or faculty approval is seeded on production.
 
 Students receive question prompts/options without answer keys. Server grading records answers, score/total, instrument, student, section/package via the study, phase, UUID and submission time. Each student has one retained scored attempt per phase. The posttest requires the recorded pretest and a formative completion for that same section/package. Assign the pretest before content use according to the approved study procedure; this release does not retroactively block existing learners or claim that an old formative attempt was a baseline.
@@ -35,7 +42,7 @@ Formal submissions require an online session. UUID retries are idempotent, and d
 
 ## Preservation and rollout
 
-Only additive assessment tables are introduced. Their rollback deliberately retains academic data. Existing accounts, credentials, enrollments, lesson packages, assignments, formative results and notebook drafts are not converted or deleted. The service-worker shell moves to v21 for the updated interface; saved notebook and learning-package data remain separate.
+Only additive assessment tables are introduced. Their rollback deliberately retains academic data. Existing accounts, credentials, enrollments, lesson packages, assignments, formative results and notebook drafts are not converted or deleted. Service-worker shell revisions refresh the interface separately from saved notebook and learning-package data.
 
 The feature code can be deployed before faculty inputs exist. Scientific profiles/media/calibrations remain behind the existing package lifecycle, and formal assessments remain disabled drafts until independent approval and administrator activation. No real student or study data is used for engineering fixtures.
 
