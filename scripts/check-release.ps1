@@ -38,6 +38,8 @@ try {
         Invoke-ReleaseCheck 'git' @('init','--quiet')
         Invoke-ReleaseCheck 'git' @('add','-A')
         Invoke-ReleaseCheck 'git' @('-c','commit.gpgsign=false','commit','--quiet','-m','Isolated release validation snapshot')
+        # Validate the committed bytes that source downloads contain, including normalized line endings.
+        Invoke-ReleaseCheck 'git' @('-c','core.autocrlf=false','checkout-index','--all','--force')
     } finally { Pop-Location }
     foreach ($taskDirectory in @('bootstrap/cache','storage/framework/cache/data','storage/framework/sessions','storage/framework/views','storage/framework/testing','storage/logs','storage/app/private')) {
         $taskPath = Join-Path $taskCheck $taskDirectory
