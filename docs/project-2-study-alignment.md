@@ -498,3 +498,18 @@ Changes create new draft package versions and use independent faculty review plu
 Formal assessment definitions/attempts are separate from formative lesson results. Draft forms remain disabled until independent evidence-backed approval and administrator activation for an assigned published lesson. One scored submission per phase, honest missing/zero/negative differences, retained void/disable history, scoped reports, online server grading and delayed-clone retention are implemented. No historical formative score is relabelled as a pretest or posttest; existing students are not retroactively blocked by a new research assignment. Faculty must approve actual forms, equivalence, timing and retake policy before activation. Engineering verification is not instrument validation or evidence of effectiveness.
 
 Implementation and remaining inputs are documented in docs/client-feedback-improvements.md. Release and live-record preservation must be verified before claiming deployment completion.
+
+## November 7, 2026: One repository and private local restoration
+
+The user requested one AquaDissect GitHub repository. `gher-sam/aquadissect` is
+the retained release and download repository. The separate source handover's
+manuals, defense FAQ, synthetic demo setup, and prompt materials are to be
+preserved there before the duplicate repository is retired. Existing AI media
+provenance and faculty-validation requirements continue to apply.
+
+The user also authorized a private restoration of the live database and uploaded
+lesson files into the local AquaDissect installation. Retain account identifiers,
+password hashes, enrollments, content versions, review history, progress, and
+results. Verify the source snapshot and the restored copy before switching local
+access. Keep the backup and runtime secrets in restricted storage outside Git and
+source downloads. Record actual restoration and release outcomes separately.

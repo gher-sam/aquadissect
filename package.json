@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "node scripts/test-js.mjs",
+    "prompts": "node scripts/gemini-video-prompts.mjs",
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0"

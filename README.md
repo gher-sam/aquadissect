@@ -51,10 +51,13 @@ The learner viewer uses code-rendered 2.5D layers, hotspots, handling overlays, 
 
 ## Laragon use
 
+For a fresh Windows download, follow the [local demo setup](demo/README.md). Its
+launcher prepares the bundled lesson catalog and three synthetic accounts.
+
 For this configured checkout, start Laragon's Apache and MySQL services and open:
 
 ```text
-http://localhost/tilapia/
+http://localhost/sys_apps/aquadissect/
 ```
 
 No terminal command or `php artisan serve` process is needed for normal use. In the local environment, the first web request safely applies pending schema migrations to MySQL and SQLite under a setup lock and installs any missing bundled catalog records. Data mutations still follow the 12-hour clone delay.
@@ -70,7 +73,7 @@ npm install
 npm run build
 ```
 
-The Laragon Apache alias in `C:\laragon\etc\apache2\alias\tilapia.conf` points that address directly to Laravel's `public` directory. No `php artisan serve` command is required for normal use. The project-root and public `.htaccess` files prevent directory browsing, protect private application files, and forward application routes to Laravel.
+The configured Laragon alias in `C:\laragon\etc\apache2\alias\aquadissect-local.conf` points that address directly to Laravel's `public` directory. It provides the local route handling and application settings. A restored local installation keeps its private database, uploaded lesson files, and application secrets in its configured runtime directory.
 
 In the required layered viewer, scroll over the specimen or use the anatomy-depth slider to move from natural appearance through external morphology to internal anatomy. Hotspots, the structure list, labels, reset, and full-screen controls are keyboard accessible. Tilapia also offers its lazy-loaded 3D mode. All visuals are educational representations; instructor-approved content and real-specimen observation remain authoritative.
 
@@ -113,6 +116,10 @@ The current workstation was offline during the Composer scaffold. It therefore r
 
 ## Demonstration accounts
 
+The [local demo setup](demo/README.md) uses the included synthetic SQLite database.
+Use that launcher from a fresh extraction. A private restoration uses its retained
+accounts and enrollment records.
+
 The database seeder creates these accounts. All use password `demo123`:
 
 - `student@aquadissect.local`
@@ -130,10 +137,21 @@ php artisan test
 
 The feature suite covers role-aware catalogs, package and learning-module lifecycle rules, independent faculty review, prerequisite completion and exceptions, version pinning, media provenance, account activation, roster conflict handling, server scoring, idempotent synchronization, and the 12-hour relational clone graph.
 
+## User guides and defense preparation
+
+- [User manual in Word](docs/AquaDissect-User-Manual-v1.0.docx)
+- [User manual in PDF](docs/AquaDissect-User-Manual-v1.0.pdf)
+- [Common defense FAQ in PDF](docs/AquaDissect-Defense-FAQ-v1.0.pdf)
+- [Rabbitfish sequential video prompts](docs/video-prompts/rabbitfish-72-20261030-v1/Rabbitfish_72_Sequential_Video_Prompts.json)
+
+The versioned guides retain the faculty-validation and research-evidence status
+recorded when they were prepared.
+
 ## Production deployment
 
 Production is served from `https://aquadissect.com` by the Hostinger VPS and
-aaPanel. The private GitHub repository is the source of truth. A signed GitHub
+aaPanel. The `gher-sam/aquadissect` GitHub repository supplies the release source,
+downloadable project, and guides. A signed GitHub
 webhook queues each `main` push for the root-owned deployment script on the VPS;
 the webhook secret is retained only in GitHub and the server's private runtime
 storage.
