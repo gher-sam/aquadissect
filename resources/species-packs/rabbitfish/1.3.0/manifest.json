@@ -1,0 +1,168 @@
+{
+  "schemaVersion": "1.0",
+  "packageVersion": "1.3.0",
+  "minimumApplicationVersion": "1.0.0",
+  "species": {
+    "slug": "rabbitfish",
+    "commonName": "Goldspotted Rabbitfish",
+    "scientificName": "Siganus guttatus",
+    "taxonomicGroup": "Actinopterygii"
+  },
+  "lessonKey": "rabbitfish-guided-dissection",
+  "activityMode": "virtual_dissection",
+  "viewer": {
+    "profile": "layered-2d"
+  },
+  "draftNotice": "Five generated laboratory preparation and specimen-observation clips and the existing swimming reference. Visual continuity, specimen identity and pointer handling require independent faculty review before student publication.",
+  "safetyNotices": [
+    "Rabbitfish dorsal, pelvic, and anal fin spines can cause a painful venomous puncture.",
+    "A physical specimen may only be handled or dissected under trained supervision using an institution-approved safety protocol.",
+    "This virtual activity demonstrates orientation and sequence; it does not authorize unsupervised physical dissection."
+  ],
+  "references": [
+    {
+      "title": "Biology and culture of siganids",
+      "publisher": "SEAFDEC Aquaculture Department",
+      "year": 1998,
+      "url": "https://repository.seafdec.org.ph/handle/10862/535"
+    },
+    {
+      "title": "Nursery and grow-out culture of rabbitfish Siganus guttatus in brackishwater ponds",
+      "publisher": "SEAFDEC Aquaculture Department",
+      "year": 2022,
+      "url": "https://repository.seafdec.org.ph/handle/10862/6396"
+    },
+    {
+      "title": "Morphological development of the swimming and feeding apparatus in larval rabbit fish, Siganus guttatus",
+      "publisher": "Asian Fisheries Society / FAO AGRIS",
+      "year": 1986,
+      "url": "https://agris.fao.org/search/en/providers/122430/records/6471d3b32a40512c710e7b5e"
+    },
+    {
+      "title": "Occurrence of a stonefish toxin-like toxin in the venom of the rabbitfish Siganus fuscescens",
+      "publisher": "Toxicon",
+      "year": 2017,
+      "url": "https://pubmed.ncbi.nlm.nih.gov/29055787/",
+      "scopeNote": "Genus-level evidence for the venom hazard; not a claim of species-specific toxin equivalence."
+    },
+    {
+      "title": "Anatomy of a Fish",
+      "publisher": "University of Florida IFAS Extension",
+      "url": "https://ask.ifas.ufl.edu/publication/FA173"
+    }
+  ],
+  "licenses": [
+    {
+      "scope": "package content",
+      "name": "AquaDissect project-use terms",
+      "usageTerms": "Internal educational development and faculty review only while this package is unpublished. Publication or redistribution requires project authorization."
+    },
+    {
+      "scope": "natural, external, and internal visuals",
+      "name": "AquaDissect project-use terms",
+      "usageTerms": "Internal educational development and faculty review only while this package is unpublished. Publication or redistribution requires project authorization.",
+      "notice": "Do not treat the illustrations as diagnostic specimen evidence."
+    },
+    {
+      "scope": "assets/natural-swimming.mp4",
+      "name": "AquaDissect project-use terms",
+      "usageTerms": "Internal educational development and faculty review only while this package is unpublished. Publication or redistribution requires project authorization.",
+      "source": "Derived locally from assets/natural.webp",
+      "aiGenerated": false,
+      "externalMediaUsed": false,
+      "reviewStatus": "awaiting_faculty_review",
+      "notice": "No AI service, generation API, or external media was used. Independent faculty review is required before publication."
+    },
+    {
+      "scope": "assets/clip-01.mp4 through assets/clip-05.mp4",
+      "name": "AquaDissect project-use terms",
+      "usageTerms": "Internal educational development and faculty review only until authorized for publication.",
+      "notice": "Generated teaching demonstrations supplied by the project team."
+    }
+  ],
+  "assetProvenance": {
+    "video": {
+      "asset": "assets/natural-swimming.mp4",
+      "creationMethod": "Locally authored frame animation derived from the package natural illustration",
+      "sourceAsset": "assets/natural.webp",
+      "aiGenerated": false,
+      "externalMediaUsed": false,
+      "reviewStatus": "awaiting_faculty_review",
+      "reviewStatusMeaning": "Status recorded when this immutable package manifest was authored; current review and publication state is held in lifecycle records.",
+      "personalMetadataRemoved": true,
+      "technicalMetadataRetained": [
+        "container",
+        "codec",
+        "duration",
+        "dimensions",
+        "frameRate"
+      ]
+    },
+    "clip-01": {
+      "asset": "assets/clip-01.mp4",
+      "creationMethod": "Generated educational demonstration supplied by the project team",
+      "aiGenerated": true,
+      "reviewStatus": "awaiting_faculty_review",
+      "processing": "Video-only playback copy with source metadata excluded"
+    },
+    "clip-02": {
+      "asset": "assets/clip-02.mp4",
+      "creationMethod": "Generated educational demonstration supplied by the project team",
+      "aiGenerated": true,
+      "reviewStatus": "awaiting_faculty_review",
+      "processing": "Video-only playback copy with source metadata excluded"
+    },
+    "clip-03": {
+      "asset": "assets/clip-03.mp4",
+      "creationMethod": "Generated educational demonstration supplied by the project team",
+      "aiGenerated": true,
+      "reviewStatus": "awaiting_faculty_review",
+      "processing": "Video-only playback copy with source metadata excluded"
+    },
+    "clip-04": {
+      "asset": "assets/clip-04.mp4",
+      "creationMethod": "Generated educational demonstration supplied by the project team",
+      "aiGenerated": true,
+      "reviewStatus": "awaiting_faculty_review",
+      "processing": "Video-only playback copy with source metadata excluded"
+    },
+    "clip-05": {
+      "asset": "assets/clip-05.mp4",
+      "creationMethod": "Generated educational demonstration supplied by the project team",
+      "aiGenerated": true,
+      "reviewStatus": "awaiting_faculty_review",
+      "processing": "Video-only playback copy with source metadata excluded",
+      "personalMetadataRemoved": true
+    }
+  },
+  "assets": {
+    "natural": "assets/natural.webp",
+    "external": "assets/external.webp",
+    "internal": "assets/internal.webp",
+    "video": "assets/natural-swimming.mp4",
+    "clip-01": "assets/clip-01.mp4",
+    "clip-02": "assets/clip-02.mp4",
+    "clip-03": "assets/clip-03.mp4",
+    "clip-04": "assets/clip-04.mp4",
+    "clip-05": "assets/clip-05.mp4"
+  },
+  "content": {
+    "anatomy": "content/anatomy.json",
+    "lesson": "content/lesson.json",
+    "quiz": "content/quiz.json"
+  },
+  "files": {
+    "assets/clip-01.mp4": "72d226eabef1358fe70e23f4e33c9af7d81f3a8c27bd031231135cd6ed9659cf",
+    "assets/clip-02.mp4": "5d86897f874805d149b7596657c1a2b7b5e8114c1f93ae74e1c815bc797058e5",
+    "assets/clip-03.mp4": "c502206c3e81edcb9500cf75dfb9081acb6bbd1ee5323cd6aa7d72199e196a99",
+    "assets/clip-04.mp4": "9d65b906f6fcca02e1755f1eafafac37c597c1d1019de4fb912407bdade13559",
+    "assets/clip-05.mp4": "961c0d5fa84989a2c8df36539790d8e91220ec4b8e96cc09a12fdc6d871d72bb",
+    "assets/external.webp": "9252b0437801ffe277de8e0646e01a0bc6316ed56173b976c9e31d37534e8968",
+    "assets/internal.webp": "ad34a530487e5155de9286079320d0a2b3c00ba2656cd9b6c1392fb79d805567",
+    "assets/natural-swimming.mp4": "3932c2199e133229c6827a4d92957376a5dfbea553e4530319533c8e09488d59",
+    "assets/natural.webp": "1a3ec0c2c9d48b802e9c8353bca2ae80a7d935d78f0bfe7bb6e853dbe579fbf0",
+    "content/anatomy.json": "dd36bc2d0b9f619781f40d19b7b1572250900c1734488d721f65a4b2b10c2c59",
+    "content/lesson.json": "dfc7add27696a0d707beb9f1c08f928c52a03b060965e5a7a6e5f1516ba742bf",
+    "content/quiz.json": "2529c62906fd8e6043c87504270fd379ba71e215a1cc8ed95f1caf8a9fd90ead"
+  }
+}

@@ -527,3 +527,14 @@ engineering checks are not proof that a real instrument is approved or deployed.
 Lesson completion must also carry the student's selected section through content
 authorization, so a student enrolled in multiple sections can save the correct
 lesson result. Completion continues to unlock only that section's posttest.
+
+## November 7, 2026: Rabbitfish Clip 05
+
+The user supplied Clip 05 and requested that it be organized with the earlier
+clips and included in AquaDissect. Preserve the supplied original locally and
+add its metadata-stripped, silent playback copy in a new Rabbitfish v1.3.0 review
+package containing Clips 01–05. Retain v1.2.0 and all earlier packages, assignments
+and learning records unchanged. The clip shows specimen markings while the fish
+remains in the tray; it does not establish species identity, approved pointer
+handling, content validation or research outcomes. Independent faculty review and
+administrator publication remain required before student use.

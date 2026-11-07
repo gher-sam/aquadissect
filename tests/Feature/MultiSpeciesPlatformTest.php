@@ -105,15 +105,47 @@ class MultiSpeciesPlatformTest extends TestCase
         $this->assertSame(1, $package->events()->where('event', 'prepared_for_faculty_review')->count());
 
         $response = $this->actingAs($instructor)->getJson($manifestUrl)->assertOk();
-        foreach (['clip-01', 'clip-02', 'clip-03', 'clip-04'] as $index => $key) {
+        foreach (['clip-01', 'clip-02', 'clip-03', 'clip-04', 'clip-05'] as $index => $key) {
             $response->assertJsonPath("package.contentData.lesson.steps.{$index}.videoAsset", $key)
-                ->assertJsonPath("package.assetRecords.{$key}.mimeType", 'video/mp4');
+                ->assertJsonPath("package.assetRecords.{$key}.mimeType", 'video/mp4')
+                ->assertJsonPath("package.assetProvenance.{$key}.aiGenerated", true)
+                ->assertJsonPath("package.assetProvenance.{$key}.reviewStatus", 'awaiting_faculty_review');
             $assetUrl = "/api/species-packages/{$package->id}/assets/".$response->json("package.assetRecords.{$key}.id");
             $this->actingAs($instructor)->get($assetUrl)->assertOk()->assertHeader('Content-Type', 'video/mp4');
             $this->actingAs($student)->get($assetUrl)->assertForbidden();
         }
-        $response->assertJsonPath('package.contentData.lesson.steps.4.title', 'Meet the Goldspotted Rabbitfish');
+        $response->assertJsonPath('package.contentData.lesson.steps.4.title', 'Inspect the specimen markings')
+            ->assertJsonPath('package.contentData.lesson.steps.5.title', 'Meet the Goldspotted Rabbitfish');
         $this->actingAs($student)->getJson($manifestUrl)->assertForbidden();
+    }
+
+    public function test_clip_five_installs_as_a_new_version_without_changing_existing_content_or_records(): void
+    {
+        (new class extends SpeciesCatalogSeeder
+        {
+            public function run(): void
+            {
+                $this->installBundledPackage('rabbitfish', '1.2.0', SpeciesPackage::STATUS_REVIEW, null, false);
+            }
+        })->run();
+        $old = SpeciesPackage::query()->whereHas('species', fn ($query) => $query->where('slug', 'rabbitfish'))
+            ->where('version', '1.2.0')->sole();
+        $before = $old->getAttributes();
+        $assets = $old->assets()->orderBy('id')->get()->map->getAttributes()->all();
+        $counts = [User::count(), \App\Models\ClassEnrollment::count(), SpeciesAssignment::count(), LessonResult::count()];
+
+        $this->seed(RabbitfishGuidedClipsSeeder::class);
+        $this->seed(RabbitfishGuidedClipsSeeder::class);
+
+        $this->assertSame($before, $old->fresh()->getAttributes());
+        $this->assertSame($assets, $old->assets()->orderBy('id')->get()->map->getAttributes()->all());
+        $this->assertSame($counts, [User::count(), \App\Models\ClassEnrollment::count(), SpeciesAssignment::count(), LessonResult::count()]);
+        $this->assertArrayNotHasKey('clip-05', $old->fresh()->manifest['assets']);
+        $new = SpeciesPackage::query()->where('species_id', $old->species_id)->where('version', RabbitfishGuidedClipsSeeder::VERSION)->sole();
+        $this->assertSame(SpeciesPackage::STATUS_REVIEW, $new->status);
+        $this->assertFalse($new->is_current);
+        $this->assertSame('assets/clip-05.mp4', $new->manifest['assets']['clip-05']);
+        $this->assertSame([], $new->reviews()->get()->all());
     }
 
     public function test_versioned_attempt_is_scored_by_server_and_client_uuid_is_idempotent(): void

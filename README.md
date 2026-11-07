@@ -57,6 +57,9 @@ launcher prepares the bundled lesson catalog and three synthetic accounts.
 For students opening the host laptop over Wi-Fi, follow the
 [classroom network and quiz release guide](docs/classroom-quiz-access.md).
 
+Rabbitfish preparation Clips 01–05 are available for staff review in v1.3.0.
+See the [guided clip preview instructions](docs/rabbitfish-guided-clips.md).
+
 For this configured checkout, start Laragon's Apache and MySQL services and open:
 
 ```text

@@ -21,8 +21,12 @@ elif [[ "$2" = down ]]; then
 elif [[ "$2" = up ]]; then
     rm -f storage/framework/down
 elif [[ "$2" = db:seed ]]; then
-    echo 'Unrelated deployment must not replay content setup' >&2
-    exit 47
+    if [[ "${EXPECT_CLIP_SETUP:-0}" = 1 && "$3" = '--class=Database\Seeders\RabbitfishGuidedClipsSeeder' ]]; then
+        echo 'clip bundle installed' >>storage/clip-setup.txt
+    else
+        echo 'Deployment must not replay unrelated content setup' >&2
+        exit 47
+    fi
 elif [[ "$2" = migrate && "${FAIL_ACTIVATION:-0}" = 1 && "$(cat VERSION)" = new ]]; then
     exit 46
 fi
@@ -59,7 +63,7 @@ fi
 chmod +x "$test_root/bin/"*
 export PATH="$test_root/bin:$PATH"
 
-for scenario in success build-failure activation-failure health-failure recovery-failure; do
+for scenario in success clip-update build-failure activation-failure health-failure recovery-failure; do
     case_dir="$test_root/$scenario"
     trap 'echo "FAIL deployment scenario $scenario"; tail -15 "$case_dir/deploy.log" 2>/dev/null || true' ERR
     mkdir -p "$case_dir"
@@ -77,7 +81,13 @@ for scenario in success build-failure activation-failure health-failure recovery
     old_sha="$(git -C "$case_dir/site" rev-parse HEAD)"
     (
         cd "$case_dir/source"; echo new >VERSION
-        git add VERSION; git commit --quiet -m 'Candidate synthetic release'; git push --quiet origin main
+        git add VERSION
+        if [[ "$scenario" = clip-update ]]; then
+            mkdir -p resources/species-packs/rabbitfish/1.3.0
+            echo '{}' >resources/species-packs/rabbitfish/1.3.0/manifest.json
+            git add resources
+        fi
+        git commit --quiet -m 'Candidate synthetic release'; git push --quiet origin main
     )
     new_sha="$(git -C "$case_dir/source" rev-parse HEAD)"
     mkdir -p "$case_dir/site/vendor" "$case_dir/site/public/build/assets" "$case_dir/site/storage/app/private"
@@ -93,8 +103,9 @@ for scenario in success build-failure activation-failure health-failure recovery
     export AQD_SITE_DIR="$case_dir/site" AQD_RELEASE_ROOT="$case_dir/releases" AQD_DEPLOY_LOG="$case_dir/deploy.log"
     export AQD_PHP_BIN="$test_root/bin/php" AQD_COMPOSER_BIN="$test_root/mock-composer"
     export AQD_HEALTH_ORIGIN=https://example.invalid AQD_HEALTH_HOST=example.invalid AQD_WEB_USER=www AQD_WEB_GROUP=www
-    export FAIL_BUILD=0 FAIL_ACTIVATION=0 FAIL_HEALTH=0 FAIL_ALL_HEALTH=0
+    export FAIL_BUILD=0 FAIL_ACTIVATION=0 FAIL_HEALTH=0 FAIL_ALL_HEALTH=0 EXPECT_CLIP_SETUP=0
     case "$scenario" in
+        clip-update) export EXPECT_CLIP_SETUP=1;;
         build-failure) export FAIL_BUILD=1;;
         activation-failure) export FAIL_ACTIVATION=1;;
         health-failure) export FAIL_HEALTH=1;;
@@ -104,10 +115,13 @@ for scenario in success build-failure activation-failure health-failure recovery
     bash "$script" || status="$?"
     after="$(sha256sum "$case_dir/site/storage/records.json" | cut -d ' ' -f 1)"
     [[ "$before" = "$after" ]] || { echo 'Synthetic learner records changed'; exit 1; }
-    if [[ "$scenario" = success ]]; then
+    if [[ "$scenario" = success || "$scenario" = clip-update ]]; then
         [[ "$status" -eq 0 && "$(git -C "$case_dir/site" rev-parse HEAD)" = "$new_sha" ]]
         [[ "$(cat "$case_dir/site/vendor/runtime.txt")" = new ]]
         [[ "$(cat "$case_dir/site/storage/app/deployed-revision.txt")" = "$new_sha" ]]
+        if [[ "$scenario" = clip-update ]]; then
+            [[ "$(cat "$case_dir/site/storage/clip-setup.txt")" = 'clip bundle installed' ]]
+        fi
     else
         [[ "$status" -ne 0 && "$(git -C "$case_dir/site" rev-parse HEAD)" = "$old_sha" ]]
         [[ "$(cat "$case_dir/site/vendor/runtime.txt")" = old ]]
