@@ -30,6 +30,12 @@ class AuthController extends Controller
             $request->session()->regenerate();
             $user = $request->user();
 
+            if ($user->status === User::STATUS_ARCHIVED) {
+                Auth::logout();
+                $request->session()->invalidate();
+                throw ValidationException::withMessages(['identifier' => 'This student account is archived. Contact your administrator.']);
+            }
+
             if ($user->role === User::ROLE_STUDENT) {
                 $request->session()->put('student_password_revision', $user->password_revision);
                 if ($user->must_change_password) {

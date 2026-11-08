@@ -81,6 +81,9 @@ class GoogleAuthController extends Controller
                 if (! $user || ! $identity) {
                     return null;
                 }
+                if ($user->status === User::STATUS_ARCHIVED) {
+                    return $user;
+                }
                 $identity->update(['verified_email' => $email, 'verified_at' => now()]);
                 if (! $user->email_verified_at) {
                     $user->forceFill(['email_verified_at' => now()])->save();
@@ -94,6 +97,9 @@ class GoogleAuthController extends Controller
                 return $user;
             });
             if ($user) {
+                if ($user->status === User::STATUS_ARCHIVED) {
+                    return $this->failure('This student account is archived. Contact your administrator.');
+                }
                 if (! $user->isActive() && ! ($user->role === User::ROLE_STUDENT && $user->must_change_password)) {
                     return $this->failure('Your instructor request is waiting for administrator approval.');
                 }

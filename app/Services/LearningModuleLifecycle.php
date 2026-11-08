@@ -93,12 +93,13 @@ class LearningModuleLifecycle
         if ($version->status !== LearningModuleVersion::STATUS_REVIEW) {
             throw ValidationException::withMessages(['module' => 'Only a reviewed module version can be published.']);
         }
-        $review = $version->reviews()->latest()->first();
+        $review = $version->reviews()->latest('id')->first();
         $latestContentChange = collect([
             $version->updated_at,
             $version->assets()->max('updated_at'),
         ])->filter()->map(fn ($value) => $value instanceof Carbon ? $value : Carbon::parse($value))->max();
-        if (! $review || $review->decision !== 'approved' || $review->reviewer_id === $version->imported_by
+        if (! $review || ! \App\Models\AdminRecordArchive::moduleReviewIsFresh($version, $review)
+            || $review->decision !== 'approved' || $review->reviewer_id === $version->imported_by
             || $review->created_at->lessThan($latestContentChange)) {
             throw ValidationException::withMessages(['review' => 'An independent approved faculty review is required before publication.']);
         }
@@ -129,7 +130,7 @@ class LearningModuleLifecycle
             $version->update([
                 'status' => LearningModuleVersion::STATUS_PUBLISHED,
                 'is_current' => true,
-                'published_at' => now(),
+                'published_at' => $version->published_at ?? now(),
                 'archived_at' => null,
             ]);
 

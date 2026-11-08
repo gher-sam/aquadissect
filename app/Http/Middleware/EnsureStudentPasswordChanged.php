@@ -15,6 +15,15 @@ class EnsureStudentPasswordChanged
         if (! $user || $user->role !== User::ROLE_STUDENT) {
             return $next($request);
         }
+        if ($user->status === User::STATUS_ARCHIVED) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return $request->is('api/*')
+                ? response()->json(['message' => 'This student account is archived. Contact your administrator.'], 401)->header('Cache-Control', 'no-store')
+                : redirect()->route('login')->header('Cache-Control', 'no-store');
+        }
         $revision = $request->session()->get('student_password_revision');
         if ($revision === null && $user->password_revision === 0 && ! $user->must_change_password) {
             $request->session()->put('student_password_revision', 0);

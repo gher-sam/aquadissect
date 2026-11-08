@@ -37,7 +37,7 @@ class LearningModuleVersion extends Model
     protected static function booted(): void
     {
         static::updating(function (self $version): void {
-            if ($version->getOriginal('status') !== self::STATUS_PUBLISHED) {
+            if (! $version->hasPublishedHistory(true)) {
                 return;
             }
 
@@ -46,6 +46,18 @@ class LearningModuleVersion extends Model
                 throw new LogicException('Published learning-module versions are immutable. Create a new version instead.');
             }
         });
+    }
+
+    public function hasPublishedHistory(bool $original = false): bool
+    {
+        if (($original ? $this->getOriginal('published_at') : $this->published_at)
+            || ($original ? $this->getOriginal('status') : $this->status) === self::STATUS_PUBLISHED) {
+            return true;
+        }
+        $archive = AdminRecordArchive::query()->where('resource_type', 'safety-versions')->where('record_id', $this->id)->first();
+
+        return (bool) ($archive?->original_state['publishedHistory'] ?? false)
+            || in_array($archive?->original_state['status'], [self::STATUS_PUBLISHED, self::STATUS_ARCHIVED], true);
     }
 
     public function module(): BelongsTo

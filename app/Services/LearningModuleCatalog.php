@@ -84,12 +84,13 @@ class LearningModuleCatalog
     /** @return array<string, mixed> */
     public function staffPayload(LearningModuleVersion $version): array
     {
-        $latestReview = $version->reviews->sortByDesc('created_at')->first();
+        $latestReview = $version->reviews->sortByDesc('id')->first();
         $latestContentChange = collect([
             $version->updated_at,
             $version->assets->max('updated_at'),
         ])->filter()->map(fn ($value) => $value instanceof Carbon ? $value : Carbon::parse($value))->max();
         $approvalCurrent = $latestReview?->decision === 'approved'
+            && \App\Models\AdminRecordArchive::moduleReviewIsFresh($version, $latestReview)
             && $latestReview->created_at?->greaterThanOrEqualTo($latestContentChange);
 
         return [

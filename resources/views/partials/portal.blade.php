@@ -15,6 +15,7 @@
       <button type="button" data-portal-page="downloads" data-role-nav="student,instructor,admin"><i class="portal-nav-icon" data-lucide="download"></i><span data-nav-label="downloads">Offline access</span></button>
       <span class="portal-nav-section" data-role-nav="instructor,program_head,admin">Manage</span>
       <button type="button" data-portal-page="roster" data-role-nav="admin"><i class="portal-nav-icon" data-lucide="users-round"></i><span data-nav-label="roster">People &amp; sections</span></button>
+      <button type="button" data-portal-page="records" data-role-nav="admin"><i class="portal-nav-icon" data-lucide="archive"></i><span data-nav-label="records">Manage records</span></button>
       <button type="button" data-portal-page="manager" data-role-nav="instructor,program_head,admin"><i class="portal-nav-icon" data-lucide="package-open"></i><span data-nav-label="manager">Species content</span></button>
       <button type="button" data-portal-page="prompt-studio" data-role-nav="instructor,admin"><i class="portal-nav-icon" data-lucide="sparkles"></i><span data-nav-label="prompt-studio">Create media prompts</span></button>
       <span class="portal-nav-section" data-role-nav="student,instructor,program_head,admin">Workspace</span>

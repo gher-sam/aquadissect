@@ -538,3 +538,25 @@ and learning records unchanged. The clip shows specimen markings while the fish
 remains in the tray; it does not establish species identity, approved pointer
 handling, content validation or research outcomes. Independent faculty review and
 administrator publication remain required before student use.
+
+## November 8, 2026: Administrator bulk record management
+
+The user approved administrator bulk actions for student accounts and enrollments,
+class sections, species lessons and Safety & Tools versions. Explicit selection,
+reason, preview and confirmation are required. Archive retains records and permits
+restoration; permanent deletion is limited to unused entries without protected
+academic or review history. Existing records are not changed automatically.
+
+Preserve identities, credentials, enrollments, results, assessment attempts and
+review history. Restoring a pending student does not activate the account or reset
+a password. Restoring content does not publish, assign or select it as current.
+Unapproved archived safety drafts stay unavailable to students; restored published
+versions require fresh independent review and retain immutable content. This is
+administrative record management, separate from research withdrawal, consent or
+research-data retention decisions.
+
+Encrypted, expiring, session-bound previews, repeated checks under database locks,
+atomic batches, retry identifiers, actor/record-ID audit history and the existing
+delayed-clone policy support the workflow. Operational guidance is recorded in
+docs/admin-record-management.md. Engineering checks and release evidence must be
+retained separately; they do not establish faculty or research validation.

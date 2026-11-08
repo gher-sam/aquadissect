@@ -9,6 +9,8 @@ return [
     // Parent tables must appear before tables that reference them.
     'tables' => [
         'users' => 'id',
+        'admin_record_archives' => 'id',
+        'admin_record_batches' => 'id',
         'external_identities' => 'id',
         'species' => 'id',
         'species_packages' => 'id',

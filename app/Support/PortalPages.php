@@ -5,6 +5,7 @@ namespace App\Support;
 class PortalPages
 {
     public const PAGES = [
+        'records' => ['record-management', 'admin'],
         'source-handover' => ['source-handover', 'admin'],
         'login' => ['login', null], 'register' => ['instructor-registration', null],
         'activate' => ['activate', null], 'about' => ['help', null], 'access' => ['account-roles', null],

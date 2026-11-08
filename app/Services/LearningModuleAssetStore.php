@@ -15,7 +15,7 @@ class LearningModuleAssetStore
     /** @param array<string, mixed> $metadata */
     public function store(LearningModuleVersion $version, UploadedFile $file, string $assetKey, array $metadata): LearningModuleAsset
     {
-        if ($version->status === LearningModuleVersion::STATUS_PUBLISHED || $version->status === LearningModuleVersion::STATUS_ARCHIVED) {
+        if ($version->hasPublishedHistory() || in_array($version->status, [LearningModuleVersion::STATUS_PUBLISHED, LearningModuleVersion::STATUS_ARCHIVED, 'withdrawn'], true)) {
             throw ValidationException::withMessages(['asset' => 'Create a new module version instead of changing published media.']);
         }
 

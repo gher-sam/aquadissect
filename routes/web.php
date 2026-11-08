@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminRosterController;
+use App\Http\Controllers\AdminRecordController;
 use App\Http\Controllers\AdminSpeciesPackageController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\AuthController;
@@ -136,6 +137,9 @@ Route::prefix('api')->group(function (): void {
         });
 
         Route::middleware('role:admin')->prefix('admin')->group(function (): void {
+            Route::get('/records', [AdminRecordController::class, 'index']);
+            Route::post('/records/preview', [AdminRecordController::class, 'preview'])->middleware('throttle:30,1,record-preview');
+            Route::post('/records/execute', [AdminRecordController::class, 'execute'])->middleware('throttle:10,1,record-execute');
             Route::get('/staff-roles', [StaffRoleController::class, 'index']);
             Route::patch('/staff-roles/{user}', [StaffRoleController::class, 'update']);
             Route::get('/source-handover', [SourceHandoverController::class, 'index']);

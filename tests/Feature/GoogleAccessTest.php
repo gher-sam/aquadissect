@@ -61,6 +61,19 @@ class GoogleAccessTest extends TestCase
         }
     }
 
+    public function test_archived_student_cannot_sign_in_with_google_even_when_password_change_is_pending(): void
+    {
+        $user = User::factory()->create(['role' => 'student', 'status' => 'archived', 'must_change_password' => true]);
+        $identity = ExternalIdentity::create(['user_id' => $user->id, 'provider' => 'google', 'subject' => 'archived-subject', 'verified_email' => $user->email, 'verified_at' => now()->subDay()]);
+        $before = $user->fresh()->getAttributes();
+        $identityBefore = $identity->fresh()->getAttributes();
+        $this->profile($user->email, 'archived-subject');
+        $this->completeGoogleSignIn()->assertRedirect('/login');
+        $this->assertGuest();
+        $this->assertSame($before, $user->fresh()->getAttributes());
+        $this->assertSame($identityBefore, $identity->fresh()->getAttributes());
+    }
+
     public function test_rostered_student_is_activated_and_old_activation_token_removed(): void
     {
         $user = User::factory()->create(['role' => 'student', 'status' => 'pending', 'email' => 'learner@example.test']);

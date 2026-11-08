@@ -34,6 +34,8 @@ class User extends Authenticatable
 
     public const STATUS_PENDING = 'pending';
 
+    public const STATUS_ARCHIVED = 'archived';
+
     public const REGISTRABLE_ROLES = [self::ROLE_INSTRUCTOR];
 
     /** @use HasFactory<UserFactory> */

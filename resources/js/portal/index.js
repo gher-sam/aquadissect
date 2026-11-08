@@ -1,5 +1,6 @@
 import { mountAssessmentPanel } from './fishEnhancements.js';
 import { setupBulkRoster } from './bulkRoster.js';
+import { mountRecordManagement } from './adminRecords.js';
 import { setupStudentPasswordActions } from './studentPasswords.js';
 import { offlineContextKey, pendingSignOutKey, signOutPending, beginLocalSignOut, confirmServerSignOut, clearLearnerContext, prepareSessionContext } from './sessionAccess.js';
 import { setupStudentEmailFlow, setupStudentCodeBatch } from './studentSetup.js';
@@ -55,6 +56,7 @@ const dashboardCopy = {
   admin: ['Administrator workspace', 'System overview', 'Review the people, class sections, and learning content that need attention.'],
 };
 const pageLabels = {
+  records: 'Manage records',
   'source-handover': 'Source Structure',
   calendar: 'Calendar', notifications: 'Notifications', reports: 'Learning reports',
   home: 'Home', library: 'Species lessons', classes: 'Class sections', roster: 'People & sections', assignments: 'Class activities',
@@ -370,6 +372,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
 
   function renderPage(name = state.currentPage) {
     if (!portal.querySelector(`[data-portal-panel="${name}"]`)) return;
+    if (name === 'records') mountRecordManagement(portal.querySelector('#recordManagement'), refreshData);
     if (name === 'home') {
       const user = state.currentUser;
       if (!user) return;
