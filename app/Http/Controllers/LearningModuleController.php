@@ -26,7 +26,7 @@ class LearningModuleController extends Controller
         return response()->json(['module' => $catalog->publicManifest(
             $version->load(['module', 'assets']),
             $request->integer('classId') ?: null,
-        )]);
+        )], 200, \App\Support\LearningMedia::headers());
     }
 
     public function asset(Request $request, LearningModuleVersion $version, LearningModuleAsset $asset): BinaryFileResponse
@@ -36,13 +36,9 @@ class LearningModuleController extends Controller
         $disk = Storage::disk(config('learning-modules.disk'));
         abort_unless($disk->exists($asset->relative_path), 404, 'The learning-module asset is unavailable.');
 
-        return response()->file($disk->path($asset->relative_path), [
+        return response()->file($disk->path($asset->relative_path), array_merge(\App\Support\LearningMedia::headers(), [
             'Content-Type' => $asset->mime_type,
-            'Cache-Control' => in_array($version->status, [LearningModuleVersion::STATUS_PUBLISHED, LearningModuleVersion::STATUS_ARCHIVED], true)
-                ? 'private, max-age=31536000, immutable'
-                : 'private, no-store',
-            'X-Content-Type-Options' => 'nosniff',
-        ]);
+        ]));
     }
 
     private function authorizeVersion(Request $request, LearningModuleVersion $version): void

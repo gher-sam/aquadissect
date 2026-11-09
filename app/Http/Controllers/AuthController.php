@@ -108,6 +108,6 @@ class AuthController extends Controller
 
     public function session(Request $request): JsonResponse
     {
-        return response()->json(['user' => $request->user()->portalProfile()]);
+        return response()->json(['user' => $request->user()->portalProfile()], 200, \App\Support\LearningMedia::headers());
     }
 }

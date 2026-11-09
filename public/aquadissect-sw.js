@@ -1,8 +1,11 @@
-const SHELL_CACHE = 'aquadissect-shell-v24';
+const SHELL_CACHE = 'aquadissect-shell-v25';
+// Refresh the shell alongside scoped media and network-aware retained-access controls.
 const SHELL_CACHE_PREFIX = 'aquadissect-shell-';
 const scopeUrl = new URL(self.registration.scope);
 const withinScope = (url) => url.origin === scopeUrl.origin && url.pathname.startsWith(scopeUrl.pathname);
 const fromScope = (path = '') => new URL(path, scopeUrl).href;
+importScripts(fromScope('aquadissect-offline-media.js'));
+self.addEventListener('message', event => { event.waitUntil(self.AquaOfflineMedia.message(event)); });
 
 async function cacheResponse(cache, request) {
   try {
@@ -60,14 +63,8 @@ self.addEventListener('activate', (event) => {
     await Promise.all(cacheNames
       .filter((name) => name.startsWith(SHELL_CACHE_PREFIX) && name !== SHELL_CACHE)
       .map((name) => caches.delete(name)));
-    // Remove legacy personalized HTML from package caches; retain downloaded lesson assets.
-    for (const name of cacheNames.filter(name => name.startsWith('aquadissect-package-') || name.startsWith('aquadissect-module-'))) {
-      const cache = await caches.open(name);
-      for (const request of await cache.keys()) {
-        const response = await cache.match(request);
-        if (response?.headers.get('content-type')?.includes('text/html')) await cache.delete(request);
-      }
-    }
+    // Refresh unowned legacy media copies without changing queued learning records.
+    await self.AquaOfflineMedia.migrate();
     await self.clients.claim();
   })());
 });
@@ -79,7 +76,7 @@ async function navigationResponse(request) {
     return response;
   } catch {
     return (await cache.match(fromScope('offline')))
-      || new Response('AquaDissect is offline. Reconnect once, then download a species package for offline study.', {
+      || new Response('AquaDissect is offline. Reconnect and prepare your lessons for offline viewing in this browser.', {
         status: 503,
         headers: { 'Content-Type': 'text/plain; charset=utf-8' },
       });
@@ -87,7 +84,8 @@ async function navigationResponse(request) {
 }
 
 async function cacheFirst(request) {
-  const cached = await caches.match(request, { ignoreSearch: true });
+  const shell = await caches.open(SHELL_CACHE);
+  const cached = await shell.match(request);
   if (cached) return cached;
   const response = await fetch(request);
   if (response.ok) {
@@ -104,41 +102,7 @@ async function networkFirstResource(request) {
     if (response.ok) await cache.put(request, response.clone());
     return response;
   } catch {
-    return (await cache.match(request, { ignoreSearch: true }))
-      || new Response('This AquaDissect resource is not available offline.', {
-        status: 503,
-        headers: { 'Content-Type': 'text/plain; charset=utf-8' },
-      });
-  }
-}
-
-async function cachedResponseFor(request) {
-  const cached = await caches.match(request, { ignoreSearch: true });
-  const range = request.headers.get('range');
-  if (!cached || !range) return cached;
-
-  const match = /^bytes=(\d*)-(\d*)$/i.exec(range.trim());
-  if (!match) return cached;
-  const bytes = await cached.arrayBuffer();
-  let start = match[1] ? Number(match[1]) : Math.max(0, bytes.byteLength - Number(match[2] || 0));
-  let end = match[2] && match[1] ? Number(match[2]) : bytes.byteLength - 1;
-  end = Math.min(end, bytes.byteLength - 1);
-  if (!Number.isFinite(start) || !Number.isFinite(end) || start < 0 || start > end || start >= bytes.byteLength) {
-    return new Response(null, { status: 416, headers: { 'Content-Range': `bytes */${bytes.byteLength}` } });
-  }
-
-  const headers = new Headers(cached.headers);
-  headers.set('Accept-Ranges', 'bytes');
-  headers.set('Content-Length', String(end - start + 1));
-  headers.set('Content-Range', `bytes ${start}-${end}/${bytes.byteLength}`);
-  return new Response(bytes.slice(start, end + 1), { status: 206, statusText: 'Partial Content', headers });
-}
-
-async function networkWithOfflineFallback(request) {
-  try {
-    return await fetch(request);
-  } catch {
-    return (await cachedResponseFor(request))
+    return (await cache.match(request))
       || new Response('This AquaDissect resource is not available offline.', {
         status: 503,
         headers: { 'Content-Type': 'text/plain; charset=utf-8' },
@@ -150,6 +114,10 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   const url = new URL(event.request.url);
   if (!withinScope(url)) return;
+  if (self.AquaOfflineMedia.protectedRoute(event.request.url)) {
+    event.respondWith(self.AquaOfflineMedia.resource(event));
+    return;
+  }
   // Source handover must never fall back to any shared offline cache.
   if (url.pathname.includes('/source-handover') || url.pathname.includes('/auth/google/') || url.pathname.includes('/auth/gmail/') || url.pathname.endsWith('/admin/email-delivery') || url.pathname.includes('/student-setup/') || url.pathname.includes('/student-password-setup/') || url.pathname.endsWith('/change-password') || url.pathname.endsWith('/activate')) {
     event.respondWith(fetch(event.request));
@@ -176,5 +144,6 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  event.respondWith(networkWithOfflineFallback(event.request));
+  // Other APIs and staff exports must never fall back to a media cache.
+  event.respondWith(fetch(event.request));
 });

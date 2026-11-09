@@ -560,3 +560,28 @@ atomic batches, retry identifiers, actor/record-ID audit history and the existin
 delayed-clone policy support the workflow. Operational guidance is recorded in
 docs/admin-record-management.md. Engineering checks and release evidence must be
 retained separately; they do not establish faculty or research validation.
+
+## November 9, 2026: Offline lesson-media viewing
+
+The user approved offline viewing of authorized Rabbitfish and Safety & Tools
+images and clips with deterrents to casual saving across all student lesson media.
+Prepare copies from the HTTPS website, require an unambiguous study section, and
+retain authorized staff exports and notebook downloads. Plain HTTP classroom
+installations continue connected viewing without enabling unsupported browser
+security exceptions.
+
+Prepared copies are separated by account, section and content version. Sign-out
+closes media across tabs and persistently locks retained copies; confirm the same
+account online and revalidate its access before reuse. Existing learning records,
+queued work, notebook drafts, immutable packages and uploaded files are retained.
+Old unowned browser media caches require one connected preparation after migration.
+No academic database migration or automatic content publication is introduced.
+
+This is not DRM or a guarantee against extraction, screenshots or recordings.
+The user retained the public repository and its existing public media, and chose
+no encryption, additional PIN, watermark or timed offline expiry. Offline use
+relies on last-confirmed access until sign-out or reconnection; disconnected
+devices cannot receive immediate revocation. AI-media provenance and independent
+faculty-review requirements remain in force. Software checks do not establish
+biological accuracy, research consent or learning effectiveness. Operational and
+engineering boundaries are recorded in docs/offline-media-viewing.md.

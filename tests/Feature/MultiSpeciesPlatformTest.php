@@ -90,6 +90,28 @@ class MultiSpeciesPlatformTest extends TestCase
             ->assertJsonCount(7, 'package.assetRecords');
     }
 
+    public function test_published_student_media_keeps_section_scope_and_bypasses_the_http_cache(): void
+    {
+        $student = User::query()->where('role', 'student')->firstOrFail();
+        $package = SpeciesPackage::query()->whereHas('species', fn ($query) => $query->where('slug', 'tilapia'))->where('is_current', true)->firstOrFail();
+        $classId = $student->classEnrollments()->value('class_id');
+        $manifest = $package->manifest;
+        $resultCount = LessonResult::count();
+        $response = $this->actingAs($student)->getJson("/api/species/tilapia/packages/{$package->id}/manifest?mediaPolicy=2&classId={$classId}")->assertOk();
+        $this->assertStringContainsString('no-store', $response->headers->get('Cache-Control'));
+        $assetUrl = $response->json('package.assetRecords.video.url');
+        parse_str(parse_url($assetUrl, PHP_URL_QUERY), $query);
+        $this->assertSame('2', $query['mediaPolicy']);
+        $this->assertSame((string) $classId, $query['classId']);
+        $asset = $this->get($assetUrl)->assertOk()->assertHeader('Content-Type', 'video/mp4');
+        $this->assertStringContainsString('no-store', $asset->headers->get('Cache-Control'));
+        $this->getJson("/api/species-packages/{$package->id}/download")->assertForbidden();
+        $other = User::factory()->create(['role' => 'student', 'status' => 'active']);
+        $this->actingAs($other)->getJson($assetUrl)->assertForbidden();
+        $this->assertSame($manifest, $package->fresh()->manifest);
+        $this->assertSame($resultCount, LessonResult::count());
+    }
+
     public function test_guided_preparation_clips_are_available_to_staff_in_the_unpublished_version(): void
     {
         $this->seed(RabbitfishGuidedClipsSeeder::class);

@@ -52,7 +52,7 @@ function speciesReviewForm(item, currentUser) {
 function packageCard(item, { manager = false, offline = false, isAdmin = false, currentUser = null, versionCount = 0 } = {}) {
   const status = item.status === 'published' ? 'Published' : item.status === 'review' ? 'In review' : titleCase(item.status);
   const score = item.progress ? `${item.progress.score} / ${item.progress.total}` : 'Not started';
-  const canOpen = (item.status === 'published' || manager) && !item.locked;
+  const canOpen = (item.status === 'published' || manager) && !item.locked && !item.offlineUnavailable;
   const mainAction = canOpen
     ? `<button class="portal-primary" type="button" data-open-package="${item.id}">${item.progress ? 'Review lesson' : item.status === 'published' ? 'Open lesson' : 'Preview draft'}</button>`
     : '';
@@ -80,7 +80,8 @@ function packageCard(item, { manager = false, offline = false, isAdmin = false, 
         <h2>${escapeHtml(item.commonName)}</h2>
         <p class="scientific-name"><em>${escapeHtml(item.scientificName || '')}</em></p>
         <p>${escapeHtml(item.description || '')}</p>
-        ${!item.locked ? '<button class="portal-secondary" type="button" data-fish-manifest="'+escapeHtml(item.manifestUrl)+(item.availableClassId?'?classId='+item.availableClassId:'')+'">Fish details</button>' : ''}
+        ${!item.locked && !item.offlineUnavailable ? '<button class="portal-secondary" type="button" data-fish-manifest="'+escapeHtml(item.manifestUrl)+(item.availableClassId?(item.manifestUrl.includes('?')?'&':'?')+'classId='+item.availableClassId:'')+'">Fish details</button>' : ''}
+        ${item.offlineUnavailable ? '<p class="offline-preparation-note">Prepare this lesson while connected before opening it offline.</p>' : ''}
         <div class="lesson-meta"><span>${escapeHtml(item.duration || 'Guided activity')}</span>${item.hasVideo ? '<span class="is-featured">Swimming video</span>' : ''}<span>2.5D layers</span>${item.has3d ? '<span>Optional 3D</span>' : ''}</div>
         ${item.draftNotice && item.status !== 'published' ? `<div class="draft-notice">${escapeHtml(item.draftNotice)}</div>` : ''}
         ${item.locked ? `<div class="prerequisite-notice"><i data-lucide="lock-keyhole" aria-hidden="true"></i><span>${escapeHtml(item.lockReason || 'Complete Safety & Tools before opening this lesson.')}</span><button type="button" data-portal-page="safety">Open prerequisite</button></div>` : ''}
@@ -150,7 +151,7 @@ export { studentReadinessView as studentOrientationPath } from './studentReadine
 export function studentDashboard(packages) {
   const flagship = packages[0];
   if (!flagship) return '<div class="empty-state"><strong>No laboratory lesson assigned yet</strong><span>You can complete orientation above now. Your instructor will announce later approved, assigned laboratory activities.</span></div>';
-  return `${motionFeature(flagship)}<div class="dashboard-layout"><div class="species-library-grid">${packageCard(flagship)}</div><aside class="status-card"><span class="portal-kicker">My learning</span><h2>Learning progress</h2><dl><div><dt>Assigned species</dt><dd>${packages.length}</dd></div><div><dt>Lesson version</dt><dd>${escapeHtml(flagship.version)}</dd></div><div><dt>Lesson status</dt><dd>${escapeHtml(flagship.updateStatus || 'Ready')}</dd></div><div><dt>Offline access</dt><dd>Ready to download</dd></div></dl><button class="portal-secondary" data-portal-page="downloads" type="button">Open offline access</button></aside></div>`;
+  return `${motionFeature(flagship)}<div class="dashboard-layout"><div class="species-library-grid">${packageCard(flagship)}</div><aside class="status-card"><span class="portal-kicker">My learning</span><h2>Learning progress</h2><dl><div><dt>Assigned species</dt><dd>${packages.length}</dd></div><div><dt>Lesson version</dt><dd>${escapeHtml(flagship.version)}</dd></div><div><dt>Lesson status</dt><dd>${escapeHtml(flagship.updateStatus || 'Ready')}</dd></div><div><dt>Offline access</dt><dd>Prepare in this browser</dd></div></dl><button class="portal-secondary" data-portal-page="downloads" type="button">Open offline access</button></aside></div>`;
 }
 
 export function instructorDashboard(packages, classes) {

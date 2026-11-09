@@ -41,3 +41,9 @@ test('a shared module version has distinct section controls in safety and offlin
     assert.match(offline, new RegExp('data-offline-module-toggle="2" data-module-class-id="' + section.id + '"'));
   }
 });
+
+test('unprepared offline safety content is not offered as an available module', () => {
+  const html=safetyWorkspace([{id:2,classId:11,version:'0.2.0',title:'Synthetic Safety',description:'QA',offlineUnavailable:true}], 'student', null, {offline:true,classes:[{id:11,name:'QA Section'}]});
+  assert.doesNotMatch(html,/data-open-learning-module=/);
+  assert.match(html,/disabled>Prepare while connected/);
+});

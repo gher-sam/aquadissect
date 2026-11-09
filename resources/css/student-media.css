@@ -1,0 +1,22 @@
+.student-media-view :is(#app,.species-card-image,.safety-experience,.fish-details-dialog) :is(img,video,canvas) {
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+  user-select: none;
+}
+.student-media-player { flex: 0 0 auto; width: 100%; min-width: 0; background: #f5f8fc; border: 1px solid #dbe3ef; border-radius: 8px; overflow: hidden; }
+.student-media-player[hidden] { display: none; }
+.student-media-player video { display: block; width: 100%; margin: 0; }
+.student-media-controls { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px; align-items: center; }
+.student-media-controls button { min-height: 40px; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px 9px; background: white; color: #18334f; font: inherit; font-size: 13px; }
+.student-media-controls button:focus-visible,.student-media-controls input:focus-visible { outline: 3px solid #2563eb; outline-offset: 2px; }
+.student-media-seek { display: flex; flex: 1 1 120px; flex-direction: column; gap: 2px; font-size: 12px; }
+.student-media-seek input { min-height: 32px; width: 100%; }
+.student-media-controls output { font-size: 12px; white-space: nowrap; }
+.student-media-status:not(:empty) { width: 100%; color: #8b351f; font-size: 13px; }
+.student-media-player:fullscreen { display: flex; flex-direction: column; justify-content: center; background: #101923; }
+.student-media-player:fullscreen video { min-height: 0; max-height: calc(100vh - 100px); object-fit: contain; }
+.student-media-player:fullscreen .student-media-controls { background: #f5f8fc; }
+.offline-preparation-note { margin: 12px 0; padding: 12px; border: 1px solid #dbe3ef; background: #f5f8fc; border-radius: 6px; }
+.offline-saved-list { margin: 12px 0 24px; padding: 0; list-style: none; }
+.offline-saved-list li { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 10px 0; border-bottom: 1px solid #e2e8f0; }
+.offline-saved-list small { display: block; color: #536781; }

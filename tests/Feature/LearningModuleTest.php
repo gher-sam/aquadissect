@@ -64,6 +64,26 @@ class LearningModuleTest extends TestCase
         }
     }
 
+    public function test_published_safety_media_uses_section_scoped_non_cacheable_urls(): void
+    {
+        $version = LearningModuleVersion::query()->where('version', '0.2.0')->firstOrFail();
+        $this->submitReviewAndPublish($version);
+        $classId = $this->learningClass()->id;
+        $before = $version->fresh()->manifest;
+        $response = $this->actingAs($this->student())->getJson("/api/learning-modules/{$version->id}/manifest?mediaPolicy=2&classId={$classId}")->assertOk();
+        $this->assertStringContainsString('no-store', $response->headers->get('Cache-Control'));
+        $assetUrl = collect($response->json('module.assetRecords'))->first()['url'];
+        parse_str(parse_url($assetUrl, PHP_URL_QUERY), $query);
+        $this->assertSame('2', $query['mediaPolicy']);
+        $this->assertSame((string) $classId, $query['classId']);
+        $asset = $this->get($assetUrl)->assertOk();
+        $this->assertStringContainsString('no-store', $asset->headers->get('Cache-Control'));
+        $this->getJson("/api/learning-module-versions/{$version->id}/assets/".$version->assets->first()->id)->assertUnprocessable();
+        $other = User::factory()->create(['role' => 'student', 'status' => 'active']);
+        $this->actingAs($other)->getJson($assetUrl)->assertForbidden();
+        $this->assertSame($before, $version->fresh()->manifest);
+    }
+
     public function test_illustrated_draft_installs_once_and_keeps_assets_staff_only(): void
     {
         $version = LearningModuleVersion::query()->where('version', '0.2.0')->firstOrFail();

@@ -76,7 +76,7 @@ class LearningModuleCatalog
                     ->where('user_id', $user->id)->where('class_id', $assignment->class_id)->exists(),
                 'overrideActive' => $this->gate->hasOverride($user, $assignment),
             ],
-            'manifestUrl' => url("/api/learning-modules/{$version->id}/manifest?classId={$assignment->class_id}"),
+            'manifestUrl' => \App\Support\LearningMedia::url("/api/learning-modules/{$version->id}/manifest", $assignment->class_id),
             'pinned' => $version->id !== $assignment->learning_module_version_id,
         ];
     }
@@ -120,7 +120,7 @@ class LearningModuleCatalog
                 'category' => $tool['category'],
                 'validationStatus' => $tool['validationStatus'],
             ])->values()->all(),
-            'manifestUrl' => url("/api/learning-modules/{$version->id}/manifest"),
+            'manifestUrl' => \App\Support\LearningMedia::url("/api/learning-modules/{$version->id}/manifest"),
         ];
     }
 
@@ -139,8 +139,7 @@ class LearningModuleCatalog
         $manifest['assetRecords'] = $version->assets->mapWithKeys(fn ($asset) => [
             $asset->asset_key => [
                 'id' => $asset->id,
-                'url' => url("/api/learning-module-versions/{$version->id}/assets/{$asset->id}")
-                    .($classId ? '?classId='.$classId : ''),
+                'url' => \App\Support\LearningMedia::url("/api/learning-module-versions/{$version->id}/assets/{$asset->id}", $classId),
                 'mimeType' => $asset->mime_type,
                 'sizeBytes' => $asset->size_bytes,
                 'sha256' => $asset->sha256,

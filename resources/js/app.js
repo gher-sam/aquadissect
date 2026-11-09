@@ -20,6 +20,7 @@ import '../css/fishEnhancements.css';
 import { showFishDetails } from './fishDetails.js';
 import { setupFishEnhancements } from './portal/fishEnhancements.js';
 import { createUuid } from './uuid.js';
+import { setupStudentMedia } from './studentMedia.js';
 import '../css/portal.css';
 import '../css/threeViewer.css';
 import '../css/imageViewer.css';
@@ -497,3 +498,4 @@ portal = setupAquaPortal({
   },
 });
 refreshIcons();
+setupStudentMedia(() => portal.currentUser());

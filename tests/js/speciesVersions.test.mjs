@@ -21,3 +21,9 @@ test('student assigned versions and content management remain separate entries',
   assert.equal((speciesLibrary([old,latest]).match(/data-package-card=/g)||[]).length,2);
   assert.equal((speciesLibrary([old,latest],{manager:true,singleSpecies:true}).match(/data-package-card=/g)||[]).length,2);
 });
+
+test('an unprepared offline species copy has no lesson-open or details action', () => {
+  const html=speciesLibrary([{...latest,status:'published',offlineUnavailable:true,naturalImageUrl:null}],{offline:true});
+  assert.doesNotMatch(html,/data-open-package=|data-fish-manifest=/);
+  assert.match(html,/Prepare this lesson while connected/);
+});

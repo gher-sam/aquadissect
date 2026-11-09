@@ -55,7 +55,7 @@ class SpeciesPackageContent
         $manifest['assetRecords'] = $package->assets->mapWithKeys(fn ($asset) => [
             $asset->asset_key => [
                 'id' => $asset->id,
-                'url' => url("/api/species-packages/{$package->id}/assets/{$asset->id}").($classId ? '?classId='.$classId : ''),
+                'url' => \App\Support\LearningMedia::url("/api/species-packages/{$package->id}/assets/{$asset->id}", $classId),
                 'mimeType' => $asset->mime_type,
                 'sizeBytes' => $asset->size_bytes,
                 'sha256' => $asset->sha256,

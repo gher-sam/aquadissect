@@ -1,5 +1,13 @@
 export const offlineContextKey = 'aquadissect.offline-context.v2';
 export const pendingSignOutKey = 'aquadissect.sign-out-pending.v1';
+export const offlineMediaLockKey = 'aquadissect.offline-media-lock.v2';
+
+export async function canReachSession(url, fetcher = globalThis.fetch) {
+  try {
+    const response = await fetcher(url, { credentials: 'same-origin', cache: 'no-store', headers: { Accept: 'application/json' } });
+    return response.ok || [401, 419].includes(response.status);
+  } catch { return false; }
+}
 export const signOutCookie = 'aquadissect_logout_pending';
 let pendingInMemory = false;
 function browserStorage() { try { return globalThis.localStorage; } catch { return null; } }
@@ -18,6 +26,7 @@ export function beginLocalSignOut(storage = browserStorage(), doc = globalThis.d
   // This cookie requests logout only. It never authenticates an account.
   try { if (doc) doc.cookie = `${signOutCookie}=1; Path=${base || ''}/; SameSite=Strict${globalThis.location?.protocol === 'https:' ? '; Secure' : ''}`; } catch { /* Local access still closes if cookies are disabled. */ }
   try { storage.setItem(pendingSignOutKey, '1'); } catch { /* The in-memory and cookie guards still block access. */ }
+  try { storage.setItem(offlineMediaLockKey, '*'); } catch { /* The worker persists the media lock separately. */ }
   try { storage.removeItem(offlineContextKey); } catch { /* The pending guard prevents restoring an old context. */ }
 }
 

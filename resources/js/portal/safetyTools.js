@@ -37,7 +37,7 @@ function studentCard(module, { offline = false, classes = [] } = {}) {
       ${module.pinned ? '<p class="module-version-note"><i data-lucide="pin" aria-hidden="true"></i> Your started version remains pinned.</p>' : ''}
       <div class="module-progress-track" role="progressbar" aria-label="Module progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${progress}"><span style="width:${progress}%"></span></div>
       <div class="package-actions">
-        <button class="portal-primary" type="button" data-open-learning-module="${module.id}"${sectionAttribute}>${complete ? 'Review module' : module.progress?.completedSteps ? 'Resume module' : 'Start module'}</button>
+        ${module.offlineUnavailable ? '<button class="portal-primary" type="button" disabled>Prepare while connected</button>' : `<button class="portal-primary" type="button" data-open-learning-module="${module.id}"${sectionAttribute}>${complete ? 'Review module' : module.progress?.completedSteps ? 'Resume module' : 'Start module'}</button>`}
         ${offline ? `<button class="portal-secondary" type="button" data-offline-module-toggle="${module.id}"${sectionAttribute}></button>` : ''}
       </div>
     </div>
@@ -159,6 +159,14 @@ function activityMarkup(activity) {
     <button class="portal-primary" type="submit">Submit formative activity</button>
     <p class="module-activity-result" role="status" aria-live="assertive" aria-atomic="true" tabindex="-1"></p>
   </form>`;
+}
+
+export function closeModuleExperience(container) {
+  if (!container) return;
+  moduleExperienceControllers.get(container)?.abort();
+  moduleExperienceControllers.delete(container);
+  container.replaceChildren();
+  container.hidden = true;
 }
 
 export function createModuleExperience(container, manifest, record, callbacks = {}) {

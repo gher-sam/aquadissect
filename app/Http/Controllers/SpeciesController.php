@@ -25,7 +25,7 @@ class SpeciesController extends Controller
         $classId = $request->integer('classId') ?: null;
         $content->authorize($request->user(), $package, $classId);
 
-        return response()->json(['package' => $content->manifest($package->load('assets'), $classId)]);
+        return response()->json(['package' => $content->manifest($package->load('assets'), $classId)], 200, \App\Support\LearningMedia::headers());
     }
 
     public function asset(Request $request, SpeciesPackage $package, SpeciesPackageAsset $asset, SpeciesPackageContent $content): BinaryFileResponse
@@ -34,13 +34,9 @@ class SpeciesController extends Controller
         $content->authorize($request->user(), $package, $request->integer('classId') ?: null);
         $path = $content->absolutePath($package, $asset->relative_path);
 
-        return response()->file($path, [
+        return response()->file($path, array_merge(\App\Support\LearningMedia::headers(), [
             'Content-Type' => $asset->mime_type,
-            'Cache-Control' => $package->status === SpeciesPackage::STATUS_PUBLISHED
-                ? 'private, max-age=31536000, immutable'
-                : 'private, no-store',
-            'X-Content-Type-Options' => 'nosniff',
-        ]);
+        ]));
     }
 
     public function cardPreview(Request $request, SpeciesPackage $package, SpeciesPackageContent $content): BinaryFileResponse

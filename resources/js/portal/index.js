@@ -2,7 +2,7 @@ import { mountAssessmentPanel } from './fishEnhancements.js';
 import { setupBulkRoster } from './bulkRoster.js';
 import { mountRecordManagement } from './adminRecords.js';
 import { setupStudentPasswordActions } from './studentPasswords.js';
-import { offlineContextKey, pendingSignOutKey, signOutPending, beginLocalSignOut, confirmServerSignOut, clearLearnerContext, prepareSessionContext } from './sessionAccess.js';
+import { offlineContextKey, pendingSignOutKey, signOutPending, beginLocalSignOut, confirmServerSignOut, clearLearnerContext, prepareSessionContext, canReachSession } from './sessionAccess.js';
 import { setupStudentEmailFlow, setupStudentCodeBatch } from './studentSetup.js';
 import '../../css/bulk-roster.css';
 import '../../css/student-readiness.css';
@@ -14,13 +14,15 @@ import { setupTutorials, startHereCard, setupStaffRoles } from './tutorials.js';
 import { request, appUrl } from './api.js';
 import { adminDashboard, adminRosterView, classCards, instructorDashboard, managerView, speciesLibrary, studentDashboard, studentOrientationPath } from './dashboards.js';
 import { escapeHtml, titleCase } from './format.js';
-import { createModuleExperience, promptStudio, safetyWorkspace } from './safetyTools.js';
+import { createModuleExperience, closeModuleExperience, promptStudio, safetyWorkspace } from './safetyTools.js';
 import {
   downloadedVersionFor, downloadLearningModule, downloadPackage, isDownloaded, isLearningModuleDownloaded,
   listDownloadedLearningModules, listDownloadedPackages, removeDownloadedLearningModule, removeDownloadedPackage,
   submitOrQueueAttempt, submitOrQueueModuleProgress, synchronizeQueuedAttempts, synchronizeQueuedModuleProgress, queuedLearningRecords,
 } from '../offlinePackages.js';
 import { setupProgressiveWebApp } from '../pwa.js';
+import { connectOfflineMedia, lockOfflineMedia, offlineCapability, preparedEntries, removePreparedMedia, mediaManifestPath, mediaUrlForSection } from '../offlineMediaAccess.js';
+import { closeStudentMedia } from '../studentMedia.js';
 
 const bootstrap = window.AQUADISSECT_BOOTSTRAP || {};
 prepareSessionContext(bootstrap);
@@ -30,13 +32,13 @@ const focusClasses = (classes, species) => focusedClasses(classes, species, visi
 function saveOfflineContext(data) {
   if (signOutPending()) return;
   const learner = data.user?.role === 'student';
-  const offlineCatalog = records => (records || []).filter(r=>r.status==='published').map(({latestReview, importedBy, events, ...record})=>record);
+  const offlineCatalog = records => (records || []).filter(r=>r.status==='published' || (r.status==='archived' && r.classId)).map(({latestReview, importedBy, events, ...record})=>record);
   try {
     localStorage.setItem(offlineContextKey, JSON.stringify({
       user: learner ? { id: data.user.id, firstName: 'Learner', lastName: '', role: 'student', status: 'active' } : null,
       species: learner ? offlineCatalog(data.species) : [],
       learningModules: learner ? offlineCatalog(data.learningModules) : [],
-      classes: learner ? (data.classes || []).map(c => ({ id:c.id, name:c.name, status:c.status, assignments:c.assignments })) : [],
+      classes: learner ? (data.classes || []).map(c => ({ id:c.id, name:c.name, status:c.status, assignments:c.assignments, prerequisiteStatus:c.prerequisiteStatus })) : [],
     }));
   } catch { /* Storage restrictions must not prevent online learning. */ }
 }
@@ -143,6 +145,10 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
     toastReturnFocus: null,
     currentPage: 'home',
     readinessConfirmed: !bootstrap.offlineShell && navigator.onLine,
+    offlineClassId: null,
+    offlineMediaReady: false,
+    offlineMediaError: '',
+    offlineRequestId: 0,
   };
   app.hidden = true;
 
@@ -260,6 +266,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
 
   function updateSession() {
     bootstrap.user = state.currentUser;
+    window.dispatchEvent(new CustomEvent('aquadissect-user-change'));
     if (state.currentUser) saveOfflineContext({ user: state.currentUser, species: state.species, learningModules: state.learningModules, classes: state.classes });
     const user = state.currentUser;
     const authenticated = Boolean(user);
@@ -414,20 +421,52 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
       elements.assignments.innerHTML = assignmentView();
       cardsToTable(elements.assignments, '.assignment-card', 'activities', 'Class activities', state.classes.filter(c=>c.status==='active'));
     }
+    if (name === 'downloads' && bootstrap.offlineShell && !state.offlineMediaReady) {
+      elements.downloads.innerHTML = '<p class="offline-preparation-note" role="status">Checking this account’s prepared lessons…</p>';
+      return;
+    }
     if (name === 'downloads') {
-      elements.downloads.innerHTML = `${bootstrap.offlineShell ? '<p class="page-guidance">Downloaded learning materials on this device. Reconnect and sign in to synchronize your own work.</p>' : ''}${bootstrap.offlineShell && state.classes.length > 1 ? `<label class="portal-field">Study section<select id="offlineSection"><option value="">Select a section before opening a lesson</option>${state.classes.map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('')}</select></label>` : ''}<div class="download-summary"><strong>${focusSpecies(listDownloadedPackages()).length + listDownloadedLearningModules().length}</strong><span>learning items saved on this device</span></div><div class="portal-page-title portal-page-title--compact"><span class="portal-kicker">Prerequisite</span><h2>Safety module</h2></div>${safetyWorkspace(state.learningModules, 'student', state.currentUser, { offline: true, classes: state.classes })}<div class="portal-page-title portal-page-title--compact"><span class="portal-kicker">Assigned anatomy</span><h2>Species lessons</h2></div><div class="species-library-grid">${speciesLibrary(state.species.filter((item) => item.status === 'published'), { offline: true })}</div>`;
-      state.species.forEach((item) => {
+      const student = state.currentUser?.role === 'student';
+      const sections = state.classes.filter(section => section.status === 'active');
+      const classId = offlineClassId();
+      const section = sections.find(item => item.id === classId);
+      const unavailable = state.offlineMediaError || offlineCapability() || (!state.offlineMediaReady ? 'Checking this account’s offline access…' : '');
+      const saved = preparedEntries();
+      const modules = (student && classId ? state.learningModules.filter(item => item.classId === classId) : state.learningModules)
+        .map(item => ({ ...item, offlineUnavailable: Boolean(bootstrap.offlineShell && !preparedEntries().some(entry => entry.kind === 'module' && entry.recordId === item.id && entry.classId === item.classId && entry.allowed)) }));
+      const packages = state.species.filter(item => item.status === 'published').map(item => {
+        if (!student) return item;
+        const assignment = section?.assignments.find(assigned => assigned.packageId === item.id);
+        const locked = !section || !assignment || assignment.locked === true;
+        const prepared = preparedEntries().some(entry => entry.kind === 'species' && entry.recordId === item.id && entry.classId === classId && entry.allowed);
+        return { ...item, availableClassId: classId, locked, offlineUnavailable: Boolean(bootstrap.offlineShell && !prepared),
+          naturalImageUrl: locked || (bootstrap.offlineShell && !prepared) ? null : mediaUrlForSection(item.naturalImageUrl, classId),
+          lockReason: !section ? 'Choose your study section above.' : !assignment ? 'This version is not assigned to the selected section.' : 'Complete Safety & Tools for this section first.' };
+      });
+      elements.downloads.innerHTML = `<p class="offline-preparation-note">Prepared media stays in this browser for your account and section. Sign-out locks viewing and retains the copy. Reconnect and sign in to unlock it. These controls discourage saving; screenshots and browser inspection remain possible.</p>
+        ${bootstrap.offlineShell ? `<p class="page-guidance">When connected again, <a href="${escapeHtml(appUrl('/offline-access'))}">reopen online</a> to refresh lesson availability and synchronize your queued work.</p>` : ''}
+        ${unavailable ? `<p class="offline-preparation-note" role="status">${escapeHtml(unavailable)}</p>` : ''}
+        ${student && sections.length > 1 ? `<label class="portal-field">Study section<select id="offlineSection"><option value="">Select a section before preparing or opening a lesson</option>${sections.map(item=>`<option value="${item.id}" ${item.id===classId?'selected':''}>${escapeHtml(item.name)}</option>`).join('')}</select></label>` : ''}
+        <div class="download-summary"><strong>${saved.length}</strong><span>prepared lesson copies for this account</span></div>
+        ${saved.length ? `<ul class="offline-saved-list">${saved.map(entry=>`<li><span>${escapeHtml(entry.title)} · v${escapeHtml(entry.version)}<small>${escapeHtml(state.classes.find(item=>item.id===entry.classId)?.name || 'Staff preview')}${entry.allowed?'':' · Reconnect to verify access'}</small></span><button class="portal-secondary" type="button" data-remove-prepared="${escapeHtml(entry.key)}">Remove prepared copy</button></li>`).join('')}</ul>` : '<p>No account-scoped copies are ready. Earlier offline copies need to be prepared again once while connected.</p>'}
+        <div class="portal-page-title portal-page-title--compact"><span class="portal-kicker">Prerequisite</span><h2>Safety module</h2></div>${safetyWorkspace(modules, 'student', state.currentUser, { offline: true, classes: state.classes })}
+        <div class="portal-page-title portal-page-title--compact"><span class="portal-kicker">Assigned anatomy</span><h2>Species lessons</h2></div><div class="species-library-grid">${speciesLibrary(packages, { offline: true })}</div>`;
+      packages.forEach((item) => {
         const button = elements.downloads.querySelector(`[data-offline-toggle="${item.id}"]`);
         if (button) {
-          const downloadedVersion = downloadedVersionFor(item.slug);
-          button.textContent = isDownloaded(item.id, item.version)
-            ? 'Remove download'
-            : downloadedVersion ? `Update offline copy · v${downloadedVersion} → v${item.version}` : 'Download for offline use';
+          const downloadedVersion = downloadedVersionFor(item.slug, classId);
+          button.textContent = isDownloaded(item.id, item.version, classId)
+            ? 'Remove prepared copy'
+            : downloadedVersion ? `Prepare v${item.version} for offline viewing` : 'Prepare for offline viewing';
+          button.disabled = Boolean(unavailable || (student && (!classId || item.locked)) || (!navigator.onLine && !isDownloaded(item.id, item.version, classId)));
         }
       });
-      state.learningModules.forEach((module) => {
+      modules.forEach((module) => {
         const button = findModuleControl(elements.downloads, 'data-offline-module-toggle', module);
-        if (button) button.textContent = isLearningModuleDownloaded(module.id, module.version) ? 'Remove download' : 'Download for offline use';
+        if (button) {
+          button.textContent = isLearningModuleDownloaded(module.id, module.version, module.classId) ? 'Remove prepared copy' : 'Prepare for offline viewing';
+          button.disabled = Boolean(unavailable || (student && !classId) || (!navigator.onLine && !isLearningModuleDownloaded(module.id, module.version, module.classId)));
+        }
       });
     }
     if (name === 'manager') {
@@ -521,6 +560,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
     state.activationCodes = [];
     updateSession();
     showPage('home');
+    void synchronizeOfflineAccess(true);
     showToast(`Signed in as ${titleCase(payload.user.role)}`);
   }
 
@@ -553,6 +593,8 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
   }
 
   function showSignedOut() {
+    closeStudentMedia();
+    closeModuleExperience(elements.safetyExperience);
     void onLeaveLesson({ force: true });
     portal.hidden = false;
     app.hidden = true;
@@ -576,7 +618,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
     elements.sidebar.style.display = 'none';
     elements.pageLabel.textContent = 'Signed out';
     state.currentPage = 'signed-out';
-    elements.portalMain.innerHTML = `<section class="workspace-panel"><h1 tabindex="-1">Signed out on this device</h1><p>Your account is closed here. Reconnect to finish server sign-out before signing in again.</p><p>Your queued work remains on this device for its original account.</p><button type="button" class="portal-primary" data-finish-signout>Finish signing out</button><a class="portal-link" href="${escapeHtml(appUrl('/login'))}">Return to sign in</a><p role="status" data-signout-status></p></section>`;
+    elements.portalMain.innerHTML = `<section class="workspace-panel"><h1 tabindex="-1">Account view locked on this device</h1><p>${signOutPending() ? 'Reconnect to finish server sign-out before signing in again.' : 'Connect and confirm your account before reopening its prepared lessons.'}</p><p>Your prepared media and queued work remain on this device for their original account.</p>${signOutPending() ? '<button type="button" class="portal-primary" data-finish-signout>Finish signing out</button>' : ''}<a class="portal-link" href="${escapeHtml(appUrl('/login'))}">Return to sign in</a><p role="status" data-signout-status></p></section>`;
     elements.portalMain.querySelector('h1')?.focus();
   }
 
@@ -585,9 +627,13 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
     if (!signOutPending() || finishingSignOut) return;
     const feedback = elements.portalMain.querySelector('[data-signout-status]');
     if (!navigator.onLine) { if (feedback) feedback.textContent = 'You are offline. Your account stays closed on this device.'; return; }
-    if (bootstrap.offlineShell) { window.location.replace(appUrl('/login')); return; }
     finishingSignOut = true;
     try {
+      if (bootstrap.offlineShell) {
+        if (await canReachSession(appUrl('/api/session'))) window.location.replace(appUrl('/login'));
+        else if (feedback) feedback.textContent = 'Server sign-out is still pending. Your account stays closed; reconnect or try again.';
+        return;
+      }
       await request('/api/logout', { method: 'POST' });
       confirmServerSignOut();
       window.location.replace(appUrl('/login'));
@@ -599,12 +645,37 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
   async function signOut() {
     beginLocalSignOut();
     showSignedOut();
+    await lockOfflineMedia();
     await finishServerSignOut();
+  }
+
+  async function synchronizeOfflineAccess(force = false) {
+    const user = state.currentUser;
+    const requestId = ++state.offlineRequestId;
+    state.offlineMediaError = '';
+    try {
+      const result = await connectOfflineMedia(user, { offline: Boolean(bootstrap.offlineShell && !navigator.onLine), force });
+      if (requestId !== state.offlineRequestId || state.currentUser?.id !== user?.id) return;
+      state.offlineMediaReady = Boolean(result.supported && !result.locked);
+    } catch (error) {
+      if (requestId !== state.offlineRequestId || state.currentUser?.id !== user?.id) return;
+      state.offlineMediaReady = false;
+      state.offlineMediaError = error.message;
+      if (user && (error.status === 401 || bootstrap.offlineShell)) showSignedOut();
+    }
+    if (state.currentPage === 'downloads' && state.currentUser) renderPage('downloads');
+  }
+
+  function offlineClassId() {
+    if (state.currentUser?.role !== 'student') return null;
+    const sections = state.classes.filter(section => section.status === 'active');
+    return sections.some(section => section.id === state.offlineClassId) ? state.offlineClassId : (sections.length === 1 ? sections[0].id : null);
   }
 
   async function openPackage(id, viewerType = 'auto', selectedClassId = null) {
     const record = state.species.find((item) => String(item.id) === String(id));
     if (!record) return;
+    if (state.currentPage === 'downloads') selectedClassId ||= offlineClassId();
     const matchingClasses = state.currentUser?.role === 'student'
       ? state.classes.filter((item) => item.status === 'active' && item.assignments.some((assignment) => String(assignment.packageId) === String(id)))
       : [];
@@ -619,8 +690,9 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
     }
     state.activeClassId = selectedClassId || matchingClasses[0]?.id || null;
     try {
-      const classQuery = state.activeClassId ? `?classId=${state.activeClassId}` : '';
-      const response = await request(`/api/species/${record.slug}/packages/${record.id}/manifest${classQuery}`);
+      await synchronizeOfflineAccess();
+      if (signOutPending() || !state.currentUser) return;
+      const response = await request(mediaManifestPath('species', record.id, record.slug, state.activeClassId));
       if (signOutPending() || !state.currentUser) return;
       await onOpenPackage(response.package, record, { viewerType, classId: state.activeClassId });
       if (signOutPending() || !state.currentUser) { app.hidden = true; return; }
@@ -653,8 +725,9 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
     if (state.openLearningModule === record) return;
     state.openLearningModule = record;
     try {
-      const classQuery = record.classId == null ? '' : `?classId=${record.classId}`;
-      const response = await request(`/api/learning-modules/${record.id}/manifest${classQuery}`);
+      await synchronizeOfflineAccess();
+      if (signOutPending() || !state.currentUser) return;
+      const response = await request(mediaManifestPath('module', record.id, null, record.classId ?? null));
       if (signOutPending() || !state.currentUser || state.openLearningModule !== record) return;
       elements.safety.hidden = true;
       elements.safetyExperience.hidden = false;
@@ -728,6 +801,12 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
   }
 
   async function handlePortalClick(event) {
+    const removePrepared = event.target.closest('[data-remove-prepared]');
+    if (removePrepared) {
+      try { await removePreparedMedia(removePrepared.dataset.removePrepared); showToast('Prepared copy removed. Learning records are retained.'); }
+      catch (error) { showToast(error.message, { tone: 'error', persistent: true }); }
+      return;
+    }
     if (event.target.closest('[data-finish-signout]')) { await finishServerSignOut(); return; }
     if (signOutPending()) return;
     if (event.target.closest('[data-retry-learning-sync]')) { await synchronizeLearningRecords(); return; }
@@ -869,13 +948,15 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
     if (offlineId) {
       const record = state.species.find((item) => String(item.id) === offlineId);
       try {
-        if (isDownloaded(record.id, record.version)) {
-          await removeDownloadedPackage(record.id);
+        const classId = offlineClassId();
+        if (state.currentUser?.role === 'student' && !classId) throw new Error('Choose the study section before preparing this lesson.');
+        if (isDownloaded(record.id, record.version, classId)) {
+          await removeDownloadedPackage(record.id, classId);
           showToast('Offline package removed from this device');
         } else {
           offlineButton.disabled = true;
-          offlineButton.textContent = 'Verifying download…';
-          await downloadPackage(record);
+          offlineButton.textContent = 'Preparing verified media…';
+          await downloadPackage(record, classId);
           showToast('Package verified and ready offline');
         }
         renderPage('downloads');
@@ -888,12 +969,12 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
       const record = findModuleAssignment(versionId, moduleClassId);
       if (!record) return;
       try {
-        if (isLearningModuleDownloaded(record.id, record.version)) {
-          await removeDownloadedLearningModule(record.id);
+        if (isLearningModuleDownloaded(record.id, record.version, record.classId)) {
+          await removeDownloadedLearningModule(record.id, record.classId);
           showToast('Offline Safety & Tools module removed from this device');
         } else {
           offlineModuleButton.disabled = true;
-          offlineModuleButton.textContent = 'Verifying download…';
+          offlineModuleButton.textContent = 'Preparing verified media…';
           await downloadLearningModule(record);
           showToast('Safety & Tools verified and ready offline');
         }
@@ -1160,6 +1241,11 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
   }
 
   function handlePortalChange(event) {
+    if (event.target.id === 'offlineSection') {
+      state.offlineClassId = Number(event.target.value) || null;
+      renderPage('downloads');
+      return;
+    }
     if (event.target.matches('[data-assignment-package]')) {
       const dueInput = event.target.closest('form')?.querySelector('input[name="dueAt"]');
       if (dueInput) dueInput.value = event.target.selectedOptions[0]?.dataset.currentDue || '';
@@ -1228,7 +1314,25 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
     finally { synchronizationInFlight = false; await refreshQueueStatus().catch(() => undefined); }
   }
   window.addEventListener('online', synchronizeLearningRecords);
+  window.addEventListener('online', () => { void synchronizeOfflineAccess(true); });
   window.addEventListener('offline', updateNetworkStatus);
+  window.addEventListener('aquadissect-offline-controller-changed', () => { void synchronizeOfflineAccess(true); });
+  window.addEventListener('aquadissect-offline-media-ready', () => { if (state.currentPage === 'downloads' && state.currentUser) renderPage('downloads'); });
+  window.addEventListener('aquadissect-offline-media-locked', event => {
+    if (state.currentUser && (event.detail.ownerId == null || event.detail.ownerId === state.currentUser.id)) showSignedOut();
+  });
+  window.addEventListener('aquadissect-offline-media-blocked', () => {
+    if (!state.currentUser) return;
+    closeStudentMedia();
+    void onLeaveLesson({ force: true });
+    closeModuleExperience(elements.safetyExperience);
+    state.openLearningModule = null;
+    app.hidden = true; portal.hidden = false;
+    document.body.classList.remove('lesson-is-open');
+    showPage('downloads');
+    showToast('This prepared lesson needs a current section-access check. Other copies and queued work are retained.', { tone: 'error', persistent: true });
+    void synchronizeOfflineAccess(true);
+  });
 
   updateSession();
   portal.querySelectorAll('.portal-nav [data-portal-page]').forEach(link => { link.setAttribute('aria-label', link.textContent.trim()); link.title = link.textContent.trim(); });
@@ -1257,7 +1361,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
       if (document.hidden || !navigator.onLine || !state.currentUser || signOutPending()) return;
       try {
         const session = await request('/api/session');
-        if (session.user?.role !== state.currentUser.role || session.user?.status !== state.currentUser.status) window.location.reload();
+        if (session.user?.id !== state.currentUser.id || session.user?.role !== state.currentUser.role || session.user?.status !== state.currentUser.status) window.location.reload();
       } catch { /* Server still enforces current permissions on every action. */ }
     };
     document.addEventListener('visibilitychange', checkRole);
@@ -1268,6 +1372,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
   }
   setupProgressiveWebApp({ installButton: elements.installButton, notify: showToast })
     .catch(() => { elements.installButton.hidden = true; });
+  void synchronizeOfflineAccess();
 
   return {
     openDashboard,

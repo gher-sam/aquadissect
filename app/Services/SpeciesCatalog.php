@@ -142,10 +142,10 @@ class SpeciesCatalog
             'lessonKey' => $manifest['lessonKey'],
             'duration' => $this->lessonDuration($package),
             'cardPreviewVideoUrl' => ! $locked && $package->species->slug === 'rabbitfish' && $package->version === '1.1.0'
-                ? url("/api/species-packages/{$package->id}/card-preview").($availableClassId ? '?classId='.$availableClassId : '') : null,
+                ? \App\Support\LearningMedia::url("/api/species-packages/{$package->id}/card-preview", $availableClassId) : null,
             'naturalImageUrl' => $locked ? null : $this->assetUrl($package, 'natural', $availableClassId),
             'videoUrl' => $locked ? null : $this->assetUrl($package, 'video', $availableClassId),
-            'manifestUrl' => url("/api/species/{$package->species->slug}/packages/{$package->id}/manifest"),
+            'manifestUrl' => \App\Support\LearningMedia::url("/api/species/{$package->species->slug}/packages/{$package->id}/manifest"),
             'downloadUrl' => url("/api/species-packages/{$package->id}/download"),
             'sizeBytes' => $package->size_bytes,
             'resultsCount' => $package->results_count ?? $package->results()->count(),
@@ -162,7 +162,7 @@ class SpeciesCatalog
     {
         $asset = $package->assets->firstWhere('asset_key', $key);
 
-        return $asset ? url("/api/species-packages/{$package->id}/assets/{$asset->id}").($classId ? '?classId='.$classId : '') : null;
+        return $asset ? \App\Support\LearningMedia::url("/api/species-packages/{$package->id}/assets/{$asset->id}", $classId) : null;
     }
 
     private function lessonDuration(SpeciesPackage $package): ?string

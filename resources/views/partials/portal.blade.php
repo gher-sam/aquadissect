@@ -12,7 +12,7 @@
       <button type="button" data-portal-page="safety" data-role-nav="student,instructor,program_head,admin"><i class="portal-nav-icon" data-lucide="shield-check"></i><span data-nav-label="safety">Safety &amp; Tools</span></button>
       <button type="button" data-portal-page="classes" data-role-nav="student,instructor,program_head,admin"><i class="portal-nav-icon" data-lucide="school"></i><span data-nav-label="classes">Class sections</span></button>
       <button type="button" data-portal-page="assignments" data-role-nav="instructor"><i class="portal-nav-icon" data-lucide="clipboard-list"></i><span data-nav-label="assignments">Class activities</span></button>
-      <button type="button" data-portal-page="downloads" data-role-nav="student,instructor,admin"><i class="portal-nav-icon" data-lucide="download"></i><span data-nav-label="downloads">Offline access</span></button>
+      <button type="button" data-portal-page="downloads" data-role-nav="student,instructor,admin"><i class="portal-nav-icon" data-lucide="eye"></i><span data-nav-label="downloads">Offline access</span></button>
       <span class="portal-nav-section" data-role-nav="instructor,program_head,admin">Manage</span>
       <button type="button" data-portal-page="roster" data-role-nav="admin"><i class="portal-nav-icon" data-lucide="users-round"></i><span data-nav-label="roster">People &amp; sections</span></button>
       <button type="button" data-portal-page="records" data-role-nav="admin"><i class="portal-nav-icon" data-lucide="archive"></i><span data-nav-label="records">Manage records</span></button>

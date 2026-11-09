@@ -53,11 +53,12 @@ class AquaDissectTest extends TestCase
         $this->assertFileExists(public_path('pwa-icons/apple-touch-icon.png'));
 
         $worker = (string) File::get(public_path('aquadissect-sw.js'));
-        $this->assertStringContainsString('aquadissect-shell-v24', $worker);
+        $this->assertStringContainsString('aquadissect-shell-v25', $worker);
         $this->assertStringContainsString('self.registration.scope', $worker);
         $this->assertStringContainsString('manifest.webmanifest', $worker);
         $this->assertStringContainsString('caches.delete', $worker);
-        $this->assertStringContainsString('Content-Range', $worker);
+        $this->assertStringContainsString('aquadissect-offline-media.js', $worker);
+        $this->assertStringContainsString('Content-Range', (string) File::get(public_path('aquadissect-offline-media.js')));
     }
 
     public function test_active_user_can_log_in_and_log_out(): void
@@ -73,6 +74,8 @@ class AquaDissectTest extends TestCase
         ])->assertOk()->assertJsonPath('user.role', 'student');
 
         $this->assertAuthenticatedAs($user);
+        $session = $this->getJson('/api/session')->assertOk()->assertJsonPath('user.id', $user->id);
+        $this->assertStringContainsString('no-store', $session->headers->get('Cache-Control'));
         $this->postJson('/api/logout')->assertOk();
         $this->assertGuest();
     }

@@ -18,6 +18,7 @@ export async function request(path, { method = 'GET', body, signal } = {}) {
     method,
     signal,
     credentials: 'same-origin',
+    cache: 'no-store',
     headers: {
       Accept: 'application/json',
       ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
@@ -28,6 +29,9 @@ export async function request(path, { method = 'GET', body, signal } = {}) {
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
+    if ([401, 419].includes(response.status) || (response.status === 403 && data.passwordChangeRequired)) {
+      window.dispatchEvent(new CustomEvent('aquadissect-authorization-lost'));
+    }
     if (response.status === 403 && data.passwordChangeRequired) {
       window.location.assign(data.passwordChangeUrl || appUrl('/change-password'));
     }
