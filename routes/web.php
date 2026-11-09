@@ -161,6 +161,7 @@ Route::prefix('api')->group(function (): void {
             Route::post('/students/{user}/activation', [AdminRosterController::class, 'issueActivation']);
             Route::patch('/students/{user}/email', [AdminRosterController::class, 'addStudentEmail']);
             Route::post('/student-setup-codes', [StudentEmailSetupController::class, 'issue']);
+            Route::post('/species-packages/{package}/submit', [InstructorSpeciesPackageController::class, 'submit']);
             Route::post('/species-packages/{package}/publish', [AdminSpeciesPackageController::class, 'publish']);
             Route::post('/species-packages/{package}/activate', [AdminSpeciesPackageController::class, 'activate']);
             Route::post('/species-packages/{package}/archive', [AdminSpeciesPackageController::class, 'archive']);

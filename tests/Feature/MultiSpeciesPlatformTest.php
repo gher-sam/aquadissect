@@ -333,6 +333,67 @@ class MultiSpeciesPlatformTest extends TestCase
         $this->assertFalse($new->fresh()->is_current);
     }
 
+    public function test_admin_can_send_an_instructor_draft_for_review_without_releasing_it(): void
+    {
+        $admin = User::query()->where('role', 'admin')->firstOrFail();
+        $instructor = User::query()->where('role', 'instructor')->firstOrFail();
+        $student = User::query()->where('role', 'student')->firstOrFail();
+        $package = SpeciesPackage::query()->whereHas('species', fn ($query) => $query->where('slug', 'rabbitfish'))->firstOrFail();
+        $package->update(['status' => SpeciesPackage::STATUS_DRAFT, 'imported_by' => $instructor->id]);
+        $round = $package->review_round;
+        $manifest = $package->manifest;
+        $accounts = User::count();
+        $enrollments = $student->classEnrollments()->get()->toArray();
+
+        $this->actingAs($admin)->postJson("/api/admin/species-packages/{$package->id}/submit")
+            ->assertOk()
+            ->assertJsonPath('package.status', 'review')
+            ->assertJsonPath('package.isCurrent', false)
+            ->assertJsonPath('package.approvalCurrent', false);
+
+        $package->refresh();
+        $this->assertSame($round + 1, $package->review_round);
+        $this->assertSame($manifest, $package->manifest);
+        $this->assertSame($instructor->id, $package->imported_by);
+        $this->assertNull($package->published_at);
+        $this->assertDatabaseHas('species_package_events', [
+            'species_package_id' => $package->id,
+            'user_id' => $admin->id,
+            'event' => 'submitted_for_review',
+        ]);
+        $this->assertSame(0, $package->reviews()->count());
+
+        $this->actingAs($admin)->postJson("/api/admin/species-packages/{$package->id}/publish")
+            ->assertUnprocessable()->assertJsonValidationErrors('review');
+        $this->actingAs($student)->getJson("/api/species/rabbitfish/packages/{$package->id}/manifest")
+            ->assertForbidden();
+        $this->assertSame($accounts, User::count());
+        $this->assertSame($enrollments, $student->classEnrollments()->get()->toArray());
+    }
+
+    public function test_admin_submission_route_rejects_other_roles_and_non_draft_packages(): void
+    {
+        $package = SpeciesPackage::query()->whereHas('species', fn ($query) => $query->where('slug', 'rabbitfish'))->firstOrFail();
+        $round = $package->review_round;
+        $url = "/api/admin/species-packages/{$package->id}/submit";
+
+        $this->postJson($url)->assertUnauthorized();
+        foreach (['student', 'instructor', 'program_head'] as $role) {
+            $user = User::query()->where('role', $role)->first()
+                ?? User::factory()->create(['role' => $role, 'status' => 'active']);
+            $this->actingAs($user)->postJson($url)->assertForbidden();
+        }
+        $admin = User::query()->where('role', 'admin')->firstOrFail();
+        $this->actingAs($admin)->postJson($url)
+            ->assertUnprocessable()->assertJsonValidationErrors('package');
+        $this->assertSame(SpeciesPackage::STATUS_REVIEW, $package->fresh()->status);
+        $this->assertSame($round, $package->fresh()->review_round);
+        $this->assertDatabaseMissing('species_package_events', [
+            'species_package_id' => $package->id,
+            'event' => 'submitted_for_review',
+        ]);
+    }
+
     public function test_changes_and_restored_packages_require_a_new_independent_review(): void
     {
         $admin = User::query()->where('role', 'admin')->firstOrFail();
