@@ -31,6 +31,8 @@ available captions and fullscreen controls without a file-save action. Existing
 custom swimming controls, keyboard interactions, measurement, references and
 notebook exports remain available. Authorized staff source/package exports retain
 their existing role checks.
+The player also retains native video fullscreen where the browser supplies that
+instead of the element fullscreen API.
 
 This is a deterrent to casual saving, not DRM. Browser storage inspection,
 screenshots, recordings and deliberate extraction remain possible. Media already
@@ -51,6 +53,9 @@ be immediate on a disconnected device.
 - Sign-out and account changes invalidate viewing contexts across tabs. A delayed
   identity check or preparation cannot undo a newer lock. Explicit authorization
   failures block affected copies instead of falling back to stale media.
+  A permission-denial revision also prevents in-flight preparation or an older
+  positive permission response from restoring a denied copy. Delayed failures
+  block the latest cache generation without restoring an obsolete cache index.
 - Preparation verifies all asset hashes in a separate cache generation, then
   commits its index atomically. Interrupted, corrupt or quota-limited preparation
   retains the earlier verified copy. Offline byte ranges support video seeking.
@@ -78,8 +83,10 @@ locking after a browser restart, account switching and original-account progress
 synchronization. A disconnected server with Wi-Fi still connected remains a
 locked view during pending sign-out; retrying does not loop through cached pages.
 Plain HTTP classroom viewing and the student/staff export boundaries were also
-checked. Mobile layouts were exercised in these browsers; this is not a physical
-phone acceptance claim.
+checked. Mobile Chrome touch emulation also verified offline images and video,
+seeking, replay, fullscreen and sign-out. A capability shim checks the native
+video fullscreen fallback; it is not a Safari-device test. Physical phones were
+not used for these engineering checks.
 
 References: [MDN service workers](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API/Using_Service_Workers),
 [MDN Cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache),

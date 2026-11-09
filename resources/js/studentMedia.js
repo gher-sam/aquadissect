@@ -51,8 +51,16 @@ function player(video) {
     captions.setAttribute('aria-pressed', String(enabled));
   }, options);
   const fullscreen = controls.querySelector('[data-fullscreen]');
-  fullscreen.hidden = !wrapper.requestFullscreen;
-  fullscreen.addEventListener('click', () => { const result = document.fullscreenElement ? document.exitFullscreen() : wrapper.requestFullscreen(); result?.catch(() => { status.textContent = 'Fullscreen is unavailable in this browser.'; }); }, options);
+  fullscreen.hidden = !wrapper.requestFullscreen && !video.webkitEnterFullscreen;
+  fullscreen.addEventListener('click', () => {
+    const unavailable = () => { status.textContent = 'Fullscreen is unavailable in this browser.'; };
+    try {
+      const result = document.fullscreenElement ? document.exitFullscreen()
+        : wrapper.requestFullscreen ? wrapper.requestFullscreen()
+          : video.webkitDisplayingFullscreen ? video.webkitExitFullscreen() : video.webkitEnterFullscreen();
+      result?.catch(unavailable);
+    } catch { unavailable(); }
+  }, options);
   for (const event of ['play', 'pause', 'timeupdate', 'durationchange', 'loadedmetadata', 'volumechange', 'emptied', 'error']) video.addEventListener(event, sync, options);
   video.textTracks.addEventListener?.('addtrack', sync, options);
   const observer = new MutationObserver(sync);

@@ -108,12 +108,12 @@
         const manifest = payload.package || payload.module;
         const allowed = manifest?.id === entry.recordId && manifest?.[entry.kind === 'species' ? 'packageVersion' : 'moduleVersion'] === entry.version
           && (manifest.status === 'published' || (entry.kind === 'module' && manifest.status === 'archived'));
-        return { ...entry, allowed, verifiedAt: new Date().toISOString() };
+        return { entry: { ...entry, allowed, verifiedAt: new Date().toISOString() }, denied: !allowed };
       }
-      return { ...entry, allowed: response.status >= 500 && permitStale ? entry.allowed : false };
+      return { entry: { ...entry, allowed: response.status >= 500 && permitStale ? entry.allowed : false }, denied: response.status >= 400 && response.status < 500 };
     } catch (exception) {
       if (exception.status === 401) throw exception;
-      return { ...entry, allowed: permitStale ? entry.allowed : false };
+      return { entry: { ...entry, allowed: permitStale ? entry.allowed : false }, denied: false };
     }
   }
 
@@ -128,24 +128,31 @@
     }
     if (!user && (!previous || previous.locked || previous.ownerId !== ownerId)) throw error('Reconnect and sign in to unlock this account’s prepared lessons.', 401);
     const owned = (await read('entries')).filter(entry => entry.ownerId === ownerId);
-    const entries = user ? await Promise.all(owned.map(entry => validateEntry(entry, previous?.ownerId === ownerId && !previous.locked, previous?.verification || 0))) : owned;
+    const validations = user ? await Promise.all(owned.map(entry => validateEntry(entry, previous?.ownerId === ownerId && !previous.locked, previous?.verification || 0))) : owned.map(entry => ({ entry, denied: false }));
+    const entries = validations.map(result => result.entry);
     let changedOwner = null;
     const access = await write(['access', 'contexts', 'entries'], (transaction, result) => {
       const request = transaction.objectStore('access').get('current');
       request.onsuccess = () => {
         const latest = request.result;
-        if ((latest?.revision || 0) !== revision) { transaction.abort(); return; }
+        if ((latest?.revision || 0) !== revision || (latest?.authorizationRevision || 0) !== (previous?.authorizationRevision || 0)) { transaction.abort(); return; }
         const change = latest?.ownerId !== ownerId || latest?.locked || (user && latest?.role !== user.role);
-        const next = { ownerId, role: user?.role || latest.role, locked: false, revision: change ? revision + 1 : revision, verification: (latest?.verification || 0) + (user ? 1 : 0) };
+        const next = { ownerId, role: user?.role || latest.role, locked: false, revision: change ? revision + 1 : revision, verification: (latest?.verification || 0) + (user ? 1 : 0), authorizationRevision: (latest?.authorizationRevision || 0) + (validations.some(result => result.denied) ? 1 : 0) };
         if (change && latest?.ownerId && !latest.locked) changedOwner = latest.ownerId;
         transaction.objectStore('access').put(next, 'current');
         transaction.objectStore('contexts').put({ clientId, ownerId, revision: next.revision });
-        if (user) for (const entry of entries) transaction.objectStore('entries').put(entry);
+        if (user) for (const entry of entries) {
+          const record = transaction.objectStore('entries').get(entry.key);
+          record.onsuccess = () => {
+            const current = record.result;
+            if (current?.ownerId === ownerId && current.version === entry.version) transaction.objectStore('entries').put({ ...current, allowed: entry.allowed, ...(entry.verifiedAt ? { verifiedAt: entry.verifiedAt } : {}) });
+          };
+        }
         result(next);
       };
     });
     if (changedOwner) await announce('OFFLINE_MEDIA_LOCKED', changedOwner, { reason: 'account-changed' }, clientId);
-    return { ownerId, role: access.role, verification: access.verification, locked: false, entries, offline: !user };
+    return { ownerId, role: access.role, verification: access.verification, locked: false, entries: (await read('entries')).filter(entry => entry.ownerId === ownerId), offline: !user };
   }
 
   async function clientAccess(clientId) {
@@ -155,6 +162,7 @@
   }
 
   function sameAccess(left, right) { return left.ownerId === right.ownerId && left.revision === right.revision && !right.locked; }
+  function sameAuthorization(left, right) { return sameAccess(left, right) && (left.authorizationRevision || 0) === (right.authorizationRevision || 0); }
   const entryKey = (owner, kind, id, classId) => `${owner}:${kind}:${id}:${classId ?? 0}`;
 
   async function prepare(clientId, data) {
@@ -170,7 +178,7 @@
     if (!response.ok) {
       if ([401, 419].includes(response.status)) await lock('session-unavailable', access.ownerId, access.verification || 0);
       const previous = await read('entries', key);
-      if ([403, 404, 410].includes(response.status) && previous) await blockEntry(previous);
+      if ([403, 404, 410].includes(response.status)) await blockEntry(previous, access);
       throw error('This lesson cannot be prepared. Reconnect and confirm your section access.', response.status);
     }
     const payload = await response.clone().json();
@@ -197,12 +205,12 @@
         if (!assetResponse.ok) {
           if ([401, 419].includes(assetResponse.status)) await lock('session-unavailable', access.ownerId, access.verification || 0);
           const previous = await read('entries', key);
-          if ([403, 404, 410].includes(assetResponse.status) && previous) await blockEntry(previous);
+          if ([403, 404, 410].includes(assetResponse.status)) await blockEntry(previous, access);
           throw error('A lesson asset is unavailable. Your earlier verified copy was kept.', assetResponse.status);
         }
         const hash = [...new Uint8Array(await crypto.subtle.digest('SHA-256', await assetResponse.clone().arrayBuffer()))].map(value => value.toString(16).padStart(2, '0')).join('');
         if (hash !== asset.sha256.toLowerCase()) throw error('A media integrity check failed. Your earlier verified copy was kept.', 422);
-        if (!sameAccess(access, await clientAccess(clientId))) throw error('The account changed during preparation.', 409);
+        if (!sameAuthorization(access, await clientAccess(clientId))) throw error('Account or lesson access changed during preparation. Reconnect and retry.', 409);
         await cache.put(asset.url, assetResponse);
       }
       const entry = { key, ownerId: access.ownerId, kind, recordId: data.recordId, classId, version: kind === 'species' ? manifest.packageVersion : manifest.moduleVersion,
@@ -211,7 +219,7 @@
       const previous = await write(['access', 'entries'], (transaction, result) => {
         const request = transaction.objectStore('access').get('current');
         request.onsuccess = () => {
-          if (!sameAccess(access, request.result || {})) { transaction.abort(); return; }
+          if (!sameAuthorization(access, request.result || {})) { transaction.abort(); return; }
           const old = transaction.objectStore('entries').get(key);
           old.onsuccess = () => { result(old.result); transaction.objectStore('entries').put(entry); };
         };
@@ -254,9 +262,20 @@
     return new Response(bytes.slice(start, end + 1), { status: 206, headers });
   }
 
-  async function blockEntry(entry) {
-    await write(['entries'], transaction => transaction.objectStore('entries').put({ ...entry, allowed: false }));
-    await announce('OFFLINE_MEDIA_ENTRY_BLOCKED', entry.ownerId, { key: entry.key, recordId: entry.recordId, classId: entry.classId, kind: entry.kind });
+  async function blockEntry(entry, access) {
+    await write(['access', 'entries'], transaction => {
+      const request = transaction.objectStore('access').get('current');
+      request.onsuccess = () => {
+        const current = request.result;
+        if (access && sameAccess(access, current || {})) transaction.objectStore('access').put({ ...current, authorizationRevision: (current.authorizationRevision || 0) + 1 }, 'current');
+        if (!entry) return;
+        const record = transaction.objectStore('entries').get(entry.key);
+        record.onsuccess = () => {
+          if (record.result?.ownerId === entry.ownerId) transaction.objectStore('entries').put({ ...record.result, allowed: false });
+        };
+      };
+    });
+    if (entry) await announce('OFFLINE_MEDIA_ENTRY_BLOCKED', entry.ownerId, { key: entry.key, recordId: entry.recordId, classId: entry.classId, kind: entry.kind });
   }
 
   async function resource(event) {
@@ -269,17 +288,19 @@
     try {
       const response = await fetch(new Request(event.request, { cache: 'no-store' }));
       if ([401, 419].includes(response.status)) await lock('session-unavailable', access?.ownerId ?? null, access?.verification ?? null);
-      else if ([403, 404, 410].includes(response.status) && entry) await blockEntry(entry);
+      else if ([403, 404, 410].includes(response.status) && access) await blockEntry(entry, access);
       return response;
     } catch {
       if (!access || !entry || event.request.mode === 'navigate' || url.searchParams.get('mediaPolicy') !== '2') return denied();
       try {
         const current = await clientAccess(event.clientId);
         if (!sameAccess(access, current)) return denied();
-        const cache = await caches.open(entry.cacheName);
+        const latest = await read('entries', entry.key);
+        if (!latest?.allowed || latest.ownerId !== current.ownerId || !latest.urls.includes(url.href)) return denied();
+        const cache = await caches.open(latest.cacheName);
         const response = await cache.match(event.request);
         if (!response) return denied('Prepare this lesson while connected before opening it offline.', 503);
-        if (!sameAccess(access, await clientAccess(event.clientId))) return denied();
+        if (!sameAuthorization(current, await clientAccess(event.clientId))) return denied();
         return partial(response, event.request.headers.get('range'));
       } catch { return denied(); }
     }

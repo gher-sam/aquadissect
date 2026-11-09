@@ -50,12 +50,15 @@ function harness() {
       const id = Number(path.match(/\/(\d+)\/manifest$/)[1]);
       const manifest = { id, status: 'published', packageVersion: '1.3.0', moduleVersion: '0.2.0', species: { slug: 'rabbitfish', commonName: 'Synthetic Rabbitfish' }, module: { slug: 'lab-safety-tools', title: 'Synthetic Safety & Tools' },
         assetRecords: { video: { url: assetUrl(kind, classId, id), mimeType: 'video/mp4', sha256: hash, sizeBytes: bytes.length } } };
-      return Response.json({ [kind === 'species' ? 'package' : 'module']: manifest });
+      const response = Response.json({ [kind === 'species' ? 'package' : 'module']: manifest });
+      if (state.holdManifest) { const hold = state.holdManifest; state.holdManifest = null; hold.entered.resolve(); await hold.release.promise; }
+      return response;
     }
     if (/\/assets\/7$/.test(path)) {
       state.assetFetches += 1;
-      if (state.holdAsset) { const hold = state.holdAsset; state.holdAsset = null; hold.entered.resolve(); await hold.release.promise; }
-      return new Response(state.corrupt ? 'corrupt media' : bytes, { status: state.assetStatus, headers: { 'Content-Type': 'video/mp4' } });
+      const assetStatus = state.assetStatus; const corrupt = state.corrupt;
+      if (state.holdAsset) { const hold = state.holdAsset; state.holdAsset = null; hold.entered.resolve(); await hold.release.promise; if (hold.failure) throw new TypeError('Connection interrupted'); }
+      return new Response(corrupt ? 'corrupt media' : bytes, { status: assetStatus, headers: { 'Content-Type': 'video/mp4' } });
     }
     return new Response('Missing', { status: 404 });
   };
@@ -208,6 +211,101 @@ test('explicit access denial never falls back to cached media', async () => {
 test('ordinary worker sleep and restart preserves a registered active viewing context', async () => {
   const h = harness(); await h.connect(); await h.prepare(); h.state.online = false; h.restart();
   assert.equal(await (await h.resource()).text(), bytes);
+});
+
+test('a permission denial during replacement cannot commit a newly unlocked copy', async () => {
+  const h = harness(); await h.connect(); const first = await h.prepare('module', 10); await h.prepare('module', 20);
+  const hold = { entered: deferred(), release: deferred() }; h.state.holdAsset = hold;
+  const pending = h.prepare('module', 10); await hold.entered.promise;
+  h.state.deniedClasses.add(10);
+  assert.equal((await h.resource(h.assetUrl('module', 10))).status, 403);
+  hold.release.resolve(); assert.equal((await pending).ok, false);
+  assert.ok((await h.caches.keys()).includes(first.entry.cacheName));
+  h.state.online = false;
+  assert.equal((await h.resource(h.assetUrl('module', 10))).status, 403);
+  assert.equal(await (await h.resource(h.assetUrl('module', 20))).text(), bytes);
+});
+
+test('reconnection denial during preparation preserves the prior locked copy', async () => {
+  const h = harness(); await h.connect(); const first = await h.prepare();
+  const hold = { entered: deferred(), release: deferred() }; h.state.holdAsset = hold;
+  const pending = h.prepare(); await hold.entered.promise;
+  h.state.deniedClasses.add(10); assert.equal((await h.connect()).ok, true);
+  hold.release.resolve(); assert.equal((await pending).ok, false);
+  assert.deepEqual(await h.caches.keys(), [first.entry.cacheName]);
+  h.state.online = false; assert.equal((await h.resource()).status, 403);
+});
+
+test('a delayed positive permission check cannot overwrite a more recent denial', async () => {
+  const h = harness(); await h.connect(); await h.prepare('module', 10); await h.prepare('module', 20);
+  const hold = { entered: deferred(), release: deferred() }; h.state.holdManifest = hold;
+  const pending = h.connect(); await hold.entered.promise;
+  h.state.deniedClasses.add(10); assert.equal((await h.resource(h.assetUrl('module', 10))).status, 403);
+  hold.release.resolve(); assert.equal((await pending).ok, false);
+  h.state.online = false;
+  assert.equal((await h.resource(h.assetUrl('module', 10))).status, 403);
+  assert.equal((await h.resource(h.assetUrl('module', 20))).status, 200);
+});
+
+test('a delayed denial blocks the current generation without restoring a deleted cache index', async () => {
+  const h = harness(); await h.connect(); const first = await h.prepare();
+  const hold = { entered: deferred(), release: deferred() }; h.state.holdAsset = hold; h.state.assetStatus = 403;
+  const pending = h.resource(); await hold.entered.promise;
+  h.state.assetStatus = 200; const replacement = await h.prepare(); assert.equal(replacement.ok, true);
+  hold.release.resolve(); assert.equal((await pending).status, 403);
+  const entry = (await h.rpc('LIST')).entries[0];
+  assert.equal(entry.cacheName, replacement.entry.cacheName); assert.equal(entry.allowed, false);
+  assert.notEqual(entry.cacheName, first.entry.cacheName);
+  await h.connect(); h.state.online = false;
+  assert.equal(await (await h.resource()).text(), bytes);
+});
+
+test('a denied first preparation cannot create a copy after another request observes the denial', async () => {
+  const h = harness(); await h.connect(); const retained = await h.prepare('module', 20);
+  const hold = { entered: deferred(), release: deferred() }; h.state.holdAsset = hold;
+  const pending = h.prepare(); await hold.entered.promise;
+  h.state.deniedClasses.add(10); assert.equal((await h.resource()).status, 403);
+  hold.release.resolve(); assert.equal((await pending).ok, false);
+  assert.deepEqual(await h.caches.keys(), [retained.entry.cacheName]);
+  h.state.online = false; assert.equal((await h.resource()).status, 403);
+});
+
+test('a pending network failure cannot fall back to a copy denied by another request', async () => {
+  const h = harness(); await h.connect(); await h.prepare('module', 10); await h.prepare('module', 20);
+  const hold = { entered: deferred(), release: deferred(), failure: true }; h.state.holdAsset = hold;
+  const pending = h.resource(h.assetUrl('module', 10)); await hold.entered.promise;
+  h.state.deniedClasses.add(10); assert.equal((await h.resource(h.assetUrl('module', 10))).status, 403);
+  h.state.online = false; hold.release.resolve(); assert.equal((await pending).status, 403);
+  assert.equal((await h.resource(h.assetUrl('module', 20))).status, 200);
+});
+
+test('a pending network failure uses the latest verified cache generation', async () => {
+  const h = harness(); await h.connect(); await h.prepare();
+  const hold = { entered: deferred(), release: deferred(), failure: true }; h.state.holdAsset = hold;
+  const pending = h.resource(); await hold.entered.promise;
+  const replacement = await h.prepare(); assert.equal(replacement.ok, true);
+  h.state.online = false; hold.release.resolve(); assert.equal(await (await pending).text(), bytes);
+  assert.deepEqual(await h.caches.keys(), [replacement.entry.cacheName]);
+});
+
+test('a delayed permission refresh cannot restore an obsolete cache generation', async () => {
+  const h = harness(); await h.connect(); await h.prepare();
+  const hold = { entered: deferred(), release: deferred() }; h.state.holdManifest = hold;
+  const pending = h.connect(); await hold.entered.promise;
+  const replacement = await h.prepare(); assert.equal(replacement.ok, true);
+  hold.release.resolve(); const refreshed = await pending; assert.equal(refreshed.ok, true);
+  assert.equal(refreshed.entries[0].cacheName, replacement.entry.cacheName);
+  h.state.online = false; assert.equal(await (await h.resource()).text(), bytes);
+});
+
+test('a delayed permission refresh cannot recreate a removed prepared copy', async () => {
+  const h = harness(); await h.connect(); const first = await h.prepare();
+  const hold = { entered: deferred(), release: deferred() }; h.state.holdManifest = hold;
+  const pending = h.connect(); await hold.entered.promise;
+  assert.equal((await h.rpc('REMOVE', { key: first.entry.key })).ok, true);
+  hold.release.resolve(); const refreshed = await pending; assert.equal(refreshed.ok, true);
+  assert.equal(refreshed.entries.length, 0); assert.equal((await h.rpc('LIST')).entries.length, 0);
+  assert.deepEqual(await h.caches.keys(), []);
 });
 
 test('byte ranges support seeking, suffix requests, bounds and invalid inputs', async () => {
