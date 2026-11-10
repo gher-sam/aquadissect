@@ -58,6 +58,7 @@ function packageCard(item, { manager = false, offline = false, isAdmin = false, 
     : '';
   const managerActions = manager ? `
     <div class="package-actions">
+      ${item.slug === 'rabbitfish' && ['admin','instructor'].includes(currentUser?.role) && item.status !== 'archived' ? `<button class="portal-secondary" type="button" data-manage-clips="${item.id}">Manage guided clips</button>` : ''}
       ${['admin','instructor'].includes(currentUser?.role) ? '<button class="portal-secondary" type="button" data-revise-package="'+item.id+'" data-manifest-url="'+escapeHtml(item.manifestUrl)+'">Revise fish details and imagery</button>' : ''}
       ${currentUser?.role !== 'program_head' && item.status === 'draft' ? `<button class="portal-primary" data-submit-package="${item.id}" type="button">Send for faculty review</button>` : ''}
       ${isAdmin && item.status === 'review' && item.approvalCurrent ? `<button class="portal-primary" data-publish-package="${item.id}" type="button">Publish approved version</button>` : ''}

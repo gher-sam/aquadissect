@@ -1,4 +1,6 @@
 import { mountAssessmentPanel } from './fishEnhancements.js';
+import { setupGuidedClipEditor } from './guidedClipEditor.js';
+import '../../css/guided-clips.css';
 import { setupBulkRoster } from './bulkRoster.js';
 import { mountRecordManagement } from './adminRecords.js';
 import { setupStudentPasswordActions } from './studentPasswords.js';
@@ -25,6 +27,7 @@ import { connectOfflineMedia, lockOfflineMedia, offlineCapability, preparedEntri
 import { closeStudentMedia } from '../studentMedia.js';
 
 const bootstrap = window.AQUADISSECT_BOOTSTRAP || {};
+setupGuidedClipEditor();
 prepareSessionContext(bootstrap);
 const visibleSpecies = window.AQUADISSECT_VISIBLE_SPECIES || ['rabbitfish'];
 const focusSpecies = records => focusedSpecies(records, visibleSpecies);

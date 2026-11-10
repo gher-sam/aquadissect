@@ -55,6 +55,7 @@ app.innerHTML = `
         <div class="lesson-panel__top"><span class="eyebrow" id="stepEyebrow">Orientation</span><span class="duration" id="lessonDuration"></span></div>
         <h1 id="stepTitle" tabindex="-1">Select a species</h1><p class="lesson-description" id="stepDescription"></p>
         <video class="lesson-step-video" id="stepVideo" controls playsinline preload="metadata" hidden></video>
+        <p id="stepVideoCaption" hidden></p>
         <section class="task-card" aria-labelledby="taskHeading"><div class="task-card__icon" aria-hidden="true"><i data-lucide="scan-search"></i></div><div><span class="task-label" id="taskHeading">Your task</span><p id="stepPrompt"></p></div></section>
         <div class="target-list" id="targetList" aria-live="polite"></div>
         <form class="quiz" id="quiz" hidden></form>
@@ -356,6 +357,10 @@ function renderStep(direction = 0) {
   elements.stepPrompt.textContent = definition.prompt;
   const video = state.manifest.assetRecords?.[definition.videoAsset];
   const videoUrl = ['video/mp4', 'video/webm'].includes(video?.mimeType) ? video.url : null;
+  const provenance = state.manifest.assetProvenance?.[definition.videoAsset] || {};
+  const videoCaption = document.getElementById('stepVideoCaption');
+  videoCaption.hidden = !videoUrl;
+  videoCaption.textContent = [provenance.caption || '', provenance.aiGenerated ? 'AI-generated educational clip.' : ''].filter(Boolean).join(' ');
   elements.stepVideo.hidden = !videoUrl;
   if (videoUrl) elements.stepVideo.setAttribute('aria-label', definition.title);
   if (elements.stepVideo.getAttribute('src') !== videoUrl) {

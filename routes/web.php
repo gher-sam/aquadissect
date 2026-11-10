@@ -1,7 +1,7 @@
 <?php
 
-use App\Http\Controllers\AdminRosterController;
 use App\Http\Controllers\AdminRecordController;
+use App\Http\Controllers\AdminRosterController;
 use App\Http\Controllers\AdminSpeciesPackageController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\AuthController;
@@ -10,6 +10,7 @@ use App\Http\Controllers\ClassController;
 use App\Http\Controllers\FishRevisionController;
 use App\Http\Controllers\GmailSenderController;
 use App\Http\Controllers\GoogleAuthController;
+use App\Http\Controllers\GuidedClipController;
 use App\Http\Controllers\InstructorSpeciesPackageController;
 use App\Http\Controllers\LearningModuleAssetController;
 use App\Http\Controllers\LearningModuleAssignmentController;
@@ -119,6 +120,15 @@ Route::prefix('api')->group(function (): void {
         Route::post('/lessons/{lessonKey}/attempts', [LessonAttemptController::class, 'store'])->middleware('role:student,instructor,admin');
 
         Route::middleware('role:instructor,admin')->prefix('staff')->group(function (): void {
+            Route::prefix('species-packages/{package}/clip-drafts')->group(function (): void {
+                Route::post('/', [GuidedClipController::class, 'create'])->middleware('throttle:20,1');
+                Route::get('/{draft}', [GuidedClipController::class, 'show']);
+                Route::patch('/{draft}', [GuidedClipController::class, 'update'])->middleware('throttle:60,1');
+                Route::post('/{draft}/assets', [GuidedClipController::class, 'upload'])->middleware('throttle:10,1');
+                Route::get('/{draft}/assets/{asset}', [GuidedClipController::class, 'asset']);
+                Route::post('/{draft}/commit', [GuidedClipController::class, 'commit'])->middleware('throttle:10,1');
+                Route::delete('/{draft}', [GuidedClipController::class, 'destroy']);
+            });
             Route::post('/students/{user}/reset-password', [StudentCredentialController::class, 'reset']);
             Route::get('/students/{user}/password-history', [StudentCredentialController::class, 'history']);
             Route::post('/learning-module-versions/{version}/submit', [StaffLearningModuleController::class, 'submit']);

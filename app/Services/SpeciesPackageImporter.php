@@ -32,7 +32,7 @@ class SpeciesPackageImporter
         $this->expandedBytes = 0;
 
         if ($upload->getSize() === false || $upload->getSize() > config('species-packages.max_archive_bytes')) {
-            $this->fail('archive', 'The package archive must not exceed 100 MB.');
+            $this->fail('archive', 'The package archive must not exceed 250 MiB.');
         }
 
         $token = (string) Str::uuid();
@@ -158,7 +158,7 @@ class SpeciesPackageImporter
                 $this->validateExtension($name);
                 $this->expandedBytes += (int) ($stat['size'] ?? 0);
                 if ($this->expandedBytes > config('species-packages.max_expanded_bytes')) {
-                    $this->fail('archive', 'The expanded archive would exceed 250 MB.');
+                    $this->fail('archive', 'The expanded archive would exceed 500 MiB.');
                 }
 
                 $target = $extractRoot.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $name);

@@ -1,6 +1,32 @@
 # AquaDissect Project 2 Study Alignment
 
-Last confirmed: September 14, 2026
+Last confirmed: November 10, 2026
+
+## November 10, 2026: Faculty-authored Rabbitfish clips and instructions
+
+The user approved a Rabbitfish clip uploader and step editor for administrators
+and instructors, including the planned 72-clip sequence. Faculty author the
+instructions and arrange clip steps around the retained core anatomy/activity
+sequence. Optional wording assistance uses a copy-and-paste prompt with the
+faculty member's existing assistant; faculty compare and explicitly accept
+suggestions. No external AI integration or automatic procedural authorship is
+introduced. AI-media declarations and independent content review remain required.
+
+Private owner-scoped working drafts last 24 hours. MP4/WebM input is limited to
+80 MiB and ten seconds; excess duration is rejected without trimming. Sanitized
+silent H.264 playback copies retain aspect ratio at up to 720p and three MiB.
+Lesson archives allow 250 MiB compressed and 500 MiB expanded with existing
+archive-integrity safeguards. New saves create separate immutable draft versions,
+without automatic approval, publication, assignment or modification of existing
+academic records. New clip steps inherit the preceding anatomy depth; core
+targets, assessments and prerequisites retain their original rules.
+The final knowledge check remains after all guided clips.
+
+Status: Implemented but awaiting validation. Engineering and operator guidance is
+in docs/rabbitfish-clip-editor.md. Software tests and deployment verification do
+not establish faculty approval, anatomical accuracy, ethics clearance or learning
+improvement. Existing accounts, enrollments, versions, results, offline work and
+notebook drafts must be retained throughout release.
 
 ## Scope boundary
 

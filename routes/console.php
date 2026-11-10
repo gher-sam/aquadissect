@@ -2,6 +2,7 @@
 
 use App\Models\StudentSetupChallenge;
 use App\Models\StudentSetupCode;
+use App\Services\GuidedClipDrafts;
 use App\Services\RosterUploadDrafts;
 use App\Services\StudentEmailSetup;
 use Illuminate\Foundation\Inspiring;
@@ -22,6 +23,12 @@ Artisan::command('roster:expire-uploads', function () {
 })->purpose('Remove private roster drafts after 30 minutes');
 
 Schedule::command('roster:expire-uploads')->everyFiveMinutes()->withoutOverlapping();
+
+Artisan::command('clips:expire-drafts', function () {
+    $this->info(app(GuidedClipDrafts::class)->cleanup().' expired clip drafts removed.');
+})->purpose('Remove private guided-clip drafts after 24 hours');
+
+Schedule::command('clips:expire-drafts')->everyFiveMinutes()->withoutOverlapping();
 
 Artisan::command('student-setup:status', function () {
     $setup = app(StudentEmailSetup::class);
