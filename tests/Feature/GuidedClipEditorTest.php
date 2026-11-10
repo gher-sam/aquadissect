@@ -197,7 +197,7 @@ class GuidedClipEditorTest extends TestCase
         $d = $this->upload($d, $d['steps'][0]['id'])->assertOk()->json();
         $key = $d['steps'][0]['videoAsset'];
         $url = $this->url('/'.$d['draftId'].'/assets/'.$key);
-        $this->get($url, ['Range' => 'bytes=0-99'])->assertStatus(206)->assertHeader('Content-Type', 'video/mp4');
+        $this->get($url, ['Range' => 'bytes=0-99'])->assertStatus(206)->assertHeader('Content-Type', 'video/mp4')->assertHeader('Cache-Control', 'no-store, private');
         $this->app->forgetInstance(GuidedClipVideo::class);
         $this->mock(GuidedClipVideo::class, fn ($m) => $m->shouldReceive('prepare')->andThrow(ValidationException::withMessages(['asset' => 'Synthetic processing failure'])));
         $this->upload($d, $d['steps'][0]['id'])->assertUnprocessable();

@@ -50,7 +50,7 @@ class GuidedClipController extends Controller
     {
         $path = $drafts->asset($package, $request->user(), $draft, $asset);
 
-        return response()->file($path, array_merge(LearningMedia::headers(), ['Content-Type' => 'video/mp4']));
+        return response()->file($path, array_merge(LearningMedia::headers(), ['Content-Type' => 'video/mp4']))->setPrivate();
     }
 
     public function commit(Request $request, SpeciesPackage $package, string $draft, GuidedClipDrafts $drafts)
