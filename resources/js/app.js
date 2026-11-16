@@ -105,6 +105,7 @@ app.innerHTML = `
 
 const icons = { Archive, Calendar, Bell, ChartNoAxesCombined, ArrowLeft, ArrowRight, Badge, BadgeCheck, BookOpen, Check, ChevronRight, Circle, CircleDashed, CircleHelp, ClipboardList, Download, Eye, Fish, Focus, GraduationCap, Info, KeyRound, Layers3, LayoutDashboard, LockKeyhole, LogOut, Mail, Maximize2, Menu, PackageOpen, Pause, Play, RotateCcw, ScanSearch, School, ShieldCheck, Sparkles, User, Users, UsersRound, Waves, X };
 const refreshIcons = () => createIcons({ icons, attrs: { 'stroke-width': 1.8, 'aria-hidden': 'true' } });
+document.addEventListener('aquadissect-refresh-icons', refreshIcons);
 const query = (selector) => document.querySelector(selector);
 const elements = {
   scene: query('#scene'), sceneLoader: query('#sceneLoader'), brandSubtitle: query('#lessonBrandSubtitle'),

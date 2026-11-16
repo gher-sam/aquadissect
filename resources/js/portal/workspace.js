@@ -1,7 +1,6 @@
-import { request, appUrl } from './api.js';
+import { request } from './api.js';
 import { sourceHandover } from './sourceHandover.js';
 import { escapeHtml as e } from './format.js';
-import { rosterTable, setupRosterTables } from './rosterTables.js';
 import { setupNavigationGroups } from './interface.js';
 
 const dateText = (value) => value ? new Intl.DateTimeFormat('en-PH', { timeZone: 'Asia/Manila', dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : '—';
@@ -65,7 +64,7 @@ export async function setupWorkspacePage(page, root, user, notify, refreshCount)
     if (page === 'source-handover') await sourceHandover(root);
     if (page === 'notifications') await notifications(root, refreshCount, notify);
     if (page === 'calendar') await calendar(root, user, notify, refreshCount);
-    if (page === 'reports') await reports(root, notify);
+    if (page === 'reports') { const { mountReports } = await import('./reports.js'); await mountReports(root, user, notify); }
   } catch (error) { fail(error); }
   finally { root.setAttribute('aria-busy', 'false'); }
 }
@@ -91,7 +90,6 @@ async function notifications(root, refreshCount, notify) {
   };
   await render();
 }
-
 async function calendar(root, user, notify, refreshCount) {
   let mode = matchMedia('(max-width: 700px)').matches ? 'list' : 'month';
   let selected = localDate(new Date());
@@ -159,53 +157,5 @@ async function calendar(root, user, notify, refreshCount) {
     } catch(error) { notify(error.message,{tone:'error',persistent:true}); }
   };
   root.onchange = async event => { if(event.target.matches('[data-calendar-section]')) { sectionFilter=event.target.value; try{await render();}catch(error){notify(error.message,{tone:'error',persistent:true});} } };
-  await render();
-}
-
-async function reports(root, notify) {
-  root.innerHTML=`<section class="workspace-panel"><div class="workspace-toolbar report-presets"><h2>Learning report</h2><div role="group" aria-label="Report date shortcuts"><button type="button" data-report-period="7">Last 7 days</button><button type="button" data-report-period="30">Last 30 days</button><button type="button" data-report-reset>Reset filters</button></div></div><form id="reportFilters" class="workspace-toolbar"><label>Section<select name="classId"><option value="">All available records</option></select></label><label>From<input type="date" name="from"></label><label>To<input type="date" name="to"></label><label>Activity<select name="activity"><option value="all">All activities</option><option value="lessons">Species lessons</option><option value="safety">Safety modules</option></select></label><label>Recorded activity<select name="recordedActivity"><option value="">All recorded activities</option></select></label><button type="submit" class="portal-primary">Apply filters</button><a id="reportExport" aria-disabled="true">Download CSV</a></form><p id="reportFeedback" role="status" aria-live="polite"></p></section><div id="reportResults"></div>`;
-  const form=root.querySelector('form');
-  let renderSequence = 0;
-  let hadFailure = false;
-  const feedback = root.querySelector('#reportFeedback');
-  const exportLink = root.querySelector('#reportExport');
-  exportLink.addEventListener('click', event => { if (exportLink.getAttribute('aria-disabled') === 'true') event.preventDefault(); });
-  const render = async () => {
-    const sequence = ++renderSequence;
-    const params=new URLSearchParams([...new FormData(form)].filter(([,value])=>value));
-    const results=root.querySelector('#reportResults');
-    results.setAttribute('aria-busy','true');
-    exportLink.removeAttribute('href'); exportLink.setAttribute('aria-disabled','true');
-    feedback.textContent='Updating report…';
-    let data;
-    try { data=await request('/api/reports?'+params); }
-    catch (error) { if (sequence !== renderSequence) return; hadFailure = true; results.setAttribute('aria-busy','false'); feedback.textContent='Report could not be updated. Select Apply filters to retry. The previous results are still shown.'; throw error; }
-    if (sequence !== renderSequence) return;
-    if(form.elements.classId.options.length===1) data.classes.forEach(c=>{const option=document.createElement('option');option.value=c.id;option.textContent=c.name;form.elements.classId.append(option);});
-    const recorded = form.elements.recordedActivity.value;
-    form.elements.recordedActivity.innerHTML='<option value="">All recorded activities</option>';
-    [...new Set([...data.activities, ...(recorded ? [recorded] : [])])].forEach(value=>{ const option=document.createElement('option'); option.value=value; option.textContent=value; form.elements.recordedActivity.append(option); });
-    form.elements.recordedActivity.value=recorded;
-    exportLink.href=appUrl('/api/reports?'+params+'&format=csv'); exportLink.setAttribute('aria-disabled','false');
-    const records=data.rows.filter(r=>r.attributed);
-    const lessons=records.filter(r=>r.kind==='lessons');
-    const scored=lessons.filter(r=>r.score!==null && r.total!==null && Number.isFinite(Number(r.score)) && Number(r.total)>0);
-    const earned=scored.reduce((sum,r)=>sum+Number(r.score),0), available=scored.reduce((sum,r)=>sum+Number(r.total),0);
-    const percentage=available?Math.round(100*earned/available):null;
-    const activityCounts = [...new Set(records.map(r=>r.activity))].map(activity=>({activity,count:records.filter(r=>r.activity===activity).length}));
-    const largest = Math.max(1,...activityCounts.map(item=>item.count));
-    results.innerHTML=`<section class="workspace-panel report-summary"><div><h2>Attributed records</h2><p>${lessons.length} lesson attempts · ${records.filter(r=>r.kind==='safety'&&r.status==='Completed').length} completed safety progress records</p><p>${data.rows.length-records.length} unattributed historical records shown separately below.</p></div><div>${percentage===null?'<p class="report-no-score">Aggregate formative score: <strong>Not recorded</strong></p><small>No scored lesson attempts in these results.</small>':`<label for="reportScore">Aggregate formative score: ${percentage}%</label><meter id="reportScore" min="0" max="100" value="${percentage}">${percentage}%</meter><small>${earned} earned points / ${available} available points</small>`}</div></section><section class="workspace-panel"><h2>Records by activity</h2><p>Counts in this filtered report. Select an activity to see its records. These are records, not unique learners or evidence of learning effectiveness.</p><ul class="report-activity-bars">${activityCounts.map(({activity,count})=>`<li><button type="button" data-report-activity="${e(activity)}">${e(activity)}</button><meter min="0" max="${largest}" value="${count}" aria-label="${e(activity)}: ${count} records">${count}</meter><strong>${count} <span class="sr-only">records</span></strong></li>`).join('')||'<li>No attributed records match these filters.</li>'}</ul></section>`+[true,false].map(attributed => rosterTable(attributed?'reports':'historical', attributed?'Section learning records':'Unattributed historical records',['Learner','Section','Activity','Result','Status','Recorded'],data.rows.filter(r=>r.attributed===attributed).map(r=>`<tr data-table-row><td>${e(r.learner)}</td><td>${e(r.section)}</td><td>${e(r.activity)}</td><td>${r.total===null?'—':`${r.score} / ${r.total}`}</td><td>${e(r.status)}</td><td data-sort-value="${e(r.date||'')}">${e(dateText(r.date))}</td></tr>`).join(''))).join('');
-    setupRosterTables(results);
-    results.setAttribute('aria-busy','false'); feedback.textContent=`${data.rows.length} records loaded. Filters also apply to the CSV download.`;
-    if (hadFailure) { hadFailure = false; notify('Report updated.'); }
-  };
-  root.onclick = async event => {
-    const button=event.target.closest('[data-report-period],[data-report-reset],[data-report-activity]'); if(!button) return;
-    if(button.hasAttribute('data-report-reset')) form.reset();
-    if(button.dataset.reportPeriod) { form.elements.to.value=localDate(new Date()); form.elements.from.value=day(form.elements.to.value,1-Number(button.dataset.reportPeriod)); }
-    if(button.dataset.reportActivity) form.elements.recordedActivity.value=button.dataset.reportActivity;
-    try { await render(); if(button.dataset.reportActivity) { const heading=root.querySelector('#reportResults h2'); heading.tabIndex=-1; heading.focus({preventScroll:true}); } } catch(error) { notify(error.message,{tone:'error',persistent:true}); }
-  };
-  form.onsubmit=async event=>{event.preventDefault();try{await render();}catch(error){notify(error.message,{tone:'error',persistent:true});}};
   await render();
 }

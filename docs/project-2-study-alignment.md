@@ -637,3 +637,35 @@ Status: Implemented but awaiting validation. This scope decision
 does not establish faculty acceptance, research validation, learning improvement
 or deployment completion. Verification and release status are recorded separately
 in `docs/gamified-practice-verification.md`.
+
+## November 16, 2026: Reporting and explainable completion forecasts
+
+The user approved a reporting workspace with Overview, Learner Support,
+Assessments and Records views, interactive charts, section and activity filters,
+and Summary or Detailed downloads in PDF, XLSX, CSV, DOCX and XML. Institutional
+branding uses the official SLSU Bontoc reference, preserving the supplied original
+and excluding its unrelated quality-form identifier. CSV uses branded text rows;
+XML uses structured header and footer metadata.
+
+Analytics distinguish unique active learners, section enrollments, saved attempts,
+current assigned completion, documented safety exceptions and latest formative
+scores. Formal assessment comparisons retain separate study/instrument versions
+and matched non-voided pairs. Unattributed history remains separate. Optional
+practice XP is visible only to its learner and never enters academic scores.
+
+Learner support uses actual assignment deadlines, safety prerequisites and a
+seven-day absence of saved learning activity. Score review is disabled until the
+viewer explicitly selects a threshold. Signals prompt review, do not change
+grades, and do not infer research consent or participation.
+
+Staff may select one section and assigned lesson or safety activity for an
+explainable completion-pace estimate. Use two to four complete weeks, at least
+five first completions on two days, a default 14-day horizon and optional 7/30-day
+horizons. Bound projections by the current eligible assigned cohort. The range
+reflects observed weekly pace, not a statistical confidence interval. Do not
+present it as trained machine learning, predicted grades or validated competence.
+
+Status: Implemented but awaiting validation. This decision authorizes implementation; it is not
+evidence of faculty acceptance, research validation or learning effectiveness.
+Engineering checks and release evidence are recorded separately in
+`docs/reporting-verification.md`.

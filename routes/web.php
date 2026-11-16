@@ -35,6 +35,7 @@ use App\Http\Controllers\StudentPasswordSetupController;
 use App\Http\Controllers\TutorialController;
 use App\Http\Controllers\WorkspaceNotificationController;
 use App\Http\Controllers\WorkspaceReportController;
+use App\Http\Controllers\LearningAnalyticsController;
 use App\Support\PortalPages;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -99,6 +100,9 @@ Route::prefix('api')->group(function (): void {
         Route::post('/notifications/read-all', [WorkspaceNotificationController::class, 'readAll']);
         Route::post('/notifications/{notification}/read', [WorkspaceNotificationController::class, 'read']);
         Route::get('/reports', [WorkspaceReportController::class, 'index']);
+        Route::get('/reports/analytics', [LearningAnalyticsController::class, 'analytics']);
+        Route::get('/reports/records', [LearningAnalyticsController::class, 'records']);
+        Route::get('/reports/export', [LearningAnalyticsController::class, 'export']);
         Route::get('/session', [AuthController::class, 'session']);
         Route::get('/paired-assessments', [PairedAssessmentController::class, 'index']);
         Route::get('/paired-assessments/{study}/export', [PairedAssessmentController::class, 'export']);
