@@ -1,6 +1,6 @@
 # AquaDissect Project 2 Study Alignment
 
-Last confirmed: November 10, 2026
+Last confirmed: November 16, 2026
 
 ## November 10, 2026: Faculty-authored Rabbitfish clips and instructions
 
@@ -611,3 +611,29 @@ devices cannot receive immediate revocation. AI-media provenance and independent
 faculty-review requirements remain in force. Software checks do not establish
 biological accuracy, research consent or learning effectiveness. Operational and
 engineering boundaries are recorded in docs/offline-media-viewing.md.
+## November 16, 2026: Optional gamified anatomy practice
+
+The user authorized interactive gamified practice in AquaDissect. Optional Function
+finder and System sorter challenges reuse the selected species-package anatomy
+descriptions and system labels. This introduces no newly authored biological
+claims or formal assessment questions. Student access continues to require the
+existing published package, active section assignment and safety prerequisite.
+
+Each first correct challenge completion earns 10 practice XP once per account,
+section, immutable package version and challenge rule version. Repeat practice and
+hints are available without a point penalty. First discovery, Function finder,
+System sorter and Practice complete badges reflect recorded challenge completion;
+they do not certify biological competence or practical-dissection readiness.
+Staff may check answers in an authorized package preview without saving rewards.
+
+Practice completion records are separate from lesson results, safety completion,
+formal pretest/posttest attempts, grades, consent and research instruments. They
+use the delayed-clone backup path. No leaderboard, public comparison, speed
+scoring or research-result backfill is introduced. An online session is required
+to open challenges and confirm rewards; existing downloaded lessons remain the
+offline study path. No private practice responses are cached in a shared shell.
+
+Status: Implemented but awaiting validation. This scope decision
+does not establish faculty acceptance, research validation, learning improvement
+or deployment completion. Verification and release status are recorded separately
+in `docs/gamified-practice-verification.md`.

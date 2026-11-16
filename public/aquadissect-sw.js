@@ -1,4 +1,4 @@
-const SHELL_CACHE = 'aquadissect-shell-v25';
+const SHELL_CACHE = 'aquadissect-shell-v26';
 // Refresh scoped media with network-aware locks and concurrent permission checks.
 const SHELL_CACHE_PREFIX = 'aquadissect-shell-';
 const scopeUrl = new URL(self.registration.scope);
@@ -114,6 +114,10 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   const url = new URL(event.request.url);
   if (!withinScope(url)) return;
+  if (/\/api\/species-packages\/\d+\/practice(?:\/|$)/.test(url.pathname)) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
   if (self.AquaOfflineMedia.protectedRoute(event.request.url)) {
     event.respondWith(self.AquaOfflineMedia.resource(event));
     return;

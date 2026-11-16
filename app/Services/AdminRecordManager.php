@@ -180,7 +180,7 @@ class AdminRecordManager
             $facts[$table.'.'.$column] = ['count' => count($rows), 'hash' => hash('sha256', json_encode($rows, JSON_THROW_ON_ERROR))];
         }
         if ($record instanceof ClassEnrollment) {
-            foreach (['lesson_results', 'learning_module_progress', 'learning_module_attempts', 'learning_module_overrides'] as $table) {
+            foreach (['lesson_results', 'practice_completions', 'learning_module_progress', 'learning_module_attempts', 'learning_module_overrides'] as $table) {
                 $query = DB::table($table)->where('user_id', $record->user_id)
                     ->where(fn ($q) => $q->where('class_id', $record->class_id)->orWhereNull('class_id'));
                 if ($lock) {

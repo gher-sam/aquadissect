@@ -22,6 +22,7 @@ use App\Http\Controllers\LessonResultController;
 use App\Http\Controllers\MediaPromptController;
 use App\Http\Controllers\PairedAssessmentController;
 use App\Http\Controllers\PortalController;
+use App\Http\Controllers\PracticeController;
 use App\Http\Controllers\SourceHandoverController;
 use App\Http\Controllers\SpeciesAssignmentController;
 use App\Http\Controllers\SpeciesController;
@@ -112,6 +113,8 @@ Route::prefix('api')->group(function (): void {
         Route::get('/species-packages/{package}/card-preview', [SpeciesController::class, 'cardPreview']);
         Route::get('/species-packages/{package}/assets/{asset}', [SpeciesController::class, 'asset']);
         Route::get('/species-packages/{package}/download', [SpeciesController::class, 'download']);
+        Route::get('/species-packages/{package}/practice', [PracticeController::class, 'index']);
+        Route::post('/species-packages/{package}/practice/answers', [PracticeController::class, 'answer'])->middleware('throttle:60,1,practice');
         Route::get('/classes', [ClassController::class, 'index']);
         Route::get('/learning-modules', [LearningModuleController::class, 'index']);
         Route::get('/learning-modules/{version}/manifest', [LearningModuleController::class, 'manifest']);

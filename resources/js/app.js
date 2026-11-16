@@ -13,6 +13,7 @@ import {
   Users, UsersRound, Waves, X, createIcons,
 } from 'lucide';
 import { createObservationNotebook } from './observationNotebook.js';
+import { createPracticeChallenges } from './practiceChallenges.js';
 import { createViewer } from './viewerFactory.js';
 import { setupAquaPortal } from './portal/index.js';
 import '../css/style.css';
@@ -30,6 +31,7 @@ import '../css/roster-tables.css';
 import '../css/workspace.css';
 import '../css/typography.css';
 import '../css/interface.css';
+import '../css/practice.css';
 
 const app = document.querySelector('#app');
 app.innerHTML = `
@@ -65,6 +67,7 @@ app.innerHTML = `
           <button class="primary-button" id="primaryAction" type="button"><span>Continue</span><i data-lucide="arrow-right"></i></button>
           <div class="secondary-actions"><button class="text-button" id="previousStep" type="button" disabled><i data-lucide="arrow-left"></i><span>Previous</span></button><button class="text-button" id="freeExplore" type="button"><i data-lucide="sparkles"></i><span>Explore freely</span></button></div>
         </div>
+        <button class="practice-entry" id="practiceEntry" type="button" hidden><i data-lucide="sparkles" aria-hidden="true"></i><span><strong>Practice challenges</strong><small>Match functions, collect XP, and earn badges.</small></span><i data-lucide="chevron-right" aria-hidden="true"></i></button>
       </aside>
       <section class="viewer-panel" aria-label="Layered aquatic anatomy viewer">
         <div class="scene" id="scene" tabindex="0" aria-describedby="sceneInstructions">
@@ -94,6 +97,7 @@ app.innerHTML = `
     </main>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <dialog class="observation-notebook" id="observationNotebook" aria-labelledby="notebookTitle"></dialog>
+    <dialog class="practice-dialog" id="practiceDialog" aria-labelledby="practiceTitle"></dialog>
     <dialog class="info-dialog" id="infoDialog" aria-labelledby="infoTitle"><button class="dialog-close" data-close-dialog="infoDialog" aria-label="Close information"><i data-lucide="x"></i></button><span class="dialog-icon" aria-hidden="true"><i data-lucide="waves"></i></span><p class="eyebrow">About this lesson</p><h2 id="infoTitle">A safe first look at aquatic anatomy</h2><p id="infoDescription"></p><div class="dialog-callout"><i data-lucide="badge-check"></i><p><strong>Learning goals</strong><span id="learningGoals"></span></p></div><button class="primary-button dialog-action" data-close-dialog="infoDialog">Continue lesson</button></dialog>
     <dialog class="references-dialog" id="referencesDialog" aria-labelledby="referencesTitle"><button class="dialog-close" data-close-dialog="referencesDialog" aria-label="Close references"><i data-lucide="x"></i></button><p class="eyebrow">Content foundations</p><h2 id="referencesTitle">Educational references</h2><p>Package references support the lesson. Illustrations remain simplified teaching aids.</p><div class="reference-list" id="referenceList"></div></dialog>
     <dialog class="completion-dialog" id="completionDialog" aria-labelledby="completionTitle"><span class="completion-mark" aria-hidden="true"><i data-lucide="badge-check"></i></span><p class="eyebrow">Formative activity complete</p><h2 id="completionTitle">Observation recorded</h2><p id="completionCopy"></p><div class="score-card"><span>Your score</span><strong id="scoreValue">0 / 0</strong></div><div class="completion-actions"><button class="primary-button" id="reviewLesson" type="button"><i data-lucide="rotate-ccw"></i><span>Review lesson</span></button><button class="text-button" id="completionDashboard" type="button">Return to dashboard</button><button class="text-button" data-close-dialog="completionDialog" type="button">Keep exploring</button></div></dialog>
@@ -145,6 +149,9 @@ function restorePartButtonFocus(focusTarget) {
 
 let portal;
 const notebook = createObservationNotebook(query('#observationNotebook'), query('#notebookButton'));
+const practice = createPracticeChallenges(query('#practiceDialog'), query('#practiceEntry'), {
+  currentUser: () => portal?.currentUser(), refreshIcons,
+});
 
 function anatomyMap(structures) {
   return Object.fromEntries(structures.map((item) => [item.id, item]));
@@ -234,6 +241,7 @@ async function openPackage(manifest, record, { viewerType = 'auto', classId = nu
   state.selected = null;
   state.labels = false;
   state.actionCompleted = new Set();
+  practice.load(manifest, { classId });
   elements.sceneLoader.classList.remove('is-hidden');
   elements.brandSubtitle.textContent = manifest.contentData.lesson.title;
   elements.lessonDuration.textContent = manifest.contentData.lesson.duration;
@@ -497,10 +505,17 @@ portal = setupAquaPortal({
   app,
   onOpenPackage: openPackage,
   onLeaveLesson: async (options) => {
+    if (options?.force) practice.clear();
     const left = await notebook.clear(options);
-    if (left !== false) elements.stepVideo.pause();
+    if (left !== false) { practice.clear(); elements.stepVideo.pause(); }
     return left;
   },
 });
+window.render_game_to_text = () => JSON.stringify({
+  mode: query('#practiceDialog').open ? 'practice' : app.hidden ? 'portal' : 'lesson',
+  lessonStep: state.step,
+  practice: practice.snapshot(),
+});
+window.advanceTime = milliseconds => state.model?.advanceTime?.(milliseconds);
 refreshIcons();
 setupStudentMedia(() => portal.currentUser());

@@ -18,3 +18,17 @@ Original prompt: Generate a bright, interactive 3D Tilapia anatomy and virtual-d
 ## TODO
 
 - Optional future fidelity upgrade: replace the procedural exterior with a licensed, instructor-reviewed GLB/GLTF scan while retaining the same viewer and lesson interfaces.
+
+## 2026-11-16 — Optional anatomy practice
+
+- Continued the existing Function finder/System sorter draft with private, server-confirmed XP and completion badges. Added a keyboard-accessible challenge selector, new-badge feedback, and separate unconfirmed-answer messages for connection failures.
+- Preserved the guided lesson position, first-unfinished resume, one reward per challenge and section/package version, staff previews without rewards, and the existing content-publication and safety gates.
+- Fixed focus restoration after a failed opening/retry and prevented a queued close event from canceling an immediately reopened practice dialog. Added read-only practice state and viewer time-step hooks for browser verification.
+- Isolated verification passed 12 PHP practice checks (145 assertions), 10 JavaScript practice checks, the production asset build and 14 browser checks. Desktop/mobile screenshots were visually reviewed, including Rabbitfish staff preview. No uncaught page errors were recorded. The tests include deliberately losing a saved-answer response, retrying without duplicate XP, sign-out during a pending check and separate-account progress.
+- Made the additive practice migration safe to reapply after its record-preserving rollback. Practice history also protects enrollment deletion and invalidates an earlier administrative preview; both regression checks pass.
+- Integrated the practice patch with the current shared-repository source, preserving its classroom quiz, administrator record management, offline media and guided clip editor updates. The older local checkout and unrelated drafts were retained.
+
+### Remaining verification
+
+- Run the isolated required release suite and publish only the practice files; retain unrelated local changes.
+- Faculty acceptance of the practice presentation and research validation remain pending. XP and badges are practice completion signals, not learning-effectiveness findings.

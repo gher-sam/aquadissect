@@ -27,6 +27,7 @@ return [
         'species_package_events' => 'id',
         'species_package_reviews' => 'id',
         'lesson_results' => 'id',
+        'practice_completions' => 'id',
         'assessment_studies' => 'id',
         'assessment_attempts' => 'id',
         'assessment_events' => 'id',
