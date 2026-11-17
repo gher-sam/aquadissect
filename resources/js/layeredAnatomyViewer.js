@@ -1,3 +1,4 @@
+import { motionAllowed, onMotionChange } from './motionPreferences.js';
 import { ImageMeasurement } from './imageMeasurement.js';
 import { fittedImageRect } from './imageMeasurementData.js';
 
@@ -17,7 +18,8 @@ export class LayeredAnatomyViewer {
     this.selectedId = null;
     this.playing = false;
     this.playDirection = 1;
-    this.reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    this.reduceMotion = !motionAllowed();
+    this.removeMotionListener = onMotionChange(allowed => { this.reduceMotion = !allowed; if (!allowed && this.playing) this.stopPlayback(); if (!allowed && this.controls) this.controls.autoRotate = false; });
     this.structures = Object.values(anatomy);
     this.externalIds = this.structures.filter((item) => item.layer === 'external').map((item) => item.id);
     this.internalIds = this.structures.filter((item) => item.layer === 'internal').map((item) => item.id);
@@ -189,6 +191,7 @@ export class LayeredAnatomyViewer {
   }
 
   destroy() {
+    this.removeMotionListener?.();
     this.layoutObserver?.disconnect();
     this.measurement?.destroy();
     this.stopPlayback();

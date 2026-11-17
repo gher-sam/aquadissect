@@ -390,7 +390,17 @@ class ReportExports
                 foreach ($definition['series'] as $j => $series) {
                     $column = Coordinate::stringFromColumnIndex($j + 2);
                     $seriesLabels[] = new DataSeriesValues('String', "'Chart data'!\$".$column.'$'.$start, null, 1);
-                    $seriesValues[] = new DataSeriesValues('Number', "'Chart data'!\$".$column.'$'.($start + 1).':$'.$column.'$'.$end, null, count($definition['labels']));
+                    $values = new DataSeriesValues('Number', "'Chart data'!\$".$column.'$'.($start + 1).':$'.$column.'$'.$end, null, count($definition['labels']));
+                    if ($definition['type'] === 'line') {
+                        $values->setLineColorProperties($series['color']);
+                        $values->setPointMarker('circle');
+                        $values->getMarkerFillColor()->setColorProperties($series['color']);
+                        $values->getMarkerBorderColor()->setColorProperties($series['color']);
+                        $values->setLineStyleProperty('dash', ($series['dashed'] ?? false) ? 'dash' : 'solid');
+                    } else {
+                        $values->setFillColor($series['color']);
+                    }
+                    $seriesValues[] = $values;
                 }
                 $categories = [new DataSeriesValues('String', "'Chart data'!\$A$".($start + 1).':$A$'.$end, null, count($definition['labels']))];
                 $series = new DataSeries($definition['type'] === 'line' ? DataSeries::TYPE_LINECHART : DataSeries::TYPE_BARCHART,

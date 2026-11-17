@@ -1,7 +1,8 @@
+import { motionPreferenceQuery } from '../motionPreferences.js';
 // Reveal each stage once as it enters the viewport; content stays readable without motion.
 export function animateSourceTimeline(figure) {
   if (!figure || !('IntersectionObserver' in window)) return () => {};
-  const motion = matchMedia('(prefers-reduced-motion: reduce)');
+  const motion = motionPreferenceQuery();
   const stages = [...figure.querySelectorAll('.source-delivery-flow > li, figcaption')];
   const seen = new Set();
   let observer;

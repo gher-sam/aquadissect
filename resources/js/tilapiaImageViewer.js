@@ -1,3 +1,4 @@
+import { motionAllowed, onMotionChange } from './motionPreferences.js';
 const hotspotDefinitions = [
   { id: 'eye', layer: 'external', x: 17.6, y: 48.5 },
   { id: 'operculum', layer: 'external', x: 24.5, y: 61.8 },
@@ -40,7 +41,8 @@ export class TilapiaImageViewer {
     this.playDirection = 1;
     this.animationFrame = null;
     this.lastAnimationTime = null;
-    this.reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    this.reduceMotion = !motionAllowed();
+    this.removeMotionListener = onMotionChange(allowed => { this.reduceMotion = !allowed; if (!allowed && this.playing) this.stopPlayback(); if (!allowed && this.controls) this.controls.autoRotate = false; });
     this.externalIds = hotspotDefinitions.filter((item) => item.layer === 'external').map((item) => item.id);
     this.internalIds = hotspotDefinitions.filter((item) => item.layer === 'internal').map((item) => item.id);
 
@@ -195,6 +197,8 @@ export class TilapiaImageViewer {
     this.animationFrame = requestAnimationFrame(animate);
     return true;
   }
+
+  destroy() { this.stopPlayback(); this.removeMotionListener?.(); }
 
   stopPlayback() {
     this.playing = false;

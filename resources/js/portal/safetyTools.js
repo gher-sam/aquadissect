@@ -1,6 +1,7 @@
 import { escapeHtml, titleCase } from './format.js';
 import { moduleSaveMessage } from './moduleProgress.js';
 import { createUuid } from '../uuid.js';
+import { motionAllowed, onMotionChange } from '../motionPreferences.js';
 
 const moduleExperienceControllers = new WeakMap();
 
@@ -178,7 +179,7 @@ export function createModuleExperience(container, manifest, record, callbacks = 
   const completed = new Set(record.progress?.completedStepIds || []);
   let saving = false;
   let activitySubmitted = Boolean(record.progress?.activitySubmitted);
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let reducedMotion = !motionAllowed();
   let index = Math.max(0, steps.findIndex((step) => !completed.has(step.id)));
   if (index < 0) index = 0;
   let selectedKey = steps[index]?.toolKeys?.[0] || null;
@@ -426,14 +427,25 @@ export function createModuleExperience(container, manifest, record, callbacks = 
       toggleMotion();
     }
   }, { signal });
-  if (!reducedMotion) {
-    viewer.addEventListener('pointermove', (event) => {
+  viewer.addEventListener('pointermove', (event) => {
+      if (reducedMotion) return;
       const bounds = viewer.getBoundingClientRect();
       scene.style.setProperty('--parallax-x', `${((event.clientX - bounds.left) / bounds.width - 0.5) * 10}px`);
       scene.style.setProperty('--parallax-y', `${((event.clientY - bounds.top) / bounds.height - 0.5) * 8}px`);
     }, { signal });
-    viewer.addEventListener('pointerleave', () => { scene.style.setProperty('--parallax-x', '0px'); scene.style.setProperty('--parallax-y', '0px'); }, { signal });
-  }
+  viewer.addEventListener('pointerleave', () => { scene.style.setProperty('--parallax-x', '0px'); scene.style.setProperty('--parallax-y', '0px'); }, { signal });
+  const removeMotionListener = onMotionChange(allowed => {
+    reducedMotion = !allowed;
+    viewer.classList.toggle('is-reduced-motion', !allowed);
+    const button = container.querySelector('[data-module-motion]');
+    button.disabled = !allowed;
+    if (!allowed) {
+      viewer.classList.remove('is-playing'); button.textContent = 'Animate image'; button.setAttribute('aria-pressed', 'false');
+      scene.style.setProperty('--parallax-x', '0px'); scene.style.setProperty('--parallax-y', '0px');
+    }
+    motionStatus.textContent = allowed ? 'Still image' : 'Motion off';
+  });
+  signal.addEventListener('abort', removeMotionListener, { once: true });
   renderStep();
   moduleTitle.focus({ preventScroll: true });
 }

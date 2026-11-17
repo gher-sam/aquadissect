@@ -1,18 +1,14 @@
 import { gsap } from 'gsap';
+import { motionAllowed, onMotionChange } from './motionPreferences.js';
 
 const clearMotionStyles = 'opacity,visibility,transform';
 
 export class LessonMotion {
   constructor(root) {
     this.root = root;
-    this.mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    this.reduceMotion = this.mediaQuery.matches;
+    this.reduceMotion = !motionAllowed();
     this.animations = new Set();
-    this.handleMotionPreference = (event) => {
-      this.reduceMotion = event.matches;
-      if (this.reduceMotion) this.finishAll();
-    };
-    this.mediaQuery.addEventListener?.('change', this.handleMotionPreference);
+    this.removeMotionListener = onMotionChange(allowed => { this.reduceMotion = !allowed; if (!allowed) this.finishAll(); });
   }
 
   track(animation) {
@@ -37,7 +33,7 @@ export class LessonMotion {
     }
     this.track(gsap.to(element, {
       width: `${percent}%`,
-      duration: 0.48,
+      duration: 0.4,
       ease: 'power2.out',
       overwrite: true,
     }));
@@ -110,7 +106,7 @@ export class LessonMotion {
 
   destroy() {
     this.finishAll();
-    this.mediaQuery.removeEventListener?.('change', this.handleMotionPreference);
+    this.removeMotionListener?.();
     gsap.killTweensOf(this.root.querySelectorAll('*'));
   }
 }

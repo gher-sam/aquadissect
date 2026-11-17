@@ -1,3 +1,4 @@
+import { motionAllowed, onMotionChange } from './motionPreferences.js';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -9,7 +10,8 @@ export class GenericGlbViewer {
     this.externalIds = Object.values(anatomy).filter((item) => item.layer === 'external').map((item) => item.id);
     this.internalIds = Object.values(anatomy).filter((item) => item.layer === 'internal').map((item) => item.id);
     this.playing = false;
-    this.reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    this.reduceMotion = !motionAllowed();
+    this.removeMotionListener = onMotionChange(allowed => { this.reduceMotion = !allowed; if (!allowed && this.playing) this.stopPlayback(); if (!allowed && this.controls) this.controls.autoRotate = false; });
     this.mixer = null;
     this.actions = [];
     this.floatTimeline = null;
@@ -120,6 +122,7 @@ export class GenericGlbViewer {
     return true;
   }
   destroy() {
+    this.removeMotionListener?.();
     cancelAnimationFrame(this.animationFrame);
     this.stopPlayback();
     this.floatTimeline?.kill();

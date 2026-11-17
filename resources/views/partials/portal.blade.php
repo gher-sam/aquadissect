@@ -60,6 +60,7 @@
       </div>
       <button class="dashboard-install-button" id="installAppButton" type="button" hidden><i data-lucide="download"></i><span>Install app</span></button>
       <div class="dashboard-system-status" id="dashboardSystemStatus" role="status" aria-live="polite"><span aria-hidden="true"></span><span class="dashboard-system-status-label">Online</span></div>
+      <button class="reef-motion-button" data-aq-motion-toggle type="button" aria-pressed="true"><i data-lucide="play" aria-hidden="true"></i><span data-aq-motion-label>Motion on</span></button>
     </div>
 
     @include('pages.'. $page)

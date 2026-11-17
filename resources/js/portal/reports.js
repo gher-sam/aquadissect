@@ -5,6 +5,7 @@ import { signOutPending } from './sessionAccess.js';
 import { reportChartDefinitions, overviewView, supportView, assessmentsView, recordsView, reportDate, reportColors } from './reportView.js';
 import universityLogo from '../../reports/branding/university.png';
 import '../../css/reports.css';
+import { motionAllowed, onMotionChange } from '../motionPreferences.js';
 
 Chart.register(BarController, LineController, BarElement, LineElement, PointElement, CategoryScale, LinearScale, Tooltip, Legend, Filler);
 const day = (value, offset = 0) => { const d = new Date(`${value}T12:00:00Z`); d.setUTCDate(d.getUTCDate() + offset); return d.toISOString().slice(0, 10); };
@@ -37,6 +38,8 @@ export async function mountReports(root, user, notify) {
   let data = null, applied = null, sequence = 0, controller = null, recordController = null, exportController = null;
   let busy = false, dirty = false, tab = 'overview', recordPage = 1, recordSequence = 0, recordTimer = null;
   const charts = new Map();
+  const removeMotionListener = onMotionChange(allowed => charts.forEach(chart => { chart.stop(); chart.options.animation = allowed ? { duration: 180 } : false; chart.update('none'); }));
+  window.addEventListener('pagehide', removeMotionListener, { once: true });
   const current = () => root.isConnected && !signOutPending() && String(window.AQUADISSECT_BOOTSTRAP?.user?.id) === String(user.id);
   const icons = () => document.dispatchEvent(new CustomEvent('aquadissect-refresh-icons'));
   const destroyCharts = () => { charts.forEach(c => c.destroy()); charts.clear(); };
@@ -91,7 +94,7 @@ export async function mountReports(root, user, notify) {
         borderDash: series.dashed ? [6, 4] : [], borderRadius: def.type === 'bar' ? 4 : 0,
         pointRadius: def.labels.length > 60 ? 0 : 2, pointHoverRadius: 4, fill: series.fill || false, tension: 0, spanGaps: false,
       })) }, options: { responsive: true, maintainAspectRatio: false, indexAxis: def.horizontal ? 'y' : 'x',
-        animation: matchMedia('(prefers-reduced-motion: reduce)').matches ? false : { duration: 180 },
+        animation: motionAllowed() ? { duration: 180 } : false,
         interaction: { mode: 'index', intersect: false }, plugins: { legend: { display: false }, tooltip: { enabled: true } },
         scales: { x: { beginAtZero: true, stacked: Boolean(def.horizontal), grid: { color: def.horizontal ? '#edf1f7' : 'transparent' }, ticks: { maxTicksLimit: 8, font: { family: 'Figtree', size: 11 } } }, y: { beginAtZero: true, stacked: Boolean(def.horizontal), grid: { color: def.horizontal ? 'transparent' : '#edf1f7' }, ticks: { precision: 0, font: { family: 'Figtree', size: 11 } } } },
         onClick: (_event, points) => { if (def.drillKeys && points.length) { elements('activityKey').value = def.drillKeys[points[0].index]; void load(true); } },

@@ -1,11 +1,16 @@
 import { gsap } from 'gsap';
+import { motionAllowed, onMotionChange } from './motionPreferences.js';
 
 const contexts = new WeakMap();
+const active = new Set();
+onMotionChange(allowed => { if (!allowed) { active.forEach(context => context.revert()); active.clear(); } });
 
 export function revealPortalPage(panel) {
   if (!panel || panel.hidden) return;
-  contexts.get(panel)?.revert();
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const previous = contexts.get(panel);
+  previous?.revert();
+  active.delete(previous);
+  if (!motionAllowed()) return;
 
   const context = gsap.context(() => {
     const heading = panel.querySelector('.dashboard-hero, .portal-page-title');
@@ -45,4 +50,5 @@ export function revealPortalPage(panel) {
   }, panel);
 
   contexts.set(panel, context);
+  active.add(context);
 }

@@ -14,7 +14,10 @@ import { setupRosterTables, cardsToTable } from './rosterTables.js';
 import { setupWorkspaceShell, setupWorkspacePage } from './workspace.js';
 import { setupTutorials, startHereCard, setupStaffRoles } from './tutorials.js';
 import { request, appUrl } from './api.js';
-import { adminDashboard, adminRosterView, classCards, instructorDashboard, managerView, speciesLibrary, studentDashboard, studentOrientationPath } from './dashboards.js';
+import { mountReefQuest } from './reefQuest.js';
+import { reefDashboardView } from './reefQuestView.js';
+import { motionAllowed } from '../motionPreferences.js';
+import { adminDashboard, adminRosterView, classCards, instructorDashboard, managerView, speciesLibrary, studentOrientationPath } from './dashboards.js';
 import { escapeHtml, titleCase } from './format.js';
 import { createModuleExperience, closeModuleExperience, promptStudio, safetyWorkspace } from './safetyTools.js';
 import {
@@ -129,6 +132,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
   };
   let sidebarReturnFocus = null;
   let initialPage = true;
+  let reefQuest = null;
   const state = {
     currentUser: bootstrap.user || null,
     latestResult: bootstrap.lessonResult || null,
@@ -237,7 +241,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
       target.focus({ preventScroll: true });
     };
     requestAnimationFrame(attemptFocus);
-    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) setTimeout(attemptFocus, 380);
+    if (motionAllowed()) setTimeout(attemptFocus, 380);
   }
 
   function formFocusResolver(form) {
@@ -391,13 +395,15 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
       elements.dashboardGreeting.textContent = user.role === 'admin' ? greeting : `${greeting}, ${user.firstName}`;
       elements.dashboardSummary.textContent = summary;
       elements.dashboardContent.innerHTML = user.role === 'student'
-        ? studentDashboard(state.species)
+        ? reefDashboardView()
         : user.role === 'instructor'
           ? instructorDashboard(state.species, state.classes)
           : user.role === 'program_head'
             ? `<div class="workspace-panel"><h2>Academic oversight</h2><p>${state.classes.length} sections available for review. Content decisions require an independent review; administrators handle publication.</p><div class="package-actions"><button type="button" class="portal-primary" data-portal-page="classes">Review sections</button><button type="button" class="portal-secondary" data-portal-page="reports">View learning reports</button><button type="button" class="portal-secondary" data-portal-page="manager">Review species content</button><button type="button" class="portal-secondary" data-portal-page="safety">Review Safety &amp; Tools</button></div></div>`
             : adminDashboard(state.pendingUsers, state.species, state.classes);
-      elements.dashboardContent.insertAdjacentHTML('afterbegin', user.role === 'student' ? studentOrientationPath(bootstrap.tutorials, state.classes, { user, packages: state.species, learningModules: state.learningModules, offline: !state.readinessConfirmed || bootstrap.offlineShell || !navigator.onLine }) : startHereCard(bootstrap.tutorials));
+      elements.dashboardContent.insertAdjacentHTML(user.role === 'student' ? 'beforeend' : 'afterbegin', user.role === 'student' ? studentOrientationPath(bootstrap.tutorials, state.classes, { user, packages: state.species, learningModules: state.learningModules, offline: !state.readinessConfirmed || bootstrap.offlineShell || !navigator.onLine }) : startHereCard(bootstrap.tutorials));
+      reefQuest?.destroy(); reefQuest = null;
+      if (user.role === 'student') reefQuest = mountReefQuest(elements.dashboardContent.querySelector('#reefQuest'), { getState: () => state, openPackage });
     }
     if (name === 'library') elements.library.innerHTML = speciesLibrary(state.species, { singleSpecies: state.currentUser?.role !== 'student' });
     if (name === 'safety') {
@@ -507,9 +513,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
         if (video.paused) video.play().catch(syncButton);
         else video.pause();
       });
-      const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
-      motion.addEventListener('change', () => { if (motion.matches) video.pause(); });
-      if (!motion.matches) video.play().catch(syncButton);
+      if (motionAllowed()) video.play().catch(syncButton);
     });
     setupFishCarousels(activePanel);
     import('../portalMotion.js')
@@ -538,7 +542,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
     setSidebarOpen(false);
     renderPage(name);
     if (name === 'roster' && !state.adminRoster) void refreshRoster();
-    window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
+    window.scrollTo({ top: 0, behavior: !motionAllowed() ? 'instant' : 'smooth' });
     if (!initialPage) focusActivePage(name);
     initialPage = false;
   }
@@ -596,6 +600,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
   }
 
   function showSignedOut() {
+    reefQuest?.destroy(); reefQuest = null;
     closeStudentMedia();
     closeModuleExperience(elements.safetyExperience);
     void onLeaveLesson({ force: true });
@@ -675,7 +680,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
     return sections.some(section => section.id === state.offlineClassId) ? state.offlineClassId : (sections.length === 1 ? sections[0].id : null);
   }
 
-  async function openPackage(id, viewerType = 'auto', selectedClassId = null) {
+  async function openPackage(id, viewerType = 'auto', selectedClassId = null, practice = false) {
     const record = state.species.find((item) => String(item.id) === String(id));
     if (!record) return;
     if (state.currentPage === 'downloads') selectedClassId ||= offlineClassId();
@@ -710,6 +715,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
         heading?.focus({ preventScroll: true });
       });
       window.dispatchEvent(new Event('resize'));
+      if (practice) app.querySelector('#practiceEntry')?.click();
     } catch (error) { showToast(error.message, { tone: 'error', persistent: true }); }
   }
 
@@ -853,7 +859,7 @@ export function setupAquaPortal({ app, onOpenPackage, onLeaveLesson = () => {} }
         if (returningModule) findModuleControl(elements.safety, 'data-open-learning-module', returningModule)?.focus({ preventScroll: true });
       };
       requestAnimationFrame(restoreModuleTriggerFocus);
-      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) setTimeout(restoreModuleTriggerFocus, 380);
+      if (motionAllowed()) setTimeout(restoreModuleTriggerFocus, 380);
     }
     const approvalId = event.target.closest('[data-approve-account]')?.dataset.approveAccount;
     if (approvalId && state.currentUser?.role === 'admin') {

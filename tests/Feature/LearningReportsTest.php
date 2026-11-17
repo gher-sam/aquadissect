@@ -258,6 +258,13 @@ class LearningReportsTest extends TestCase
                         $this->assertNotFalse(simplexml_load_string($zip->getFromName('word/document.xml')));
                     } else {
                         $this->assertNotFalse($zip->getFromName('xl/charts/chart1.xml'));
+                        $this->assertStringContainsString('0F766E', $zip->getFromName('xl/charts/chart1.xml'));
+                        $this->assertStringContainsString('155EEF', $zip->getFromName('xl/charts/chart1.xml'));
+                        $lineChart = simplexml_load_string($zip->getFromName('xl/charts/chart2.xml'));
+                        $lineChart->registerXPathNamespace('c', 'http://schemas.openxmlformats.org/drawingml/2006/chart');
+                        $lineChart->registerXPathNamespace('a', 'http://schemas.openxmlformats.org/drawingml/2006/main');
+                        $lineColors = $lineChart->xpath('//c:lineChart/c:ser/c:spPr/a:ln/a:solidFill/a:srgbClr/@val');
+                        $this->assertSame(['155EEF', '0F766E'], array_map(fn ($color) => (string) $color, $lineColors));
                         $this->assertStringContainsString('headerFooter', $zip->getFromName('xl/worksheets/sheet1.xml'));
                     }
                     $zip->close();

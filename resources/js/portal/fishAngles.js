@@ -1,4 +1,5 @@
 import { escapeHtml } from './format.js';
+import { motionAllowed } from '../motionPreferences.js';
 
 // Regions in the supplied sheet, normalized to its displayed 2048 x 1143 grid.
 export const fishAngles = [
@@ -80,7 +81,7 @@ export function setupFishCarousels(panel) {
       motionButton.hidden = current !== 0 || Boolean(fallback);
       caption.textContent = `${current ? fishAngles[current - 1][0] : 'Swimming'} · ${current + 1} / 11${current && failed ? ' · unavailable' : current && !loaded ? ' · loading' : ''}`;
       if (current) video.pause();
-      else if (!fallback && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) video.play().catch(() => {});
+      else if (!fallback && motionAllowed()) video.play().catch(() => {});
       draw();
     }
     sheet.onload = () => { loaded = true; if (current) show(current); };

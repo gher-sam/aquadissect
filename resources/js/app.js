@@ -9,7 +9,7 @@ import '@fontsource/figtree/latin-800.css';
 import {
   Calendar, Bell, ChartNoAxesCombined, ArrowLeft, ArrowRight, Badge, BadgeCheck, BookOpen, Check, ChevronRight, Circle, CircleDashed, CircleHelp, ClipboardList,
   Download, Eye, Fish, Focus, GraduationCap, Info, KeyRound, Layers3, LayoutDashboard, LockKeyhole, LogOut, Mail,
-  Archive, Maximize2, Menu, PackageOpen, Pause, Play, RotateCcw, ScanSearch, School, ShieldCheck, Sparkles, User,
+  Archive, Maximize2, Menu, PackageOpen, Pause, Play, RotateCcw, ScanSearch, School, ShieldCheck, Sparkles, User, Puzzle, Shell, SearchCheck, Network, Award, ArrowUpRight,
   Users, UsersRound, Waves, X, createIcons,
 } from 'lucide';
 import { createObservationNotebook } from './observationNotebook.js';
@@ -32,6 +32,8 @@ import '../css/workspace.css';
 import '../css/typography.css';
 import '../css/interface.css';
 import '../css/practice.css';
+import '../css/reef-quest.css';
+import { setupMotionControls } from './motionPreferences.js';
 
 const app = document.querySelector('#app');
 app.innerHTML = `
@@ -46,6 +48,7 @@ app.innerHTML = `
         <div class="progress-track" aria-hidden="true"><span id="progressBar"></span></div>
       </div>
       <div class="header-actions">
+        <button class="reef-motion-button" data-aq-motion-toggle type="button" aria-pressed="true"><i data-lucide="play" aria-hidden="true"></i><span data-aq-motion-label>Motion on</span></button>
         <button class="text-button compact-label" id="portalReturnButton" type="button" aria-label="Return to dashboard"><i data-lucide="arrow-left"></i><span>Dashboard</span></button>
         <button class="text-button" id="fishDetailsButton" type="button">Fish details</button>
         <button class="icon-button" id="helpButton" type="button" aria-label="Open lesson information"><i data-lucide="circle-help"></i></button>
@@ -105,6 +108,8 @@ app.innerHTML = `
 
 const icons = { Archive, Calendar, Bell, ChartNoAxesCombined, ArrowLeft, ArrowRight, Badge, BadgeCheck, BookOpen, Check, ChevronRight, Circle, CircleDashed, CircleHelp, ClipboardList, Download, Eye, Fish, Focus, GraduationCap, Info, KeyRound, Layers3, LayoutDashboard, LockKeyhole, LogOut, Mail, Maximize2, Menu, PackageOpen, Pause, Play, RotateCcw, ScanSearch, School, ShieldCheck, Sparkles, User, Users, UsersRound, Waves, X };
 const refreshIcons = () => createIcons({ icons, attrs: { 'stroke-width': 1.8, 'aria-hidden': 'true' } });
+Object.assign(icons, { Puzzle, Shell, SearchCheck, Network, Award, ArrowUpRight });
+setupMotionControls();
 document.addEventListener('aquadissect-refresh-icons', refreshIcons);
 const query = (selector) => document.querySelector(selector);
 const elements = {

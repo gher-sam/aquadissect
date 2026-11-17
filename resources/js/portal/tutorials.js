@@ -1,3 +1,4 @@
+import { motionPreferenceQuery } from '../motionPreferences.js';
 import { request } from './api.js';
 import { escapeHtml as e } from './format.js';
 import { BookOpen, Compass, ShieldCheck, Users, ChartNoAxesCombined, ClipboardCheck, createElement } from 'lucide';
@@ -38,7 +39,7 @@ export function setupTutorials(data, user) {
   let unsaved = null;
   let saveFailed = false;
   let lastTarget;
-  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  const reduced = motionPreferenceQuery();
 
   function renderGuides() {
     if (!guideRoot) return;

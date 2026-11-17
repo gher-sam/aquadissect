@@ -1,0 +1,112 @@
+/* Reef Quest: solid colors shared by the portal, lessons and optional practice. */
+:root { --reef-blue:#155eef; --reef-teal:#0f766e; --reef-coral:#c84335; --reef-gold:#fbbf24; --reef-violet:#7c3aed; --reef-navy:#12324a; --reef-bg:#f1f8fc; --reef-border:#ccdde8; --reef-muted:#4d687b; --color-primary:var(--reef-blue); --color-primary-deep:#123e9e; --color-background:var(--reef-bg); --color-foreground:var(--reef-navy); --color-muted-text:var(--reef-muted); --color-border:var(--reef-border); --color-surface:#fff; --color-surface-soft:#edf4ff; }
+body { background:var(--reef-bg); color:var(--reef-navy); }
+.is-authenticated .portal-header { background:var(--reef-navy); }
+.is-authenticated .portal-nav button { border-radius:10px; color:#c8dce9; }
+.is-authenticated .portal-nav button.is-active { background:#fff; color:var(--reef-navy); }
+.is-authenticated .portal-nav button:hover { background:#254c67; }
+.is-authenticated .portal-nav button.is-active:hover { background:#e6f2ff; color:var(--reef-navy); }
+.is-authenticated .portal-nav-section { color:#bfd0de; }
+.is-authenticated .portal-avatar,.portal-brand-mark,.brand-mark { background:var(--reef-blue); color:#fff; }
+.portal-main,.portal-page,.app-shell { background:var(--reef-bg); }
+.dashboard-topbar,.app-header { background:#fff; color:var(--reef-navy); border-color:var(--reef-border); }
+.portal-page-title h1,.dashboard-hero h1 { color:var(--reef-navy); }
+.portal-primary,.primary-button,#workspaceTool button.portal-primary,.workspace-dialog button.portal-primary { background:var(--reef-coral); border-color:var(--reef-coral); color:#fff; border-radius:10px; box-shadow:0 3px 0 #963228; }
+.portal-primary:hover,.primary-button:hover,#workspaceTool button.portal-primary:hover { background:#ae382d; border-color:#ae382d; color:#fff; }
+.portal-secondary,.text-button,.scene-button,#workspaceTool button,.workspace-dialog button { border-radius:10px; }
+.portal-secondary:hover,.text-button:hover { border-color:var(--reef-blue); }
+.species-card,.class-card,.assignment-card,.package-import-card,.download-summary,.dashboard-card,.dashboard-stat-card,.workspace-panel,.status-card,.module-grid>article,.admin-table-card,.admin-operations-card,.learning-module-card,.access-card,.flow-grid>article,.panel-surface,.practice-dialog { border-radius:18px; border-color:var(--reef-border); }
+.metric-card { border-radius:14px; border-color:var(--reef-border); border-top:3px solid var(--reef-blue); }
+.metric-card:nth-child(2) { border-top-color:var(--reef-teal); }
+.metric-card:nth-child(3) { border-top-color:var(--reef-violet); }
+.metric-card:nth-child(4) { border-top-color:var(--reef-coral); }
+.status-badge.is-online,.prerequisite-complete { background:#e2f5ef; color:#115d51; }
+.portal-field input,.portal-field select,.portal-input,.portal-select,#workspaceTool input,#workspaceTool select { border-radius:9px; border-color:#9cb0c1; }
+.portal-page .motion-feature { background:var(--reef-blue); border-radius:18px; color:#fff; }
+.portal-page .motion-feature h2,.portal-page .motion-feature p,.portal-page .motion-feature-kicker { color:#fff; }
+.portal-page .motion-feature-points { color:#e5efff; }
+.portal-page .motion-feature-label { background:var(--reef-gold); color:var(--reef-navy); }
+.portal-page .tutorial-card { border-radius:16px; }
+.login-card,.activation-card { border-radius:20px; }
+.reef-motion-button { display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; gap:6px; min-height:44px; padding:8px 11px; border:1px solid var(--reef-border); border-radius:9px; color:var(--reef-navy); background:#fff; font:inherit; font-size:12px; }
+.reef-motion-button svg { width:16px; height:16px; }
+.reef-motion-button[aria-pressed=true] { background:#edf4ff; border-color:#c5d8ff; }
+.reef-motion-button:disabled { color:var(--reef-muted); opacity:1; }
+button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible { outline:3px solid var(--reef-blue); outline-offset:3px; }
+.reef-quest { display:grid; gap:20px; margin-bottom:24px; color:var(--reef-navy); }
+.reef-quest h2,.reef-quest p { margin:0; }
+.reef-quest h2 { font-size:18px; line-height:1.4; font-weight:600; }
+.reef-hero { display:grid; grid-template-columns:minmax(0,1fr) minmax(180px,34%); align-items:center; gap:24px; padding:28px; border-radius:20px; background:var(--reef-blue); color:#fff; }
+.reef-hero:has(.reef-hero-art[hidden]) { grid-template-columns:minmax(0,1fr); }
+.reef-eyebrow { display:block; font-size:12px; text-transform:uppercase; letter-spacing:.07em; font-weight:600; }
+.reef-hero h2 { font-size:24px; line-height:1.25; margin:9px 0; color:#fff; }
+.reef-hero p { font-size:14px; line-height:1.65; max-width:64ch; margin:0 0 20px; }
+.reef-main-action { display:inline-flex; align-items:center; gap:10px; min-height:44px; }
+.reef-hero-art { position:relative; min-width:0; padding:15px 10px; border-radius:40% 31% 38% 28%; background:#fff; }
+.reef-hero-art img { display:block; width:100%; height:170px; object-fit:contain; border-radius:32%; }
+.reef-art-label { display:inline-flex; align-items:center; gap:5px; position:absolute; bottom:-7px; left:10px; max-width:calc(100% - 20px); padding:5px 10px; border-radius:7px; background:var(--reef-gold); color:var(--reef-navy); font-size:12px; font-weight:600; }
+.reef-trail-card,.reef-collection-card { min-width:0; padding:22px; border:1px solid var(--reef-border); border-radius:18px; background:#fff; }
+.reef-card-heading { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:12px; margin-bottom:15px; }
+.reef-scope-label,.reef-gold-label { padding:5px 9px; background:#e8f0ff; color:#1047b2; border-radius:8px; font-size:12px; font-weight:600; }
+.reef-gold-label { background:var(--reef-gold); color:var(--reef-navy); }
+.reef-context-label { display:grid; gap:6px; margin-bottom:20px; color:var(--reef-muted); font-size:12px; font-weight:600; }
+.reef-context-label select { width:100%; min-height:44px; border:1px solid #9cb0c1; border-radius:9px; padding:9px 12px; color:var(--reef-navy); background:#fff; font:inherit; font-size:14px; }
+.reef-trail { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:15px; padding:0; margin:0; list-style:none; }
+.reef-trail li { position:relative; display:grid; align-content:start; gap:6px; min-width:0; }
+.reef-trail li:not(:last-child)::after { content:""; position:absolute; top:18px; left:50px; right:0; height:3px; background:#d4e3ed; }
+.reef-step { display:grid; place-items:center; width:38px; height:38px; border-radius:12px; color:var(--reef-blue); background:#e8f0ff; }
+.reef-step.is-complete { background:var(--reef-teal); color:#fff; }
+.reef-step-gold { background:var(--reef-gold); color:var(--reef-navy); }
+.reef-step svg { width:19px; height:19px; }
+.reef-trail strong { font-size:14px; font-weight:600; }
+.reef-trail small { font-size:12px; color:var(--reef-muted); line-height:1.6; }
+.reef-context-status { color:var(--reef-muted); font-size:12px; line-height:1.65; margin-top:15px !important; }
+.reef-home-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:18px; }
+.reef-practice-card { padding:22px; background:#fff0ea; border:1px solid #f2ddd5; border-radius:18px; }
+.reef-practice-card .reef-card-heading { justify-content:flex-start; }
+.reef-feature-icon { display:grid; place-items:center; width:40px; height:40px; flex-shrink:0; border-radius:12px; background:var(--reef-coral); color:#fff; }
+.reef-feature-icon svg { width:22px; height:22px; }
+.reef-practice-card p { color:var(--reef-muted); font-size:14px; line-height:1.65; }
+.reef-reward-summary { display:flex; flex-wrap:wrap; gap:15px 30px; margin:20px 0; }
+.reef-reward-summary>span { display:grid; gap:4px; }
+.reef-reward-summary strong { font-size:22px; font-weight:700; }
+.reef-reward-summary small { color:var(--reef-muted); font-size:12px; }
+.reef-practice-card button { display:inline-flex; align-items:center; gap:8px; min-height:44px; }
+.reef-badge-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); list-style:none; gap:18px 12px; padding:0; margin:18px 0; }
+.reef-badge { display:flex; align-items:center; gap:10px; min-width:0; }
+.reef-badge>span:last-child { display:grid; gap:3px; }
+.reef-badge strong { font-size:13px; line-height:1.5; font-weight:600; }
+.reef-badge small { color:var(--reef-muted); font-size:12px; }
+.reef-badge-icon { display:grid; place-items:center; width:40px; height:46px; flex:0 0 40px; border-radius:13px 13px 17px 17px; background:#edf1f5; color:#5a7184; }
+.reef-badge.is-earned .reef-badge-0 { background:var(--reef-gold); color:var(--reef-navy); }
+.reef-badge.is-earned .reef-badge-1 { background:#e8f0ff; color:var(--reef-blue); }
+.reef-badge.is-earned .reef-badge-2 { background:#e2f5ef; color:var(--reef-teal); }
+.reef-badge.is-earned .reef-badge-3 { background:var(--reef-violet); color:#fff; }
+.reef-boundary { font-size:12px; color:var(--reef-muted); line-height:1.7; }
+.reef-quest [hidden] { display:none !important; }
+.practice-header { background:#f0f6ff; border-color:var(--reef-border); }
+.practice-stats>div { border-radius:14px; background:#eef4ff; }
+.practice-stats>div:first-child { background:#fff2d5; }
+.practice-stats strong { color:var(--reef-navy); }
+.practice-progress>span { background:var(--reef-teal); }
+.practice-map button[aria-current=step] { border-color:var(--reef-blue); color:#1143a4; background:#e8f0ff; }
+.practice-choice.is-selected { border-color:var(--reef-blue); background:#e8f0ff; color:#1143a4; }
+.practice-choice.is-selected .practice-choice-letter { background:var(--reef-blue); border-color:var(--reef-blue); }
+.practice-feedback.is-correct { background:#e2f5ef; color:#115d51; border-color:#add6c9; }
+.practice-reward { grid-column:1/-1; display:flex; align-items:center; flex-wrap:wrap; gap:12px; background:#fff2d5; color:var(--reef-navy); padding:16px 18px; border-radius:14px; }
+.practice-reward>span { display:grid; place-items:center; flex-shrink:0; width:42px; height:46px; border-radius:12px 12px 17px 17px; background:var(--reef-gold); }
+.practice-reward strong { font-size:18px; }
+.practice-reward small { display:block; color:var(--reef-muted); font-size:12px; margin-top:4px; }
+.practice-badges { border-radius:16px; background:#f7faff; }
+.practice-badges .is-earned .practice-badge-icon { border-color:var(--reef-gold); background:var(--reef-gold); color:var(--reef-navy); }
+.practice-badges li:nth-child(2).is-earned .practice-badge-icon { border-color:var(--reef-blue); background:#e8f0ff; color:var(--reef-blue); }
+.practice-badges li:nth-child(3).is-earned .practice-badge-icon { border-color:var(--reef-teal); background:#e2f5ef; color:var(--reef-teal); }
+.practice-badges li:nth-child(4).is-earned .practice-badge-icon { background:var(--reef-violet); border-color:var(--reef-violet); color:#fff; }
+.practice-earned { color:#115d51; }
+.readiness-step { border-radius:12px; }
+.readiness-section h3 { color:var(--reef-navy); }
+html[data-aq-motion=off] *,html[data-aq-motion=off] *::before,html[data-aq-motion=off] *::after { animation:none !important; transition:none !important; scroll-behavior:auto !important; }
+@media(prefers-reduced-motion:no-preference) { button,a { transition:background-color 160ms ease-out,border-color 160ms ease-out,color 160ms ease-out; } }
+@media(max-width:1050px) { .dashboard-system-status-label { display:none; } .workspace-search { max-width:220px; } }
+@media(max-width:780px) { .reef-hero { grid-template-columns:minmax(0,1fr) minmax(150px,35%); padding:22px; } .dashboard-topbar { flex-wrap:wrap; } .reef-motion-button { margin-left:auto; } .reef-home-grid { grid-template-columns:minmax(0,1fr); } }
+@media(max-width:500px) { .reef-hero { grid-template-columns:minmax(0,1fr); gap:22px; } .reef-hero h2 { font-size:22px; } .reef-hero-art img { height:150px; } .reef-trail-card,.reef-collection-card,.reef-practice-card { padding:17px; } .reef-trail { gap:9px; } .reef-trail strong { font-size:13px; } .reef-trail small { font-size:12px; } .reef-trail li:not(:last-child)::after { left:44px; } .reef-context-label select { font-size:16px; } .reef-badge-list { gap:16px 10px; } .reef-badge { align-items:flex-start; flex-direction:column; } .reef-motion-button { font-size:12px; padding:8px; } .header-actions { flex-wrap:wrap; } }

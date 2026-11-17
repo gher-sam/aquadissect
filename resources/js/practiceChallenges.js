@@ -2,6 +2,7 @@ import { request } from './portal/api.js';
 import { signOutPending } from './portal/sessionAccess.js';
 import { escapeHtml as e } from './portal/format.js';
 import { nextPracticeIndex, practiceView } from './practiceView.js';
+import { animateFeedback } from './motionPreferences.js';
 
 export function createPracticeChallenges(dialog, entry, { currentUser, refreshIcons }) {
   let context = null;
@@ -24,13 +25,23 @@ export function createPracticeChallenges(dialog, entry, { currentUser, refreshIc
   function render({ focus = false, choice = null } = {}) {
     if (!current() || !dialog.open || !data) return;
     frame(practiceView(data, state));
+    if (state.feedback?.correct && !state.feedback.unconfirmed && !state.feedback.motionShown && !data.preview && (state.feedback.awardedXp > 0 || state.feedback.earnedBadges?.length)) {
+      state.feedback.motionShown = true;
+      const reward = dialog.querySelector('[data-practice-reward]');
+      const previousPercent = Math.round(state.feedback.previousCompleted / data.summary.total * 100);
+      const currentPercent = Math.round(data.summary.completed / data.summary.total * 100);
+      animateFeedback(dialog.querySelector('.practice-progress > span'), [{ width: `${previousPercent}%` }, { width: `${currentPercent}%` }], { duration: 400 });
+      animateFeedback(reward, [{ transform: 'translateY(7px) scale(.97)' }, { transform: 'translateY(0) scale(1)' }]);
+      animateFeedback(reward?.querySelector('.practice-reward-icon'), [{ transform: 'scale(.75) rotate(-8deg)' }, { transform: 'scale(1.12) rotate(3deg)' }, { transform: 'scale(1)' }], { duration: 450 });
+      animateFeedback(reward?.querySelector('.practice-reward-sparks'), [{ transform: 'translateY(8px) scale(.6)', opacity: 0 }, { transform: 'translateY(-8px) scale(1.1)', opacity: 1 }, { transform: 'translateY(0) scale(1)', opacity: 1 }], { duration: 650 });
+    }
     if (choice !== null) dialog.querySelector(`[data-practice-choice="${choice}"]`)?.focus();
     else if (focus) dialog.querySelector('[data-practice-focus]')?.focus({ preventScroll: true });
   }
 
   async function open() {
     if (!current()) return;
-    if (!dialog.open) returnFocus = document.activeElement;
+    if (!dialog.open) returnFocus = entry;
     controller?.abort();
     controller = new AbortController();
     const version = ++generation;
@@ -73,8 +84,10 @@ export function createPracticeChallenges(dialog, entry, { currentUser, refreshIc
       });
       if (version !== generation || !current()) return;
       const earnedBadges = result.summary.badges.filter(badge => badge.earned && !data.summary.badges.some(previous => previous.id === badge.id && previous.earned));
+      const previousCompleted = data.summary.completed;
       data.summary = result.summary;
-      state.feedback = { ...result, earnedBadges };
+      state.feedback = { ...result, earnedBadges, previousCompleted };
+      window.dispatchEvent(new CustomEvent('aquadissect-practice-updated'));
     } catch (error) {
       if (version !== generation || error.name === 'AbortError' || !current()) return;
       state.feedback = { unconfirmed: true, feedback: `${error.message} Retry when the connection is available; a saved reward cannot be awarded twice.` };

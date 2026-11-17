@@ -1,6 +1,6 @@
 # AquaDissect Project 2 Study Alignment
 
-Last confirmed: November 16, 2026
+Last confirmed: November 17, 2026
 
 ## November 10, 2026: Faculty-authored Rabbitfish clips and instructions
 
@@ -669,3 +669,33 @@ Status: Implemented but awaiting validation. This decision authorizes implementa
 evidence of faculty acceptance, research validation or learning effectiveness.
 Engineering checks and release evidence are recorded separately in
 `docs/reporting-verification.md`.
+
+## November 17, 2026: Reef Quest interface and motion preferences
+
+The user selected Reef Quest after reviewing three interface directions and
+approved implementation across the application. Use solid ocean blue, teal,
+coral, gold and violet with pale backgrounds, navy text and Figtree typography.
+Do not introduce gradients. Student pages may use playful discovery cues;
+staff workspaces retain a restrained layout and readable academic reports.
+
+Student Home shows the real assigned safety, guided anatomy and optional
+practice trail. Private XP and badges remain scoped to the signed-in learner,
+section and immutable lesson version. Automatically select only one available
+context; require an explicit choice when several exist. Missing, offline or
+unconfirmed progress must not be represented as zero or completed. No new reward
+rules, leaderboards, grades, safety completions or formal assessment records are
+introduced by this presentation change.
+
+Use brief motion for interactions and newly server-confirmed rewards only.
+Repeated correct answers, previews and failed requests do not celebrate a new
+reward. A shared Motion on/off preference persists on the device; the operating
+system reduced-motion preference takes precedence. Turning motion off stops
+active decorative animations. Instructional videos retain manual playback.
+Reuse the same semantic chart colors in browser, PDF, DOCX and XLSX reports;
+preserve the original SLSU institutional header and footer assets and layout.
+CSV and XML retain their existing branded text and structured metadata.
+
+Status: Implemented but awaiting validation. This interface decision does not
+establish faculty acceptance, learning improvement, biological validation or
+research outcomes. Engineering and release evidence are recorded separately in
+`docs/reef-quest-verification.md`.

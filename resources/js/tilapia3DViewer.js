@@ -1,3 +1,4 @@
+import { motionAllowed, onMotionChange } from './motionPreferences.js';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { CSS2DRenderer } from 'three/addons/renderers/CSS2DRenderer.js';
@@ -18,7 +19,8 @@ export class Tilapia3DViewer {
     this.pointerDown = null;
     this.lastFrame = performance.now();
     this.elapsed = 0;
-    this.reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    this.reduceMotion = !motionAllowed();
+    this.removeMotionListener = onMotionChange(allowed => { this.reduceMotion = !allowed; if (!allowed && this.playing) this.stopPlayback(); if (!allowed && this.controls) this.controls.autoRotate = false; });
     this.raycaster = new THREE.Raycaster();
     this.pointer = new THREE.Vector2();
 
@@ -447,6 +449,7 @@ export class Tilapia3DViewer {
   }
 
   destroy() {
+    this.removeMotionListener?.();
     cancelAnimationFrame(this.animationFrame);
     this.swimTimeline.kill();
     gsap.killTweensOf([this.camera.position, this.controls.target, this.model.root.position]);

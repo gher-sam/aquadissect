@@ -1,3 +1,4 @@
+import { motionPreferenceQuery } from '../motionPreferences.js';
 import { ChevronRight, File, Folder, FolderOpen, Search, X, createIcons } from 'lucide';
 import { request, appUrl } from './api.js';
 import { escapeHtml as e } from './format.js';
@@ -99,7 +100,7 @@ export async function sourceHandover(root) {
   let typeahead = '';
   let typeaheadTimer;
   const compactQuery = matchMedia('(max-width: 1100px)');
-  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  const reducedMotion = motionPreferenceQuery();
 
   root.innerHTML = `
     <figure class="workspace-panel source-delivery" aria-labelledby="sourceDeliveryTitle" aria-describedby="sourceDeliveryCaption">

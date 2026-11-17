@@ -4,7 +4,7 @@ namespace App\Services\Reports;
 
 class ReportCharts
 {
-    public const COLORS = ['0140C1', '159779', 'D1871B', '8391A5', '7353BA'];
+    public const COLORS = ['0F766E', '155EEF', 'B7791F', '64748B', '7C3AED'];
 
     public function definitions(array $r): array
     {
@@ -50,6 +50,16 @@ class ReportCharts
                 'note' => $f['assumption']];
         }
 
+        foreach ($charts as &$chart) {
+            $palette = str_starts_with($chart['key'], 'completion-') ? self::COLORS
+                : ($chart['key'] === 'forecast' ? ['155EEF', 'B7791F', 'B68632', 'B68632'] : ['155EEF', '0F766E']);
+            foreach ($chart['series'] as $index => &$series) {
+                $series['color'] = $palette[$index % count($palette)];
+            }
+            unset($series);
+        }
+        unset($chart);
+
         return $charts;
     }
 
@@ -85,7 +95,7 @@ class ReportCharts
         $n = count($chart['labels']);
         $seriesCount = count($chart['series']);
         $step = ($right - $left) / max(1, $n);
-        $colors = array_map(fn ($hex) => imagecolorallocate($im, hexdec(substr($hex, 0, 2)), hexdec(substr($hex, 2, 2)), hexdec(substr($hex, 4, 2))), self::COLORS);
+        $colors = array_map(fn ($hex) => imagecolorallocate($im, hexdec(substr($hex, 0, 2)), hexdec(substr($hex, 2, 2)), hexdec(substr($hex, 4, 2))), array_column($chart['series'], 'color'));
         foreach ($chart['series'] as $j => $series) {
             $previous = null;
             $color = $colors[$j % count($colors)];

@@ -2,7 +2,7 @@ import { escapeHtml as e } from './format.js';
 
 export const reportNumber = (value, suffix = '') => value === null || value === undefined ? 'Not recorded' : `${new Intl.NumberFormat('en-PH', { maximumFractionDigits: 2 }).format(value)}${suffix}`;
 export const reportDate = value => value ? new Intl.DateTimeFormat('en-PH', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Manila' }).format(new Date(value)) : 'Not recorded';
-export const reportColors = ['#0140c1', '#159779', '#d1871b', '#8391a5', '#7353ba'];
+export const reportColors = ['#0f766e', '#155eef', '#b7791f', '#64748b', '#7c3aed'];
 
 export function reportChartDefinitions(r) {
   const completion = r.charts.completion;
@@ -40,6 +40,10 @@ export function reportChartDefinitions(r) {
     definitions.push({ key: `assessment-${index}`, title: a.title, type: 'bar', note: `${a.instrumentVersion} · ${a.matchedPairs} matched pairs. Recorded differences do not establish effectiveness.`,
       labels: ['Pretest', 'Posttest'], series: [{ name: 'Mean percent', values: [a.preMean, a.postMean] }] });
   });
+  for (const definition of definitions) {
+    const palette = definition.key === 'completion' ? reportColors : definition.key === 'forecast' ? ['#155eef', '#b7791f', '#b68632', '#b68632'] : ['#155eef', '#0f766e'];
+    definition.series.forEach((series, index) => { series.color = palette[index % palette.length]; });
+  }
   return definitions;
 }
 
