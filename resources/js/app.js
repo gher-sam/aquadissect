@@ -15,6 +15,7 @@ import {
 import { createObservationNotebook } from './observationNotebook.js';
 import { createPracticeChallenges } from './practiceChallenges.js';
 import { createViewer } from './viewerFactory.js';
+import '../css/anatomy-regions.css';
 import { setupAquaPortal } from './portal/index.js';
 import '../css/style.css';
 import '../css/fishEnhancements.css';
@@ -79,12 +80,12 @@ app.innerHTML = `
             <span class="mode-badge" id="modeBadge"><span></span>Natural specimen · 2.5D</span>
             <div class="scene-tools">
               <label class="viewer-mode-control" id="viewerModeControl" hidden><span class="sr-only">Viewer mode</span><select id="viewerMode"><option value="2d">2.5D layers</option><option value="3d">3D model</option></select></label>
-              <button class="scene-button" id="labelsButton" type="button" aria-pressed="false"><i data-lucide="eye"></i><span>Labels</span></button>
+              <button class="scene-button" id="labelsButton" type="button" aria-pressed="false"><i data-lucide="eye"></i><span>Show parts</span></button>
               <button class="scene-button" id="resetView" type="button"><i data-lucide="rotate-ccw"></i><span>Reset</span></button>
               <button class="scene-button scene-button--icon" id="fullscreenView" type="button" aria-label="Open viewer full screen"><i data-lucide="maximize-2"></i></button>
             </div>
           </div>
-          <div class="interaction-hint" id="sceneInstructions">Scroll or use the slider to move from natural appearance to internal anatomy. Select a hotspot for details.</div>
+          <div class="interaction-hint" id="sceneInstructions">Move through the anatomy layers. Select an outlined structure or use the structure list.</div>
         </div>
         <div class="viewer-dock" aria-label="Specimen controls">
           <button class="dock-button" id="rotateToggle" type="button" aria-pressed="false"><i data-lucide="play"></i><span>Play layers</span></button>
@@ -94,7 +95,7 @@ app.innerHTML = `
       </section>
       <aside class="anatomy-panel panel-surface" aria-labelledby="anatomyHeading">
         <div class="panel-heading"><div><span class="eyebrow">Specimen guide</span><h2 id="anatomyHeading">Anatomy</h2></div><span class="part-count" id="partCount">0 parts</span></div>
-        <section class="selected-card" id="selectedCard" aria-live="polite"><div class="selected-card__empty"><span class="selected-illustration" aria-hidden="true"><i data-lucide="focus"></i></span><h3>Select a structure</h3><p>Choose a visible hotspot or use the structure list.</p></div></section>
+        <section class="selected-card" id="selectedCard" aria-live="polite"><div class="selected-card__empty"><span class="selected-illustration" aria-hidden="true"><i data-lucide="focus"></i></span><h3>Select a structure</h3><p>Choose an outlined area or use the structure list.</p></div></section>
         <div class="anatomy-list-heading"><span>Visible structures</span><span id="foundCount">0 found</span></div><div class="anatomy-list" id="anatomyList"></div>
       </aside>
     </main>
@@ -134,6 +135,7 @@ const state = {
   motion: null,
 };
 const escapeHtml = (value = '') => String(value).replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[character]);
+const partColor = part => /^#[a-f\d]{6}$/i.test(part.color) ? part.color : '#155eef';
 const safeReferenceUrl = (value) => { try { const url = new URL(value); return ['http:', 'https:'].includes(url.protocol) ? url.href : '#'; } catch { return '#'; } };
 
 function capturePartButtonFocus() {
@@ -215,7 +217,7 @@ async function buildViewer(type = '2d') {
   } else {
     elements.rotateToggle.querySelector('span').textContent = 'Play layers';
     elements.explodeRange.previousElementSibling.lastChild.textContent = ' Anatomy depth';
-    elements.sceneInstructions.textContent = 'Scroll or use the slider to move from natural appearance to internal anatomy. Select a hotspot for details.';
+    elements.sceneInstructions.textContent = 'Move through the anatomy layers. Select an outlined structure or use the structure list.';
     elements.scene.parentElement.setAttribute('aria-label', 'Layered 2.5D anatomy viewer');
   }
   state.model.setStep(state.step);
@@ -254,7 +256,7 @@ async function openPackage(manifest, record, { viewerType = 'auto', classId = nu
   elements.lessonSafety.textContent = manifest.safetyNotices.join(' ');
   elements.infoTitle.textContent = manifest.contentData.lesson.title;
   elements.infoDescription.textContent = manifest.contentData.lesson.description;
-  elements.learningGoals.textContent = manifest.contentData.lesson.learningGoals.join(' · ');
+  elements.learningGoals.textContent = Array.isArray(manifest.contentData.lesson.learningGoals) ? manifest.contentData.lesson.learningGoals.join(' · ') : '';
   elements.referenceList.innerHTML = manifest.references.map((reference, index) => `<a href="${safeReferenceUrl(reference.url)}" target="_blank" rel="noreferrer"><span>${String(index + 1).padStart(2, '0')}</span><span><strong>${escapeHtml(reference.title)}</strong><small>${escapeHtml(reference.publisher || '')}</small></span><i data-lucide="arrow-right"></i></a>`).join('');
   const has3d = Boolean(manifest.viewer.optional3d || manifest.assets.model);
   const hasVideo = Boolean(manifest.assetRecords?.video);
@@ -277,8 +279,9 @@ async function openPackage(manifest, record, { viewerType = 'auto', classId = nu
 function availableParts() {
   if (!state.model) return [];
   const anatomyStep = state.steps.slice(0, state.step).filter((step) => step.kind !== 'preparation').length;
-  if (anatomyStep < 2) return state.model.externalIds;
-  if (anatomyStep < 4) return [...state.model.externalIds, ...state.model.internalIds.filter((id) => id === 'gills')];
+  const introduced = new Set(state.steps.slice(0, state.step + 1).flatMap(step => step.targets || []));
+  if (anatomyStep < 2) return [...state.model.externalIds, ...state.model.internalIds.filter(id => introduced.has(id))];
+  if (anatomyStep < 4) return [...state.model.externalIds, ...state.model.internalIds.filter((id) => id === 'gills' || introduced.has(id))];
   return [...state.model.externalIds, ...state.model.internalIds];
 }
 
@@ -329,7 +332,7 @@ function renderAnatomyList() {
   elements.foundCount.textContent = `${visible.filter((id) => found.has(id)).length} found`;
   elements.anatomyList.innerHTML = visible.map((id) => {
     const part = state.anatomy[id];
-    return `<button class="anatomy-item ${state.selected === id ? 'is-selected' : ''}" data-part-id="${id}" type="button" aria-pressed="${state.selected === id}"><span class="part-swatch" style="--part-color:${part.color}"></span><span><strong>${escapeHtml(part.name)}</strong><small>${escapeHtml(part.system)}</small></span><i data-lucide="chevron-right"></i></button>`;
+    return `<button class="anatomy-item ${state.selected === id ? 'is-selected' : ''}" data-part-id="${id}" type="button" aria-pressed="${state.selected === id}"><span class="part-swatch" style="--part-color:${partColor(part)}"></span><span><strong>${escapeHtml(part.name)}</strong><small>${escapeHtml(part.system)}</small></span><i data-lucide="chevron-right"></i></button>`;
   }).join('');
   restorePartButtonFocus(focusTarget);
 }
@@ -339,7 +342,9 @@ function renderSelectedPart(id) {
   if (!part) return;
   state.selected = id;
   state.model.selectPart(id);
-  elements.selectedCard.innerHTML = `<div class="selected-card__content"><div class="selected-card__heading"><span class="selected-swatch" style="--part-color:${part.color}"></span><span><small>${escapeHtml(part.system)}</small><h3>${escapeHtml(part.name)}</h3></span></div><p>${escapeHtml(part.summary)}</p><details><summary>More detail <i data-lucide="chevron-right"></i></summary><p>${escapeHtml(part.detail)}</p></details></div>`;
+  const region = state.model.regionStatus?.(id);
+  const regionNote = region ? `<div class="anatomy-selection-note"><strong>${region.available ? 'Structure outline' : 'Outline not available'}</strong><p>${escapeHtml(region.available ? 'The outline follows this illustration. Specimens may vary; confirm anatomy with your instructor.' : region.reason)}</p>${region.sources?.length ? `<details><summary>Anatomy sources</summary>${region.sources.map(source => `<a href="${escapeHtml(source.url)}" target="_blank" rel="noreferrer">${escapeHtml(source.publisher || source.title)} · ${escapeHtml(source.title)}</a>${source.scope ? `<small class="anatomy-source-scope">${escapeHtml(source.scope)}</small>` : ''}`).join('')}</details>` : ''}</div>` : '';
+  elements.selectedCard.innerHTML = `<div class="selected-card__content"><div class="selected-card__heading"><span class="selected-swatch" style="--part-color:${partColor(part)}"></span><span><small>${escapeHtml(part.system)}</small><h3>${escapeHtml(part.name)}</h3></span></div><p>${escapeHtml(part.summary)}</p><details><summary>More detail <i data-lucide="chevron-right"></i></summary><p>${escapeHtml(part.detail)}</p></details>${regionNote}</div>`;
   state.motion?.revealPart(elements.selectedCard);
   renderAnatomyList();
 }
@@ -520,6 +525,7 @@ portal = setupAquaPortal({
 window.render_game_to_text = () => JSON.stringify({
   mode: query('#practiceDialog').open ? 'practice' : app.hidden ? 'portal' : 'lesson',
   lessonStep: state.step,
+  anatomy: { selected: state.selected, regions: state.model?.regionSnapshot?.() || null },
   practice: practice.snapshot(),
 });
 window.advanceTime = milliseconds => state.model?.advanceTime?.(milliseconds);

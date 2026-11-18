@@ -39,7 +39,7 @@ function speciesReviewForm(item, currentUser) {
 
   return `<form class="module-review-form species-review-form" data-species-review="${item.id}">
     <h3>Independent faculty review</h3>
-    <p>Check specimen identity, fish details, local names, organ placement, hotspot alignment, procedure and safety. Review each calibration source and its permitted measurement scope before approving.</p>
+    <p>Check specimen identity, fish details, local names, organ placement, structure outlines, image alignment, procedure and safety. Review each calibration source and its permitted measurement scope before approving.</p>
     <label class="portal-field">Decision<select name="decision" required><option value="approved">Approve for administrator publication</option><option value="changes_requested">Request changes</option></select></label>
     <label class="portal-field">Review notes<textarea name="notes" rows="3" minlength="10" maxlength="3000" required></textarea></label>
     <label class="portal-field">Evidence reference<input name="evidenceReference" maxlength="500" placeholder="Faculty record, reviewed reference, or approved procedure"></label>
@@ -247,7 +247,7 @@ export function adminRosterView(data, preview = [], activationCodes = [], error 
 }
 
 export function managerView(packages, role, currentUser) {
-  const importForm = role === 'instructor' ? '<details class="workflow-disclosure workflow-disclosure--advanced"><summary><span><strong>Advanced: import a prepared lesson file</strong><small>For authorized .aqpack files</small></span></summary><form id="packageImportForm" class="package-import-card package-import-card--nested"><p id="packageImportHelp">Select a prepared AquaDissect lesson file. The system checks the file before creating a draft.</p><label class="portal-field" for="packageImportFile">AquaDissect lesson file<input id="packageImportFile" type="file" name="package" accept=".aqpack,.zip" aria-describedby="packageImportHelp" required></label><button class="portal-primary" type="submit">Check and import draft</button><p class="portal-message" data-import-message hidden></p></form></details>' : '';
+  const importForm = role === 'instructor' ? '<details class="workflow-disclosure workflow-disclosure--advanced"><summary><span><strong>Advanced: import a prepared lesson file</strong><small>For authorized .aqpack files</small></span></summary><form id="packageImportForm" class="package-import-card package-import-card--nested"><p id="packageImportHelp">Import a versioned lesson for Rabbitfish or an additional species. Include its own images, anatomy outlines, references, lesson and quiz. New species remain drafts until reviewed and published. Existing lessons and records are retained.</p><label class="portal-field" for="packageImportFile">AquaDissect lesson file<input id="packageImportFile" type="file" name="package" accept=".aqpack,.zip" aria-describedby="packageImportHelp" required></label><button class="portal-primary" type="submit">Check and import draft</button><p class="portal-message" data-import-message hidden></p></form></details>' : '';
   const storageSummary = role === 'admin'
     ? `<div class="manager-storage-summary"><strong>${formatBytes(packages.reduce((total, item) => total + Number(item.sizeBytes || 0), 0))}</strong><span>across ${packages.length} protected lesson version${packages.length === 1 ? '' : 's'}</span><small>Archive or restore a version while keeping its history.</small></div>`
     : '';

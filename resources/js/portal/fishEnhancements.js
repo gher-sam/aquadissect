@@ -22,15 +22,21 @@ async function revision(button) {
     <p>${e(m.species.commonName)} · <em>${e(m.species.scientificName)}</em></p>
     ${Object.entries(fishProfileFields).map(([key,label])=>`<label>${label}<textarea name="${key}" maxlength="5000">${e(p[key]||'')}</textarea></label>`).join('')}
     <h3>Local names</h3><div data-names>${(p.localNames||[]).map(nameRow).join('')}</div><button type="button" data-add-name>Add local name</button>
-    <details><summary>Correct anatomy images and labels</summary><p>Upload reviewed source imagery for a new draft. Each image is re-encoded to remove metadata. The original package is retained. Matching hotspot definitions are required if structures move.</p>
+    <details><summary>Correct anatomy images and labels</summary><p>Upload source imagery for a new draft. Each image is re-encoded to remove metadata. The original package is retained. Replacing an image clears its old outlines; reopen the new draft to trace its boundaries.</p>
     ${['natural','external','internal'].map(k=>`<label>${k} image<input type="file" name="${k}" accept="image/png,image/jpeg,image/webp"></label>`).join('')}
-    <label>Complete anatomy and hotspot file (JSON)<input type="file" name="anatomy" accept=".json"></label></details>
+    <label>Complete anatomy file (JSON, optional)<input type="file" name="anatomy" accept=".json"></label><small>An uploaded anatomy file takes precedence over the outline editor.</small></details>
+    <details><summary>Trace anatomical structure outlines</summary><div data-region-editor></div></details>
+    <label><input name="catalogListed" type="checkbox" ${m.catalogVisibility==='listed'?'checked':''}>Include this version in the lesson catalog after independent review and publication</label>
     <details><summary>Measurement references</summary><p>Only the new package's independent approval enables physical units. Reference endpoints use percentages of the source image. An illustration gives an illustrative estimate, not an actual specimen size. Replacing an image clears its old calibration.</p>
     ${['natural','external','internal'].map(k=>{const c=m.calibrations?.[k];return `<fieldset data-calibration="${k}"><legend>${k} image</legend><label><input type="checkbox" data-enabled ${c?'checked':''}> Include calibration</label>
       ${[['ax','Start X (%)',c?.a?.x*100],['ay','Start Y (%)',c?.a?.y*100],['bx','End X (%)',c?.b?.x*100],['by','End Y (%)',c?.b?.y*100],['lengthMm','Reference length (mm)',c?.lengthMm]].map(([n,l,v])=>`<label>${l}<input data-cal="${n}" type="number" step="any" min="0" ${n==='lengthMm'?'':'max="100"'} value="${Number.isFinite(v)?v:''}"></label>`).join('')}
       <label>Reference source<input data-cal="source" value="${e(c?.source||'')}" maxlength="1000"></label><label>Image basis<select data-cal="basis"><option value="illustrative_estimate">Illustration — estimate only</option><option value="photograph" ${c?.basis==='photograph'?'selected':''}>Calibrated specimen photograph</option></select></label><label>Reviewed scope<select data-cal="scope"><option value="body">Body only</option><option value="parts" ${c?.scope==='parts'?'selected':''}>Body and anatomical parts</option></select></label></fieldset>`;}).join('')}</details>
     <button type="submit">Save new draft version</button></form>`);
   const form=d.querySelector('form');
+  const { mountAnatomyRegionEditor } = await import('../anatomyRegionEditor.js');
+  if (!d.open || signOutPending()) return;
+  const regionEditor = mountAnatomyRegionEditor(d.querySelector('[data-region-editor]'), m);
+  d.addEventListener('close', () => regionEditor.destroy(), {once:true});
   d.querySelector('[data-add-name]').onclick=()=>d.querySelector('[data-names]').insertAdjacentHTML('beforeend',nameRow({}));
   d.addEventListener('click',ev=>ev.target.closest('[data-remove-name]')?.closest('fieldset')?.remove());
   form.onsubmit=async ev=>{
@@ -39,6 +45,7 @@ async function revision(button) {
       const profile=Object.fromEntries(Object.keys(fishProfileFields).map(k=>[k,form.elements[k].value.trim()]));
       profile.localNames=[...form.querySelectorAll('[data-local-name]')].map(row=>Object.fromEntries([...row.querySelectorAll('[data-name-field]')].map(f=>[f.dataset.nameField,f.value.trim()])));
       const body=new FormData();body.set('version',form.elements.version.value);body.set('profile',JSON.stringify(profile));
+      body.set('catalogVisibility',form.elements.catalogListed.checked?'listed':'scope_default');
       const calibrations={};
       for(const row of form.querySelectorAll('[data-calibration]')){
         const key=row.dataset.calibration,upload=form.elements[key].files[0];
@@ -51,7 +58,8 @@ async function revision(button) {
         calibrations[key]={a:{x:Number(fields.ax)/100,y:Number(fields.ay)/100},b:{x:Number(fields.bx)/100,y:Number(fields.by)/100},lengthMm:Number(fields.lengthMm),width:image.naturalWidth,height:image.naturalHeight,imageSha256:m.assetRecords[key].sha256,source:fields.source,basis:fields.basis,scope:fields.scope};
       }
       body.set('calibrations',JSON.stringify(calibrations));
-      if(form.elements.anatomy.files[0])body.set('anatomy',await form.elements.anatomy.files[0].text());
+      if (regionEditor.changed && ['natural','external','internal'].some(key=>form.elements[key].files[0])) throw new Error('Save the image replacement first, then reopen that new draft to trace its boundaries.');
+      body.set('anatomy',form.elements.anatomy.files[0]?await form.elements.anatomy.files[0].text():JSON.stringify(await regionEditor.value()));
       const saved=await request('/api/staff/species-packages/'+button.dataset.revisePackage+'/revision',{method:'POST',body});
       message(d,'Draft v'+saved.package.version+' saved. Close and reload Species content to preview it and send it for faculty review.');
       form.hidden=true;

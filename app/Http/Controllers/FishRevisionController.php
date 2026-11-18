@@ -21,6 +21,7 @@ class FishRevisionController extends Controller
             'version' => ['required', 'string', 'max:40', 'regex:/^\\d+\\.\\d+\\.\\d+(?:-[a-zA-Z0-9.-]+)?$/'],
             'profile' => 'required|json|max:30000',
             'calibrations' => 'nullable|json|max:10000',
+            'catalogVisibility' => 'sometimes|in:scope_default,listed',
             'anatomy' => 'required_with:external,internal|nullable|json|max:100000',
             'video' => 'prohibited',
             'model' => 'prohibited',
@@ -33,6 +34,9 @@ class FishRevisionController extends Controller
             throw ValidationException::withMessages(['package' => 'This legacy record has no complete source archive. Import a complete new lesson package instead.']);
         }
         $manifest['packageVersion'] = $data['version'];
+        if (isset($data['catalogVisibility'])) {
+            $manifest['catalogVisibility'] = $data['catalogVisibility'];
+        }
         // Imported revisions are data-only and cannot select executable adapters.
         if (isset($manifest['viewer']['optional3d']['adapter'])) {
             unset($manifest['viewer']['optional3d']);
@@ -41,6 +45,10 @@ class FishRevisionController extends Controller
         $manifest['calibrations'] = json_decode($data['calibrations'] ?? '{}', true, flags: JSON_THROW_ON_ERROR);
         $manifest['draftNotice'] = 'Revised fish information, imagery and measurement references require independent faculty review before student publication.';
         $manifest['revisionOf'] = ['packageId' => $package->id, 'version' => $package->version];
+        $anatomy = isset($data['anatomy']) ? json_decode($data['anatomy'], true, flags: JSON_THROW_ON_ERROR) : null;
+        if ($anatomy !== null && ! is_array($anatomy)) {
+            throw ValidationException::withMessages(['anatomy' => 'Supply a complete anatomy JSON object.']);
+        }
         $temp = tempnam(storage_path('app/private'), 'revision-');
         $zip = new ZipArchive;
         if ($zip->open($temp, ZipArchive::OVERWRITE) !== true) {
@@ -77,18 +85,25 @@ class FishRevisionController extends Controller
                     $manifest['assets'][$key] = $newFile;
                     $manifest['files'][$newFile] = $hash;
                     $manifest['assetProvenance'][$key] = ['source' => 'Staff-supplied replacement; see fish profile sources', 'reviewStatus' => 'awaiting_faculty_review', 'personalMetadataRemoved' => true];
-                    $zip->addFromString($newFile, $bytes);
-                } elseif ($file === $manifest['content']['anatomy'] && isset($data['anatomy'])) {
-                    $json = json_decode($data['anatomy'], true, flags: JSON_THROW_ON_ERROR);
-                    if (! is_array($json)) {
-                        throw ValidationException::withMessages(['anatomy' => 'Supply a complete anatomy JSON object.']);
+                    if (isset($anatomy['regionMaps'][$key])) {
+                        $anatomy['regionMaps'][$key] = [
+                            'layer' => $key, 'imageSha256' => $hash, 'width' => $info[0], 'height' => $info[1],
+                            'basis' => 'illustration', 'sources' => [], 'parts' => [],
+                            'unmapped' => collect($anatomy['structures'])->where('layer', $key)->mapWithKeys(fn ($part) => [$part['id'] => 'The image was replaced. A matching outline has not been supplied for this version.'])->all(),
+                        ];
                     }
-                    $bytes = json_encode($json, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
-                    $manifest['files'][$file] = hash('sha256', $bytes);
-                    $zip->addFromString($file, $bytes);
+                    $zip->addFromString($newFile, $bytes);
+                } elseif ($file === $manifest['content']['anatomy'] && $anatomy !== null) {
+                    // Write after images so replacement imagery cannot retain a stale outline.
                 } else {
                     $zip->addFile($content->absolutePath($package, $file), $file);
                 }
+            }
+            if ($anatomy !== null) {
+                $file = $manifest['content']['anatomy'];
+                $bytes = json_encode($anatomy, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+                $manifest['files'][$file] = hash('sha256', $bytes);
+                $zip->addFromString($file, $bytes);
             }
             FishProfileSchema::validate($manifest);
             $zip->addFromString('manifest.json', json_encode($manifest, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));

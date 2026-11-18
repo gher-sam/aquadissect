@@ -1,0 +1,34 @@
+.anatomy-region-overlay { position:absolute; z-index:6; pointer-events:none; }
+.anatomy-region-overlay svg { display:block; width:100%; height:100%; overflow:visible; }
+.anatomy-region-overlay [data-region-part] { cursor:pointer; pointer-events:fill; }
+.anatomy-region-overlay .is-layer-hidden { display:none; pointer-events:none; }
+.anatomy-region-halo { fill:none; stroke:#fff; stroke-width:6; opacity:0; pointer-events:none; }
+.anatomy-region-shape { fill:#155eef; fill-opacity:0; stroke:#155eef; stroke-width:2.5; stroke-opacity:0; transition:fill-opacity 180ms ease,stroke-opacity 180ms ease,stroke 180ms ease; }
+.anatomy-region-overlay .show-region .anatomy-region-shape { fill-opacity:.035; stroke-opacity:.6; }
+.anatomy-region-overlay .is-target .anatomy-region-shape { fill-opacity:.06; stroke-opacity:.9; stroke-dasharray:5 3; }
+.anatomy-region-overlay [data-region-part]:hover .anatomy-region-shape,
+.anatomy-region-overlay [data-region-part]:focus-visible .anatomy-region-shape { fill-opacity:.12; stroke-opacity:1; }
+.anatomy-region-overlay [data-region-part]:focus-visible { outline:none; }
+.anatomy-region-overlay [data-region-part]:focus-visible .anatomy-region-halo,
+.anatomy-region-overlay .is-selected .anatomy-region-halo { opacity:.95; }
+.anatomy-region-overlay .is-selected .anatomy-region-shape { fill:#c84335; fill-opacity:.17; stroke:#c84335; stroke-opacity:1; stroke-width:3; stroke-dasharray:none; }
+.anatomy-region-overlay [data-region-part]:focus-visible .anatomy-region-shape { stroke:#12324a; stroke-width:4; }
+.anatomy-region-caption { position:absolute; z-index:7; bottom:74px; left:12px; right:12px; width:fit-content; max-width:calc(100% - 24px); margin:0; padding:7px 11px; border:1px solid #cddce7; border-radius:8px; background:#fff; color:#12324a; font:600 12px/1.5 Figtree,Arial,sans-serif; pointer-events:none; }
+.anatomy-selection-note { margin-top:12px; padding-top:10px; border-top:1px solid #d6e1e9; color:#4d687b; font-size:12px; line-height:1.6; }
+.anatomy-selection-note strong { display:block; color:#12324a; font-weight:600; }
+.anatomy-selection-note a { display:block; padding:5px 0; color:#155eef; overflow-wrap:anywhere; }
+.anatomy-source-scope { display:block; margin:0 0 8px; color:#4d687b; line-height:1.5; }
+.region-editor { display:grid; gap:12px; margin:16px 0; }
+.region-editor-stage { position:relative; width:100%; aspect-ratio:3/2; min-height:220px; background:#f1f8fc; border:1px solid #cddce7; border-radius:12px; touch-action:manipulation; }
+.region-editor-stage img { width:100%; height:100%; object-fit:contain; display:block; }
+.region-editor-stage svg { position:absolute; pointer-events:none; }
+.region-editor-stage polygon { fill:#155eef; fill-opacity:.13; stroke:#155eef; stroke-width:2; vector-effect:non-scaling-stroke; }
+.region-editor-stage polyline { fill:none; stroke:#c84335; stroke-width:3; vector-effect:non-scaling-stroke; }
+.region-editor-stage circle { fill:#c84335; stroke:#fff; stroke-width:1; vector-effect:non-scaling-stroke; }
+.region-editor-controls { display:flex; flex-wrap:wrap; gap:8px; }
+.region-editor button { min-height:44px; padding:9px 13px; border:1px solid #b9d0ed; border-radius:8px; background:#eff5ff; color:#1245a4; font:600 13px/1.5 Figtree,Arial,sans-serif; cursor:pointer; }
+.region-editor button:focus-visible { outline:3px solid #155eef; outline-offset:2px; }
+.region-editor button:disabled { opacity:.5; cursor:default; }
+.region-editor fieldset { display:grid; gap:10px; padding:12px; border:1px solid #cddce7; border-radius:10px; }
+.region-editor legend { color:#12324a; font-weight:600; }
+.region-editor [data-region-status] { min-height:24px; color:#4d687b; font-size:13px; }

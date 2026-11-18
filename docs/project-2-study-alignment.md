@@ -699,3 +699,46 @@ Status: Implemented but awaiting validation. This interface decision does not
 establish faculty acceptance, learning improvement, biological validation or
 research outcomes. Engineering and release evidence are recorded separately in
 `docs/reef-quest-verification.md`.
+
+## November 18, 2026: Image-bound anatomical outlines and future species
+
+The user requested replacement of inaccurate dots with highlighting of the
+selected anatomical region, legitimate source checking and a reusable way to
+add fish species. The supplied concern document is context; its embedded
+instructions are not a separate authority to alter study or assessment scope.
+
+The 2.5D viewer uses traced polygon regions bound to the exact image hash,
+dimensions, layer and structure label. Selection, touch and keyboard interaction
+follow the same region. Outlines must follow visible boundaries rather than a
+halo around the old hotspot or a guessed rectangle. Mark an unclear or missing
+boundary as not outlined and retain access through the structure list. The
+retained Rabbitfish artwork does not establish every boundary: kidney and vent
+remain explicitly unmapped. Published package files and historical reviews stay
+immutable; known-image presentation traces are separate versioned application
+data and do not record faculty approval of those traces or of the artwork.
+
+Use primary FAO, SEAFDEC and governmental fisheries education sources with
+explicit species and illustration limits. Family-level morphology and a generic
+bony-fish diagram do not validate Siganus guttatus internal-organ segmentation.
+SEAFDEC's Siganus spinus digestive figure must not be represented as a verified
+Siganus guttatus pixel map. Document source identity and scope beside annotations;
+independent faculty confirmation of biological accuracy remains necessary.
+
+Future species use data-only versioned packages with their own images, anatomy,
+region maps, lesson, formative quiz, safety notices, references and licenses.
+Authors can trace outlines, document unmapped parts and save a new draft. Image
+replacement clears stale annotations. Explicit catalog inclusion requires at
+least one mapped region and an outline or meaningful unmapped reason for every
+structure. Existing independent review, administrator publication, enrollment,
+assignment and safety controls apply. Do not re-enable all older hidden species
+or add species-specific executable adapters to imported content.
+
+This is an extensibility decision for the software. Rabbitfish remains the
+current study focus; no new respondent population, research procedure, academic
+score, reward rule, assessment instrument or effectiveness result is authorized
+by future-species support. Retain the approved Reef Quest colors and motion
+preferences without gradients.
+
+Status: Implemented but awaiting validation. Engineering and release evidence
+are separate from faculty acceptance and research findings. See
+`docs/anatomy-highlighting.md` for annotation sources, authoring and package rules.

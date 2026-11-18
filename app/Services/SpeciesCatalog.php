@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\SpeciesPackage;
 use App\Models\User;
+use App\Support\LearningMedia;
 use Illuminate\Database\Eloquent\Builder;
 
 class SpeciesCatalog
@@ -20,7 +21,15 @@ class SpeciesCatalog
 
         $visibleSlugs = config('species-packages.visible_slugs', ['rabbitfish']);
         if ($visibleSlugs !== []) {
-            $query->whereHas('species', fn (Builder $species) => $species->whereIn('slug', $visibleSlugs));
+            $query->where(function (Builder $scope) use ($visibleSlugs, $user): void {
+                $scope->whereHas('species', fn (Builder $species) => $species->whereIn('slug', $visibleSlugs))
+                    ->orWhere('manifest->catalogVisibility', 'listed');
+                if ($user->role !== User::ROLE_STUDENT) {
+                    $scope->orWhere(fn (Builder $revision) => $revision->whereIn('status', [SpeciesPackage::STATUS_DRAFT, SpeciesPackage::STATUS_REVIEW])
+                        ->whereNotNull('manifest->revisionOf->packageId')
+                        ->whereHas('species.packages', fn (Builder $versions) => $versions->where('manifest->catalogVisibility', 'listed')));
+                }
+            });
         }
 
         if ($user->role === User::ROLE_STUDENT) {
@@ -124,6 +133,11 @@ class SpeciesCatalog
             'id' => $package->id,
             'speciesId' => $package->species_id,
             'slug' => $package->species->slug,
+            'catalogVisible' => ($manifest['catalogVisibility'] ?? null) === 'listed'
+                || ($user && $user->role !== User::ROLE_STUDENT
+                    && in_array($package->status, [SpeciesPackage::STATUS_DRAFT, SpeciesPackage::STATUS_REVIEW], true)
+                    && isset($manifest['revisionOf']['packageId'])
+                    && $package->species->packages()->where('manifest->catalogVisibility', 'listed')->exists()),
             'commonName' => $package->species->common_name,
             'scientificName' => $package->species->scientific_name,
             'taxonomicGroup' => $package->species->taxonomic_group,
@@ -142,10 +156,10 @@ class SpeciesCatalog
             'lessonKey' => $manifest['lessonKey'],
             'duration' => $this->lessonDuration($package),
             'cardPreviewVideoUrl' => ! $locked && $package->species->slug === 'rabbitfish' && $package->version === '1.1.0'
-                ? \App\Support\LearningMedia::url("/api/species-packages/{$package->id}/card-preview", $availableClassId) : null,
+                ? LearningMedia::url("/api/species-packages/{$package->id}/card-preview", $availableClassId) : null,
             'naturalImageUrl' => $locked ? null : $this->assetUrl($package, 'natural', $availableClassId),
             'videoUrl' => $locked ? null : $this->assetUrl($package, 'video', $availableClassId),
-            'manifestUrl' => \App\Support\LearningMedia::url("/api/species/{$package->species->slug}/packages/{$package->id}/manifest"),
+            'manifestUrl' => LearningMedia::url("/api/species/{$package->species->slug}/packages/{$package->id}/manifest"),
             'downloadUrl' => url("/api/species-packages/{$package->id}/download"),
             'sizeBytes' => $package->size_bytes,
             'resultsCount' => $package->results_count ?? $package->results()->count(),
@@ -162,7 +176,7 @@ class SpeciesCatalog
     {
         $asset = $package->assets->firstWhere('asset_key', $key);
 
-        return $asset ? \App\Support\LearningMedia::url("/api/species-packages/{$package->id}/assets/{$asset->id}", $classId) : null;
+        return $asset ? LearningMedia::url("/api/species-packages/{$package->id}/assets/{$asset->id}", $classId) : null;
     }
 
     private function lessonDuration(SpeciesPackage $package): ?string

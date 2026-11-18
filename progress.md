@@ -32,3 +32,22 @@ Original prompt: Generate a bright, interactive 3D Tilapia anatomy and virtual-d
 
 - Run the isolated required release suite and publish only the practice files; retain unrelated local changes.
 - Faculty acceptance of the practice presentation and research validation remain pending. XP and badges are practice completion signals, not learning-effectiveness findings.
+
+Current request: Please implement these improvements. Use accurate highlighting of the selected fish part instead of dots, and make sure more fish species can be added in the future. Crawl legitimate resources and ensure they are accurate.
+
+## November 18 2026
+
+- Read the supplied concern document, current viewer, package importer and study decisions.
+- Research uses primary fisheries sources. General teleost diagrams and siganid references do not certify the exact species or every boundary in an illustration.
+- Implement image-bound region outlines, honest unmapped states, reusable package annotations and an authoring workflow for future species.
+- Preserve existing packages, publication approvals, learners and records. Keep Rabbitfish as the default catalog scope; additional species require explicit package inclusion and existing review/publication/assignment gates.
+- Validate geometry, accessibility, responsive alignment, offline behavior and package boundaries with synthetic data before the normal release.
+
+### Engineering verification, November 18–19, 2026
+
+- Replaced served 2.5D dots with exact-image region paths and an honest unmapped state. Traced fin edges against the retained artwork and visually reviewed selected external and internal regions.
+- Added reusable, data-only package region maps and draft outline editing. New species require explicit inclusion and retain independent review, administrator publication, assignment and safety gates. Replacing images clears old annotations.
+- Passed all 115 JavaScript checks and the three new isolated backend checks (35 assertions). Browser checks cover guided progression, list/mouse/touch/keyboard selection, 320/375/768/1440 layouts, source scope and already-loaded selection during a connection interruption. Six authoring scenarios cover new-species import, separate revisions, unfinished outlines, image replacement and retracing. No uncaught page errors were recorded.
+- Preserved original package content and all 54 recorded unrelated local file hashes. The retained manuscript decision is excluded from this software release. The existing game test client checks the actual served lesson and its text-state hook.
+- A rendered new-species preview exposed an optional-field failure before publication. Fixed the absent learning-goals display and allowed declared internal targets early in a species-specific sequence. Three additional browser checks passed using an unknown species slug and arbitrary structure IDs; no quiz was submitted.
+- Faculty confirmation of the artwork and anatomical boundaries remains pending. Kidney and vent are deliberately unmapped; source-reference and software checks do not establish biological validation or learning effectiveness. The normal isolated release suite runs before publication.

@@ -273,6 +273,9 @@ class SpeciesPackageImporter
         if (! in_array($manifest['activityMode'], config('species-packages.activity_modes'), true)) {
             $this->fail('manifest', 'The activity mode is not supported.');
         }
+        if (isset($manifest['catalogVisibility']) && ! in_array($manifest['catalogVisibility'], ['scope_default', 'listed'], true)) {
+            $this->fail('manifest', 'Catalog visibility must be scope_default or listed.');
+        }
         if (! is_array($manifest['viewer']) || ! is_array($manifest['assets']) || ! is_array($manifest['content']) || ! is_array($manifest['files'])) {
             $this->fail('manifest', 'Viewer, asset, content, and file declarations must be JSON objects.');
         }
@@ -352,12 +355,13 @@ class SpeciesPackageImporter
 
         Validator::make($anatomy, [
             'structures' => 'required|array|min:1|max:150',
-            'structures.*.id' => 'required|string|max:80|distinct|regex:/^[a-zA-Z0-9_-]+$/',
+            'structures.*.id' => 'required|string|max:80|distinct|not_in:__proto__,constructor,prototype|regex:/^[a-zA-Z0-9_-]+$/',
             'structures.*.name' => 'required|string|max:200',
             'structures.*.layer' => 'required|in:external,internal',
-            'structures.*.hotspot.x' => 'required|numeric|between:0,100',
-            'structures.*.hotspot.y' => 'required|numeric|between:0,100',
+            'structures.*.hotspot.x' => (isset($anatomy['regionMaps']) ? 'sometimes' : 'required').'|numeric|between:0,100',
+            'structures.*.hotspot.y' => (isset($anatomy['regionMaps']) ? 'sometimes' : 'required').'|numeric|between:0,100',
         ])->validate();
+        AnatomyRegionSchema::validate($anatomy, $manifest, $root);
         $ids = array_column($anatomy['structures'], 'id');
         foreach ($lesson['steps'] as $step) {
             if (! is_array($step)) {

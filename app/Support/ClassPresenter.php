@@ -77,10 +77,11 @@ class ClassPresenter
                 'name' => trim(($item->user?->first_name ?? '').' '.($item->user?->last_name ?? '')),
             ])->values()->all(),
             'students' => $students,
-            'assignments' => $class->assignments->where('active', true)->filter(fn ($assignment) => $visibleSlugs === [] || in_array($assignment->species?->slug, $visibleSlugs, true))->map(fn ($assignment) => [
+            'assignments' => $class->assignments->where('active', true)->filter(fn ($assignment) => $visibleSlugs === [] || in_array($assignment->species?->slug, $visibleSlugs, true) || ($assignment->package?->manifest['catalogVisibility'] ?? null) === 'listed')->map(fn ($assignment) => [
                 'id' => $assignment->id,
                 'speciesId' => $assignment->species_id,
                 'speciesSlug' => $assignment->species?->slug,
+                'catalogVisible' => ($assignment->package?->manifest['catalogVisibility'] ?? null) === 'listed',
                 'speciesPackageId' => $assignment->species_package_id,
                 'packageId' => $assignment->species_package_id,
                 'commonName' => $assignment->species?->common_name,
