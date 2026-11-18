@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { validPolygon, polygonPath, regionFor, regionMapFor, safeAnatomySource } from '../../resources/js/anatomyRegions.js';
+import { validPolygon, polygonPath, regionFor, regionMapFor, safeAnatomySource, sourceAppliesTo } from '../../resources/js/anatomyRegions.js';
 import { builtInRegionMaps } from '../../resources/js/data/anatomyRegionMaps.js';
 
 const square = [[10,10],[30,10],[30,30],[10,30]];
@@ -47,4 +47,27 @@ test('explicit unmapped and mismatched package maps never inherit a legacy guess
   assert.equal(regionFor(m,{id:'heart',name:'Heart',layer:'internal'}).available,false);
   m.contentData.anatomy.regionMaps.internal.imageSha256='wrong';
   assert.equal(regionFor(m,{id:'heart',name:'Heart',layer:'internal'}).available,false);
+});
+
+test('references bind to the exact structure ID and label while legacy image references remain supported', () => {
+  const part={id:'0',name:'Synthetic region',layer:'external'},source={title:'Engineering reference',url:'https://example.org/reference',appliesTo:[{id:'0',label:'Synthetic region'}]};
+  assert.equal(sourceAppliesTo(source,part),true);
+  assert.equal(sourceAppliesTo(source,{...part,id:'another'}),false);
+  assert.equal(sourceAppliesTo(source,{...part,name:'Different region'}),false);
+  assert.equal(sourceAppliesTo({...source,appliesTo:{0:'Synthetic region'}},part),false);
+  assert.equal(sourceAppliesTo({title:source.title,url:source.url},part),true);
+  const map={layer:'external',imageSha256:'fixture',width:120,height:80,basis:'photograph',sources:[source],parts:{0:{label:part.name,polygons:[square]}},unmapped:{}};
+  const manifest={assetRecords:{external:{sha256:'fixture'}},contentData:{anatomy:{regionMaps:{external:map}}}};
+  assert.equal(regionFor(manifest,part).available,true);
+  map.sources={malformed:true};assert.equal(regionFor(manifest,part).available,false);
+});
+
+test('the curated kidney review uses only its same-species study and does not inherit another organ reference', () => {
+  const map=Object.values(builtInRegionMaps).find(m=>m.layer==='internal'),kidney={id:'kidney',name:'Kidney',layer:'internal'},heart={id:'heart',name:'Heart',layer:'internal'};
+  const manifest={species:{slug:'rabbitfish'},assetRecords:{internal:{sha256:map.imageSha256}},contentData:{anatomy:{structures:[kidney,heart]}}};
+  const region=regionFor(manifest,kidney);
+  assert.equal(region.available,false);assert.equal(region.sources.length,1);assert.equal(region.sources[0].url,'https://doi.org/10.1155/tbed/2656593');assert.match(region.sources[0].scope,/diseased kidney tissue/);
+  assert.ok(regionFor(manifest,heart).sources.every(source=>source.id!=='guttatus-kidney-2026'));
+  const filtered=regionMapFor(manifest,'internal');assert.ok(filtered.sources.every(source=>source.appliesTo.every(target=>['kidney','heart'].includes(target.id))));
+  assert.equal(regionFor(manifest,{...kidney,name:'Different organ'}).sources.length,0);
 });

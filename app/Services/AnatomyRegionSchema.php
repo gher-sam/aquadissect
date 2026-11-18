@@ -34,6 +34,24 @@ class AnatomyRegionSchema
                     || parse_url($url, PHP_URL_USER) !== null || parse_url($url, PHP_URL_PASS) !== null) {
                     self::fail('Anatomy references require a title and a public HTTPS URL without credentials.');
                 }
+                if (array_key_exists('appliesTo', $source)) {
+                    if (! is_array($source['appliesTo']) || ! array_is_list($source['appliesTo']) || $source['appliesTo'] === [] || count($source['appliesTo']) > 150) {
+                        self::fail('A structure-specific reference requires a list of structure IDs and exact labels.');
+                    }
+                    $seen = [];
+                    foreach ($source['appliesTo'] as $target) {
+                        $id = is_array($target) ? ($target['id'] ?? null) : null;
+                        $label = is_array($target) ? ($target['label'] ?? null) : null;
+                        if (! is_string($id) || isset($seen[$id])) {
+                            self::fail('Reference bindings require distinct string structure IDs.');
+                        }
+                        $seen[$id] = true;
+                        $part = $parts->get($id);
+                        if (! $part || $part['layer'] !== $layer || $label !== $part['name']) {
+                            self::fail('Each structure-specific reference must match an existing structure label on this image layer.');
+                        }
+                    }
+                }
             }
             if (! is_array($map['parts'] ?? null) || ! is_array($map['unmapped'] ?? [])) {
                 self::fail('Provide mapped parts and explicit reasons for unidentifiable structures.');
@@ -43,6 +61,10 @@ class AnatomyRegionSchema
                 if (! $part || $part['layer'] !== $layer || ! is_array($shape) || ($shape['label'] ?? null) !== $part['name']
                     || ! is_array($shape['polygons'] ?? null) || count($shape['polygons']) < 1 || count($shape['polygons']) > 20) {
                     self::fail('Every outline must identify an existing structure on the matching image layer.');
+                }
+                if (! collect($sources)->contains(fn ($source) => ! array_key_exists('appliesTo', $source)
+                    || collect($source['appliesTo'])->contains(fn ($target) => $target['id'] === (string) $id && $target['label'] === $part['name']))) {
+                    self::fail('Every outlined structure requires at least one applicable anatomy reference.');
                 }
                 foreach ($shape['polygons'] as $polygon) {
                     $vertices += is_array($polygon) ? count($polygon) : 0;

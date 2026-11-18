@@ -71,6 +71,18 @@ credentials. Arbitrary SVG, HTML, scripts and executable viewer adapters are not
 accepted as annotation data. Legacy hotspot metadata may remain in older packages
 but is not rendered as dots by the 2.5D viewer.
 
+A reference may optionally include `appliesTo`, a list such as
+`[{"id":"structure-id","label":"The exact structure name from the anatomy file"}]`.
+Bindings must match existing parts on the same layer, with distinct IDs and exact
+labels. Every outlined part needs an applicable reference. References without this
+field retain their earlier image-level meaning. Known-image references are filtered
+to the package's actual structure definitions before a revision is prepared.
+
+The November 19 kidney review restricts its card to the same-species S. guttatus
+study and states its disease-tissue context. The kidney outline remains unavailable.
+The source assessment and remaining image requirements are in
+`docs/anatomy-part-review.md`.
+
 ## Preparing and reviewing content
 
 Authorized authors can open Create revised fish lesson, then Trace anatomical
@@ -79,6 +91,8 @@ outline, enter references and save a new draft version. Coordinate entry supplie
 the same function without pointer input. Unfinished outlines block saving.
 Reset restores the retained outline; Mark this part as not outlined records a
 reason. Uploading a complete anatomy JSON file takes precedence over the editor.
+If an image fails to load, Retry image reloads it while retaining completed local
+outline edits. Tracing and reference changes wait until the exact image loads.
 
 Replacing an image clears its previous region map instead of reusing stale
 coordinates. Save the image draft first and reopen it to trace the new image.

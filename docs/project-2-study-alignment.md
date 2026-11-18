@@ -742,3 +742,29 @@ preferences without gradients.
 Status: Implemented but awaiting validation. Engineering and release evidence
 are separate from faculty acceptance and research findings. See
 `docs/anatomy-highlighting.md` for annotation sources, authoring and package rules.
+
+## November 19, 2026: Individual anatomy review — kidney first
+
+The user requested accurate source images, related bug corrections and a review
+of each anatomical part. The user selected a one-part-at-a-time discussion,
+starting with kidney and then vent, and explicitly retained Siganus guttatus-only
+kidney references. Do not substitute S. canaliculatus, S. spinus or a general fish
+image as that kidney's replacement or comparison.
+
+A same-species scholarly study describing diseased kidney tissue is a qualified
+reference link. It does not establish a healthy whole-organ boundary in the
+retained artwork. The kidney outline remains Not available until a suitable,
+clearly identified S. guttatus image, reuse rights and independent faculty review
+support a new immutable image/annotation version. No guessed trace or generated
+biological image is authorized as evidence. Vent and the other parts await their
+individual reviews; this decision does not complete them.
+
+Reference attribution may bind to an exact structure ID and label. Keep broad
+background references distinguishable from evidence for a particular part. Correct
+image selection and failed-load recovery without changing existing packages,
+review history, learners, scores, assignments, research instruments or sampling.
+
+Status: Software corrections Implemented but awaiting validation; kidney outline
+Not available. Source findings and remaining inputs are recorded in
+`docs/anatomy-part-review.md`. Source checking and engineering tests do not record
+faculty biological validation or learning effectiveness.

@@ -34,6 +34,12 @@ export function safeAnatomySource(source) {
   try { const url = new URL(source?.url); return url.protocol === 'https:' && !url.username && !url.password && typeof source.title === 'string' && source.title.trim() ? { ...source, url: url.href } : null; } catch { return null; }
 }
 
+export function sourceAppliesTo(source, part) {
+  if (!Object.hasOwn(source, 'appliesTo')) return true;
+  const scope = source.appliesTo;
+  return Array.isArray(scope) && scope.some(target => target?.id === part.id && target?.label === part.name);
+}
+
 export function regionMapFor(manifest, layer) {
   const image = manifest.assetRecords?.[layer];
   const supplied = manifest.contentData?.anatomy?.regionMaps?.[layer];
@@ -41,7 +47,12 @@ export function regionMapFor(manifest, layer) {
   if (!image?.sha256 || !map || map.layer !== layer || map.imageSha256 !== image.sha256 || (!supplied && map.speciesSlug !== manifest.species?.slug)) return null;
   if (!supplied && Array.isArray(manifest.contentData?.anatomy?.structures)) {
     const parts = manifest.contentData.anatomy.structures.filter(p => p.layer === layer);
-    return { ...map, parts: Object.fromEntries(parts.filter(p => map.parts[p.id]?.label === p.name).map(p => [p.id, map.parts[p.id]])),
+    const sources = map.sources.flatMap(source => {
+      if (!Object.hasOwn(source, 'appliesTo')) return [source];
+      const appliesTo = parts.filter(p => sourceAppliesTo(source, p)).map(p => ({ id:p.id, label:p.name }));
+      return appliesTo.length ? [{ ...source, appliesTo }] : [];
+    });
+    return { ...map, sources, parts: Object.fromEntries(parts.filter(p => map.parts[p.id]?.label === p.name).map(p => [p.id, map.parts[p.id]])),
       unmapped: Object.fromEntries(parts.filter(p => map.parts[p.id]?.label !== p.name).map(p => [p.id, map.unmapped[p.id] || 'An image-matched outline has not yet been supplied for this structure.'])) };
   }
   return map;
@@ -49,7 +60,7 @@ export function regionMapFor(manifest, layer) {
 
 export function regionFor(manifest, part) {
   const map = regionMapFor(manifest, part.layer), shape = map?.parts?.[part.id];
-  const sources = (map?.sources || []).map(safeAnatomySource).filter(Boolean);
+  const sources = (Array.isArray(map?.sources) ? map.sources : []).map(safeAnatomySource).filter(Boolean).filter(source => sourceAppliesTo(source, part));
   const valid = shape?.label === part.name && Array.isArray(shape.polygons) && shape.polygons.length > 0 && shape.polygons.length <= 20 && shape.polygons.every(validPolygon) && sources.length;
   return valid ? { available: true, map, polygons: shape.polygons, sources, basis: map.basis }
     : { available: false, map, sources, reason: map?.unmapped?.[part.id] || 'An image-matched outline is not available for this structure. Use the structure list and reference material.' };

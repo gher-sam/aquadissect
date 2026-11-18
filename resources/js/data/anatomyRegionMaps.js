@@ -1186,7 +1186,7 @@ export const builtInRegionMaps = {
               77.539
             ],
             [
-              50.0,
+              50,
               77.93
             ],
             [
@@ -1353,7 +1353,7 @@ export const builtInRegionMaps = {
             ],
             [
               8.12,
-              43.0
+              43
             ],
             [
               8.35,
@@ -1392,14 +1392,111 @@ export const builtInRegionMaps = {
         "title": "Internal Anatomy",
         "publisher": "Pennsylvania Fish and Boat Commission",
         "url": "https://www.pa.gov/content/dam/copapwp-pagov/en/fishandboat/documents/education/activitiesandeducationportal/internal.pdf",
-        "scope": "General bony-fish organ relationships; not a species-specific tracing."
+        "scope": "General bony-fish organ relationships; not a species-specific tracing.",
+        "appliesTo": [
+          {
+            "id": "gills",
+            "label": "Gills"
+          },
+          {
+            "id": "heart",
+            "label": "Heart"
+          },
+          {
+            "id": "liver",
+            "label": "Liver"
+          },
+          {
+            "id": "gallbladder",
+            "label": "Gallbladder"
+          },
+          {
+            "id": "stomach",
+            "label": "Stomach"
+          },
+          {
+            "id": "intestine",
+            "label": "Intestine"
+          },
+          {
+            "id": "spleen",
+            "label": "Spleen"
+          },
+          {
+            "id": "swimBladder",
+            "label": "Swim bladder"
+          },
+          {
+            "id": "gonad",
+            "label": "Gonad"
+          },
+          {
+            "id": "spine",
+            "label": "Vertebral column"
+          }
+        ]
       },
       {
         "id": "seafdec-535",
         "title": "Biology and culture of siganids",
         "publisher": "SEAFDEC Aquaculture Department",
         "url": "https://repository.seafdec.org.ph/handle/10862/535",
-        "scope": "Siganid background. The gastrointestinal illustration concerns Siganus spinus and is not a Siganus guttatus pixel map."
+        "scope": "Siganid background. The gastrointestinal illustration concerns Siganus spinus and is not a Siganus guttatus pixel map.",
+        "appliesTo": [
+          {
+            "id": "gills",
+            "label": "Gills"
+          },
+          {
+            "id": "heart",
+            "label": "Heart"
+          },
+          {
+            "id": "liver",
+            "label": "Liver"
+          },
+          {
+            "id": "gallbladder",
+            "label": "Gallbladder"
+          },
+          {
+            "id": "stomach",
+            "label": "Stomach"
+          },
+          {
+            "id": "intestine",
+            "label": "Intestine"
+          },
+          {
+            "id": "spleen",
+            "label": "Spleen"
+          },
+          {
+            "id": "swimBladder",
+            "label": "Swim bladder"
+          },
+          {
+            "id": "gonad",
+            "label": "Gonad"
+          },
+          {
+            "id": "spine",
+            "label": "Vertebral column"
+          }
+        ]
+      },
+      {
+        "id": "guttatus-kidney-2026",
+        "title": "Kidney tissue observations in Siganus guttatus",
+        "publisher": "Hoai et al., Transboundary and Emerging Diseases (2026)",
+        "url": "https://doi.org/10.1155/tbed/2656593",
+        "scope": "Same species: Siganus guttatus. This study describes diseased kidney tissue and microscopic pathology. It does not establish a healthy whole-organ boundary in this illustration.",
+        "appliesTo": [
+          {
+            "id": "kidney",
+            "label": "Kidney"
+          }
+        ]
       }
     ],
     "parts": {

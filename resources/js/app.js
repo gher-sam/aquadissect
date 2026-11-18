@@ -96,7 +96,7 @@ app.innerHTML = `
       <aside class="anatomy-panel panel-surface" aria-labelledby="anatomyHeading">
         <div class="panel-heading"><div><span class="eyebrow">Specimen guide</span><h2 id="anatomyHeading">Anatomy</h2></div><span class="part-count" id="partCount">0 parts</span></div>
         <section class="selected-card" id="selectedCard" aria-live="polite"><div class="selected-card__empty"><span class="selected-illustration" aria-hidden="true"><i data-lucide="focus"></i></span><h3>Select a structure</h3><p>Choose an outlined area or use the structure list.</p></div></section>
-        <div class="anatomy-list-heading"><span>Visible structures</span><span id="foundCount">0 found</span></div><div class="anatomy-list" id="anatomyList"></div>
+        <div class="anatomy-list-heading"><span>Structure list</span><span id="foundCount">0 reviewed</span></div><div class="anatomy-list" id="anatomyList"></div>
       </aside>
     </main>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -186,9 +186,10 @@ async function buildViewer(type = '2d') {
       elements.modeBadge.classList.toggle('is-internal', layer.key === 'internal');
     },
     onPlaybackChange: (playing) => {
-      if (state.viewerType !== 'video') return;
+      if (!['video', '2d'].includes(state.viewerType)) return;
       elements.rotateToggle.setAttribute('aria-pressed', String(playing));
-      elements.rotateToggle.querySelector('span').textContent = playing ? 'Pause video' : 'Play video';
+      elements.rotateToggle.querySelector('span').textContent = state.viewerType === 'video'
+        ? (playing ? 'Pause video' : 'Play video') : (playing ? 'Pause layers' : 'Play layers');
     },
   };
   state.model = await createViewer(type, elements.scene, state.anatomy, state.manifest, callbacks);
@@ -329,7 +330,7 @@ function renderAnatomyList() {
   const visible = availableParts();
   const found = new Set(state.discoveries.flatMap((items) => [...items]));
   elements.partCount.textContent = `${visible.length} ${visible.length === 1 ? 'part' : 'parts'}`;
-  elements.foundCount.textContent = `${visible.filter((id) => found.has(id)).length} found`;
+  elements.foundCount.textContent = `${visible.filter((id) => found.has(id)).length} reviewed`;
   elements.anatomyList.innerHTML = visible.map((id) => {
     const part = state.anatomy[id];
     return `<button class="anatomy-item ${state.selected === id ? 'is-selected' : ''}" data-part-id="${id}" type="button" aria-pressed="${state.selected === id}"><span class="part-swatch" style="--part-color:${partColor(part)}"></span><span><strong>${escapeHtml(part.name)}</strong><small>${escapeHtml(part.system)}</small></span><i data-lucide="chevron-right"></i></button>`;
@@ -343,7 +344,7 @@ function renderSelectedPart(id) {
   state.selected = id;
   state.model.selectPart(id);
   const region = state.model.regionStatus?.(id);
-  const regionNote = region ? `<div class="anatomy-selection-note"><strong>${region.available ? 'Structure outline' : 'Outline not available'}</strong><p>${escapeHtml(region.available ? 'The outline follows this illustration. Specimens may vary; confirm anatomy with your instructor.' : region.reason)}</p>${region.sources?.length ? `<details><summary>Anatomy sources</summary>${region.sources.map(source => `<a href="${escapeHtml(source.url)}" target="_blank" rel="noreferrer">${escapeHtml(source.publisher || source.title)} · ${escapeHtml(source.title)}</a>${source.scope ? `<small class="anatomy-source-scope">${escapeHtml(source.scope)}</small>` : ''}`).join('')}</details>` : ''}</div>` : '';
+  const regionNote = region ? `<div class="anatomy-selection-note"><strong>${region.available ? 'Structure outline' : 'Outline not available'}</strong><p>${escapeHtml(region.available ? 'The outline follows this image. Specimens may vary; confirm anatomy with your instructor.' : region.reason)}</p>${region.sources?.length ? `<details><summary>Anatomy sources</summary>${region.sources.map(source => `<a href="${escapeHtml(source.url)}" target="_blank" rel="noreferrer">${escapeHtml(source.publisher || source.title)} · ${escapeHtml(source.title)}</a>${source.scope ? `<small class="anatomy-source-scope">${escapeHtml(source.scope)}</small>` : ''}`).join('')}</details>` : ''}</div>` : '';
   elements.selectedCard.innerHTML = `<div class="selected-card__content"><div class="selected-card__heading"><span class="selected-swatch" style="--part-color:${partColor(part)}"></span><span><small>${escapeHtml(part.system)}</small><h3>${escapeHtml(part.name)}</h3></span></div><p>${escapeHtml(part.summary)}</p><details><summary>More detail <i data-lucide="chevron-right"></i></summary><p>${escapeHtml(part.detail)}</p></details>${regionNote}</div>`;
   state.motion?.revealPart(elements.selectedCard);
   renderAnatomyList();

@@ -50,7 +50,7 @@ class AnatomyRegionsTest extends TestCase
         imagedestroy($image);
         $anatomy = ['structures' => [['id' => 'test-fin', 'name' => 'Synthetic region', 'layer' => 'external', 'summary' => 'Engineering fixture only', 'detail' => 'Not biological instruction', 'system' => 'Engineering fixture', 'color' => '#155eef']],
             'regionMaps' => ['external' => ['layer' => 'external', 'imageSha256' => hash('sha256', $png), 'width' => 120, 'height' => 80, 'basis' => 'illustration',
-                'sources' => [['title' => 'Engineering fixture reference', 'url' => 'https://example.org/reference']],
+                'sources' => [['title' => 'Engineering fixture reference', 'url' => 'https://example.org/reference', 'appliesTo' => [['id' => 'test-fin', 'label' => 'Synthetic region']]]],
                 'parts' => ['test-fin' => ['label' => 'Synthetic region', 'polygons' => [[[10, 10], [60, 10], [60, 60], [10, 60]]]]], 'unmapped' => []]]];
         $manifest = ['schemaVersion' => '1.0', 'packageVersion' => '1.0.0', 'minimumApplicationVersion' => '1.0.0', 'species' => ['slug' => $slug, 'commonName' => 'QA outline specimen', 'scientificName' => 'Synthetic engineering fixture', 'taxonomicGroup' => 'Engineering fixture'],
             'lessonKey' => $slug, 'activityMode' => 'anatomy_only', 'catalogVisibility' => 'listed', 'viewer' => ['profile' => 'layered-2d'],
@@ -102,6 +102,7 @@ class AnatomyRegionsTest extends TestCase
         $this->actingAs($reviewer)->postJson('/api/staff/species-packages/'.$package->id.'/review', ['decision' => 'approved', 'notes' => 'Synthetic engineering review, not biological validation.', 'evidenceReference' => 'Synthetic engineering fixture only', 'curriculumAlignmentConfirmed' => true, 'safetyReviewConfirmed' => true])->assertOk();
         $this->actingAs($admin)->postJson('/api/admin/species-packages/'.$package->id.'/publish')->assertOk();
         $this->actingAs($student)->getJson($url)->assertOk()->assertJsonPath('package.contentData.anatomy.regionMaps.external.parts.test-fin.label', 'Synthetic region');
+        $this->getJson($url)->assertJsonPath('package.contentData.anatomy.regionMaps.external.sources.0.appliesTo.0.id', 'test-fin');
         $this->getJson('/api/species')->assertJsonFragment(['id' => $package->id])->assertJsonMissing(['slug' => 'tilapia']);
         $this->getJson('/api/classes')->assertJsonFragment(['packageId' => $package->id]);
         $other = User::factory()->create(['role' => 'student', 'status' => 'active']);
@@ -112,7 +113,7 @@ class AnatomyRegionsTest extends TestCase
     {
         $actor = User::factory()->create(['role' => 'instructor', 'status' => 'active']);
         $before = SpeciesPackage::count();
-        foreach (['hash', 'label', 'crossing', 'outside', 'reference', 'missing'] as $problem) {
+        foreach (['hash', 'label', 'crossing', 'outside', 'reference', 'missing', 'scope_label', 'scope_id', 'scope_duplicate', 'uncovered'] as $problem) {
             $file = $this->archive(function (&$anatomy, &$manifest) use ($problem): void {
                 $map = &$anatomy['regionMaps']['external'];
                 if ($problem === 'hash') {
@@ -133,8 +134,27 @@ class AnatomyRegionsTest extends TestCase
                 if ($problem === 'missing') {
                     unset($anatomy['regionMaps']);
                 }
+                if ($problem === 'scope_label') {
+                    $map['sources'][0]['appliesTo'][0]['label'] = 'Different structure';
+                }
+                if ($problem === 'scope_id') {
+                    $map['sources'][0]['appliesTo'][0]['id'] = 'unknown-structure';
+                }
+                if ($problem === 'scope_duplicate') {
+                    $map['sources'][0]['appliesTo'][] = $map['sources'][0]['appliesTo'][0];
+                }
+                if ($problem === 'uncovered') {
+                    $other = $anatomy['structures'][0];
+                    $other['id'] = 'other-region';
+                    $other['name'] = 'Another synthetic region';
+                    $anatomy['structures'][] = $other;
+                    $map['parts']['other-region'] = ['label' => $other['name'], 'polygons' => [[[20, 20], [50, 20], [50, 50], [20, 50]]]];
+                }
             });
-            $this->actingAs($actor)->post('/api/instructor/species-packages', ['package' => $file], ['Accept' => 'application/json'])->assertUnprocessable();
+            $response = $this->actingAs($actor)->post('/api/instructor/species-packages', ['package' => $file], ['Accept' => 'application/json'])->assertUnprocessable();
+            if ($problem === 'uncovered') {
+                $response->assertJsonPath('errors.anatomy.0', 'Every outlined structure requires at least one applicable anatomy reference.');
+            }
         }
         $this->assertSame($before, SpeciesPackage::count());
     }

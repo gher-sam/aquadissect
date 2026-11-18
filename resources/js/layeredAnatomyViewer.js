@@ -1,17 +1,17 @@
 import { motionAllowed, onMotionChange } from './motionPreferences.js';
 import { ImageMeasurement } from './imageMeasurement.js';
-import { fittedImageRect } from './imageMeasurementData.js';
 import { AnatomyRegionOverlay } from './anatomyRegionOverlay.js';
 
 const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
 
 export class LayeredAnatomyViewer {
-  constructor(container, anatomy, manifest, { onSelect, onDepthChange } = {}) {
+  constructor(container, anatomy, manifest, { onSelect, onDepthChange, onPlaybackChange } = {}) {
     this.container = container;
     this.anatomy = anatomy;
     this.manifest = manifest;
     this.onSelect = onSelect;
     this.onDepthChange = onDepthChange;
+    this.onPlaybackChange = onPlaybackChange;
     this.depth = 0;
     this.step = 0;
     this.labelsAll = false;
@@ -34,7 +34,6 @@ export class LayeredAnatomyViewer {
         <img class="anatomy-layer anatomy-layer--natural">
         <img class="anatomy-layer anatomy-layer--external">
         <img class="anatomy-layer anatomy-layer--internal">
-        <svg class="image-incision-guide" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="M55 69 C44 72, 35 72, 26 66" pathLength="1"></path></svg>
       </div>
     `;
     container.prepend(this.root);
@@ -44,10 +43,9 @@ export class LayeredAnatomyViewer {
     this.internalImage = this.root.querySelector('.anatomy-layer--internal');
     for (const layer of ['natural', 'external', 'internal']) {
       const image = this.root.querySelector(`.anatomy-layer--${layer}`);
-      image.src = assets[layer].url; image.alt = `${layer} educational illustration of ${manifest.species.commonName}`;
+      image.src = assets[layer].url; image.alt = `${layer} educational image of ${manifest.species.commonName}`;
     }
     this.regions = new AnatomyRegionOverlay(this.frame, manifest, this.structures, onSelect);
-    this.incisionGuide = this.root.querySelector('.image-incision-guide');
     this.measurement = new ImageMeasurement(this.frame, manifest, key => ({natural:this.naturalImage,external:this.externalImage,internal:this.internalImage})[key]);
     this.bindInteractions();
     this.layoutObserver = new ResizeObserver(() => this.layoutHotspots());
@@ -95,21 +93,19 @@ export class LayeredAnatomyViewer {
 
   setStep(step) {
     this.step = clamp(step, 0, Math.max(0, this.stepDepths.length - 1));
-    this.incisionGuide.classList.toggle('is-visible', this.manifest.contentData.lesson.steps[this.step]?.kind === 'action-target');
     this.setDepth(this.stepDepths[this.step] ?? 0);
   }
 
   traceIncision() {
-    this.incisionGuide.classList.add('is-visible', 'is-traced');
+    // Source-specific incision geometry awaits review; no generic path is drawn.
     this.setDepth(58);
   }
 
   openBodyWall() {
-    this.incisionGuide.classList.remove('is-visible');
     this.setDepth(100);
   }
 
-  setExplode(value) { this.setDepth(Number(value) * 100); }
+  setExplode(value) { this.stopPlayback(); this.setDepth(Number(value) * 100); }
 
   setLabelsVisible(visible) {
     this.labelsAll = visible;
@@ -120,37 +116,34 @@ export class LayeredAnatomyViewer {
   setHighlighted(ids) { this.highlighted = new Set(ids); this.updateHotspots(); }
 
   selectPart(id) {
+    this.stopPlayback();
     this.selectedId = id;
     const layer = this.anatomy[id]?.layer;
-    if (layer && layer !== this.layerState().key) this.setDepth(layer === 'internal' ? 100 : 34);
+    const targetDepth = layer === 'internal' ? 100 : 34;
+    if (layer && this.depth !== targetDepth) this.setDepth(targetDepth);
     else this.updateHotspots();
   }
 
   regionStatus(id) { return this.regions.status(id); }
-  regionSnapshot() { return this.regions.snapshot(); }
+  regionSnapshot() { return { ...this.regions.snapshot(), playing:this.playing }; }
 
   layoutHotspots() {
     const key = this.layerState().key;
     const image = {natural:this.naturalImage,external:this.externalImage,internal:this.internalImage}[key];
     this.regions.update(image, key, this.selectedId, this.highlighted, this.labelsAll);
-    if (!image?.naturalWidth) return;
-    const base = this.frame.getBoundingClientRect();
-    if (!(base.width>0 && base.height>0)) return;
-    const rect = fittedImageRect(image.naturalWidth,image.naturalHeight,base);
-    const left = rect.left-base.left, top=rect.top-base.top;
-    Object.assign(this.incisionGuide.style,{inset:'auto',left:left+'px',top:top+'px',width:rect.width+'px',height:rect.height+'px'});
   }
 
   updateHotspots() {
     this.layoutHotspots();
   }
 
-  resetView() { this.stopPlayback(); this.incisionGuide.classList.remove('is-traced'); this.setDepth(this.stepDepths[this.step] ?? 0); }
+  resetView() { this.stopPlayback(); this.setDepth(this.stepDepths[this.step] ?? 0); }
 
   togglePlayback() {
     if (this.reduceMotion) return false;
     if (this.playing) { this.stopPlayback(); return false; }
     this.playing = true;
+    this.onPlaybackChange?.(true);
     let lastTime = null;
     const animate = (timestamp) => {
       if (!this.playing) return;
@@ -166,7 +159,13 @@ export class LayeredAnatomyViewer {
     return true;
   }
 
-  stopPlayback() { this.playing = false; if (this.animationFrame) cancelAnimationFrame(this.animationFrame); }
+  stopPlayback() {
+    const wasPlaying = this.playing;
+    this.playing = false;
+    if (this.animationFrame) cancelAnimationFrame(this.animationFrame);
+    this.animationFrame = null;
+    if (wasPlaying) this.onPlaybackChange?.(false);
+  }
 
   async toggleFullscreen() {
     if (document.fullscreenElement) { await document.exitFullscreen(); return false; }
