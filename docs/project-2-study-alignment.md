@@ -768,3 +768,20 @@ Status: Software corrections Implemented but awaiting validation; kidney outline
 Not available. Source findings and remaining inputs are recorded in
 `docs/anatomy-part-review.md`. Source checking and engineering tests do not record
 faculty biological validation or learning effectiveness.
+
+## November 19, 2026: Published reference image and truthful procedure presentation
+
+The user requested a verified fix and continued legitimate online source checking,
+without a faculty-approved source link available. The unchanged published Figure 5
+from the same-species kidney study may be displayed as a clearly labelled literature
+reference, with panel C identified, microscopic disease context, attribution and
+CC BY 4.0. This is not a healthy whole-kidney image, a body-location map, a new
+whole-organ outline, or faculty endorsement. The vent has a qualified same-species
+textual reference; its visible boundary remains unavailable.
+
+When a view has no explicit incision-guide capability, describe its action-target
+step as reference review rather than claiming a cut is traced. Retain original
+package content, core target selection, progression, questions, scores, review
+records and publication gates. Source images do not establish an approved cut
+position. Whole-kidney and vent outlines remain Not available; biological and
+procedure validation remain pending. Engineering results are recorded separately.

@@ -16,6 +16,8 @@ import { createObservationNotebook } from './observationNotebook.js';
 import { createPracticeChallenges } from './practiceChallenges.js';
 import { createViewer } from './viewerFactory.js';
 import '../css/anatomy-regions.css';
+import { lessonStepPresentation } from './lessonStepPresentation.js';
+import { referenceFigureFor, showReferenceFigure, closeReferenceFigure, referenceFigureSnapshot } from './anatomyReferenceFigures.js';
 import { setupAquaPortal } from './portal/index.js';
 import '../css/style.css';
 import '../css/fishEnhancements.css';
@@ -286,6 +288,10 @@ function availableParts() {
   return [...state.model.externalIds, ...state.model.internalIds];
 }
 
+function presentedStep() {
+  return lessonStepPresentation(state.steps[state.step], state.model?.hasIncisionGuide?.(state.step) === true);
+}
+
 function targetComplete() {
   return (state.steps[state.step]?.targets || []).every((id) => state.discoveries[state.step].has(id));
 }
@@ -299,6 +305,11 @@ function renderTargets() {
     const complete = state.discoveries[state.step].has(id);
     return `<button class="target-item ${complete ? 'is-complete' : ''}" data-part-id="${id}" type="button"><span class="target-status">${complete ? '<i data-lucide="check"></i>' : index + 1}</span><span>${escapeHtml(state.anatomy[id]?.name || id)}</span><i data-lucide="chevron-right"></i></button>`;
   }).join('');
+  for (const button of elements.targetList.querySelectorAll('[data-part-id]')) {
+    if (state.model?.regionStatus?.(button.dataset.partId)?.available !== false) continue;
+    const note = document.createElement('small'); note.className = 'anatomy-reference-only'; note.textContent = 'Reference only · outline unavailable';
+    button.children[1].append(note);
+  }
   restorePartButtonFocus(focusTarget);
 }
 
@@ -322,7 +333,7 @@ function updatePrimaryAction() {
     }
   }
   elements.primaryAction.disabled = disabled || quizSaving;
-  elements.primaryAction.querySelector('span').textContent = quizSaving ? 'Saving answers…' : definition.action;
+  elements.primaryAction.querySelector('span').textContent = quizSaving ? 'Saving answers…' : presentedStep().action;
 }
 
 function renderAnatomyList() {
@@ -346,9 +357,24 @@ function renderSelectedPart(id) {
   const region = state.model.regionStatus?.(id);
   const regionNote = region ? `<div class="anatomy-selection-note"><strong>${region.available ? 'Structure outline' : 'Outline not available'}</strong><p>${escapeHtml(region.available ? 'The outline follows this image. Specimens may vary; confirm anatomy with your instructor.' : region.reason)}</p>${region.sources?.length ? `<details><summary>Anatomy sources</summary>${region.sources.map(source => `<a href="${escapeHtml(source.url)}" target="_blank" rel="noreferrer">${escapeHtml(source.publisher || source.title)} · ${escapeHtml(source.title)}</a>${source.scope ? `<small class="anatomy-source-scope">${escapeHtml(source.scope)}</small>` : ''}`).join('')}</details>` : ''}</div>` : '';
   elements.selectedCard.innerHTML = `<div class="selected-card__content"><div class="selected-card__heading"><span class="selected-swatch" style="--part-color:${partColor(part)}"></span><span><small>${escapeHtml(part.system)}</small><h3>${escapeHtml(part.name)}</h3></span></div><p>${escapeHtml(part.summary)}</p><details><summary>More detail <i data-lucide="chevron-right"></i></summary><p>${escapeHtml(part.detail)}</p></details>${regionNote}</div>`;
+  for (const [index, source] of (region?.sources || []).entries()) {
+    if (!referenceFigureFor(source, part, state.manifest)) continue;
+    const button = document.createElement('button'); button.type = 'button'; button.className = 'anatomy-source-image-button';
+    button.dataset.anatomySourceIndex = String(index); button.textContent = 'View kidney tissue (microscope)';
+    elements.selectedCard.querySelector('.anatomy-selection-note').append(button);
+  }
   state.motion?.revealPart(elements.selectedCard);
   renderAnatomyList();
 }
+
+elements.selectedCard.addEventListener('click', event => {
+  const trigger = event.target.closest('[data-anatomy-source-index]');
+  const part = state.anatomy[state.selected];
+  if (!trigger || !part) return;
+  const source = state.model?.regionStatus?.(part.id)?.sources?.[Number(trigger.dataset.anatomySourceIndex)];
+  const figure = referenceFigureFor(source, part, state.manifest);
+  if (figure) { state.model.stopPlayback?.(); showReferenceFigure(figure, trigger); }
+});
 
 function handlePartSelection(id) {
   if (!availableParts().includes(id)) {
@@ -371,10 +397,11 @@ function renderStep(direction = 0) {
   clearTimeout(state.stepFocusTimer);
   state.stepFocusTimer = null;
   const definition = state.steps[state.step];
+  const presentation = presentedStep();
   elements.stepEyebrow.textContent = definition.eyebrow;
-  elements.stepTitle.textContent = definition.title;
-  elements.stepDescription.textContent = definition.description;
-  elements.stepPrompt.textContent = definition.prompt;
+  elements.stepTitle.textContent = presentation.title;
+  elements.stepDescription.textContent = presentation.description;
+  elements.stepPrompt.textContent = presentation.prompt;
   const video = state.manifest.assetRecords?.[definition.videoAsset];
   const videoUrl = ['video/mp4', 'video/webm'].includes(video?.mimeType) ? video.url : null;
   const provenance = state.manifest.assetProvenance?.[definition.videoAsset] || {};
@@ -451,7 +478,7 @@ async function submitQuiz() {
 elements.primaryAction.addEventListener('click', async () => {
   const definition = state.steps[state.step];
   if (definition.kind === 'quiz') { await submitQuiz(); return; }
-  if (definition.kind === 'action-target') state.model.traceIncision();
+  if (definition.kind === 'action-target' && !presentedStep().referenceOnly) state.model.traceIncision();
   if (definition.kind === 'action') state.model.openBodyWall();
   if (state.step < state.steps.length - 1) {
     state.step += 1;
@@ -519,13 +546,15 @@ portal = setupAquaPortal({
   onLeaveLesson: async (options) => {
     if (options?.force) practice.clear();
     const left = await notebook.clear(options);
-    if (left !== false) { practice.clear(); elements.stepVideo.pause(); }
+    if (left !== false) { closeReferenceFigure(); practice.clear(); elements.stepVideo.pause(); }
     return left;
   },
 });
 window.render_game_to_text = () => JSON.stringify({
-  mode: query('#practiceDialog').open ? 'practice' : app.hidden ? 'portal' : 'lesson',
+  mode: referenceFigureSnapshot() ? 'anatomy-reference' : query('#practiceDialog').open ? 'practice' : app.hidden ? 'portal' : 'lesson',
   lessonStep: state.step,
+  lessonInstructionMode: presentedStep().referenceOnly ? 'reference-review' : 'guided',
+  referenceFigure: referenceFigureSnapshot(),
   anatomy: { selected: state.selected, regions: state.model?.regionSnapshot?.() || null },
   practice: practice.snapshot(),
 });

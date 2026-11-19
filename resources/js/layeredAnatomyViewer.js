@@ -96,6 +96,8 @@ export class LayeredAnatomyViewer {
     this.setDepth(this.stepDepths[this.step] ?? 0);
   }
 
+  hasIncisionGuide() { return false; }
+
   traceIncision() {
     // Source-specific incision geometry awaits review; no generic path is drawn.
     this.setDepth(58);

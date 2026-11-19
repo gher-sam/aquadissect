@@ -13,14 +13,111 @@ export const builtInRegionMaps = {
         "title": "Siganidae species identification guide",
         "publisher": "FAO",
         "url": "https://www.fao.org/4/y0870e/y0870e27.pdf",
-        "scope": "Rabbitfish external identification; does not establish internal organ boundaries."
+        "scope": "Rabbitfish external identification; does not establish internal organ boundaries.",
+        "appliesTo": [
+          {
+            "id": "mouth",
+            "label": "Mouth"
+          },
+          {
+            "id": "eye",
+            "label": "Eye"
+          },
+          {
+            "id": "operculum",
+            "label": "Operculum"
+          },
+          {
+            "id": "lateralLine",
+            "label": "Lateral line"
+          },
+          {
+            "id": "dorsalFin",
+            "label": "Dorsal fin"
+          },
+          {
+            "id": "pectoralFin",
+            "label": "Pectoral fin"
+          },
+          {
+            "id": "pelvicFin",
+            "label": "Pelvic fin"
+          },
+          {
+            "id": "analFin",
+            "label": "Anal fin"
+          },
+          {
+            "id": "caudalFin",
+            "label": "Caudal fin"
+          },
+          {
+            "id": "nostril",
+            "label": "Nostril"
+          }
+        ]
       },
       {
         "id": "seafdec-6396",
         "title": "Nursery and grow-out culture of rabbitfish Siganus guttatus in brackishwater ponds",
         "publisher": "SEAFDEC Aquaculture Department",
         "url": "https://repository.seafdec.org.ph/handle/10862/6396",
-        "scope": "Species biology and external morphology."
+        "scope": "Species biology and external morphology.",
+        "appliesTo": [
+          {
+            "id": "mouth",
+            "label": "Mouth"
+          },
+          {
+            "id": "eye",
+            "label": "Eye"
+          },
+          {
+            "id": "operculum",
+            "label": "Operculum"
+          },
+          {
+            "id": "lateralLine",
+            "label": "Lateral line"
+          },
+          {
+            "id": "dorsalFin",
+            "label": "Dorsal fin"
+          },
+          {
+            "id": "pectoralFin",
+            "label": "Pectoral fin"
+          },
+          {
+            "id": "pelvicFin",
+            "label": "Pelvic fin"
+          },
+          {
+            "id": "analFin",
+            "label": "Anal fin"
+          },
+          {
+            "id": "caudalFin",
+            "label": "Caudal fin"
+          },
+          {
+            "id": "nostril",
+            "label": "Nostril"
+          }
+        ]
+      },
+      {
+        "id": "seafdec-guttatus-opening-1984",
+        "title": "Aspects of nutrition and reproduction in Siganus guttatus",
+        "publisher": "Soletchnik (1984), SEAFDEC Aquaculture Department",
+        "url": "https://repository.seafdec.org.ph/handle/10862/5987",
+        "scope": "Same species. The report discusses the urogenital opening during reproductive observations. It does not establish a vent boundary or an incision route in this illustration.",
+        "appliesTo": [
+          {
+            "id": "vent",
+            "label": "Vent"
+          }
+        ]
       }
     ],
     "parts": {
@@ -1376,7 +1473,7 @@ export const builtInRegionMaps = {
       }
     },
     "unmapped": {
-      "vent": "The external opening is not sufficiently delineated in this illustration."
+      "vent": "The vent boundary is not visible in this image. Do not infer an incision position from an old marker. Review the source notes with your instructor."
     }
   },
   "ad34a530487e5155de9286079320d0a2b3c00ba2656cd9b6c1392fb79d805567": {
@@ -1496,7 +1593,8 @@ export const builtInRegionMaps = {
             "id": "kidney",
             "label": "Kidney"
           }
-        ]
+        ],
+        "figureId": "guttatus-kidney-histology-2026"
       }
     ],
     "parts": {

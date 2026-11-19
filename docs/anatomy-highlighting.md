@@ -128,3 +128,16 @@ image fidelity, organ boundaries, references, lesson targets and safety separate
 Status: Implemented but awaiting validation. Engineering verification, image
 alignment, controlled future-species import and release evidence are retained
 separately from faculty acceptance and research findings.
+
+## Published reference figure and unavailable procedure paths
+
+The kidney source can open a separately labelled, unchanged published microscopy
+figure, with panel C identified, disease context, attribution and CC BY 4.0.
+Its trusted figure ID is matched to the publication, exact species, part label,
+layer and applicable source binding. It never supplies whole-fish coordinates.
+Changing the citation to another publication removes the image affordance.
+
+Views without an explicit incision-guide capability show reference-review wording
+for action-target steps and never claim a cut was traced. Target lists identify
+unavailable outlines as reference-only. Existing package targets, questions,
+progression and academic records retain their original rules.

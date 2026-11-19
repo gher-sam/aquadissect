@@ -42,3 +42,20 @@
 .region-reference input:not([type=checkbox]),
 .region-reference textarea { width:100%; min-width:0; }
 .region-reference [data-reference-parts] { grid-template-columns:repeat(auto-fit,minmax(min(130px,100%),1fr)); }
+.anatomy-reference-only { display:block; font-size:12px; line-height:1.5; font-weight:400; color:#4d687b; }
+.anatomy-source-image-button,
+.anatomy-reference-dialog button { min-height:44px; padding:9px 12px; border:1px solid #b9d0ed; border-radius:8px; background:#eff5ff; color:#1245a4; font:600 13px/1.5 Figtree,Arial,sans-serif; cursor:pointer; }
+.anatomy-source-image-button { width:100%; margin-top:10px; }
+.anatomy-reference-dialog { width:min(720px,calc(100% - 24px)); max-height:90vh; max-height:90dvh; overflow:auto; padding:20px; border:1px solid #cddce7; border-radius:12px; background:#fff; color:#12324a; font:16px/1.6 Figtree,Arial,sans-serif; }
+.anatomy-reference-dialog::backdrop { background:rgb(8 24 48 / 45%); }
+.anatomy-reference-dialog h2 { margin:16px 0 8px; font-size:20px; line-height:1.4; }
+.anatomy-reference-dialog p,
+.anatomy-reference-dialog figcaption { overflow-wrap:anywhere; }
+.anatomy-reference-limitation { padding:10px; border-left:4px solid #c84335; background:#fff4f0; }
+.anatomy-reference-dialog figure { margin:16px 0; }
+.anatomy-reference-dialog img { display:block; width:100%; max-width:600px; height:auto; margin:auto; }
+.anatomy-reference-dialog figcaption,
+.anatomy-reference-dialog [data-reference-image-status] { margin-top:8px; font-size:13px; }
+.anatomy-reference-dialog a { color:#1245a4; text-decoration:underline; }
+.anatomy-reference-dialog button:focus-visible,
+.anatomy-source-image-button:focus-visible { outline:3px solid #155eef; outline-offset:3px; }
