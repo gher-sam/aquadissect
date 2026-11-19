@@ -11,7 +11,7 @@ species is not an accepted substitute or comparison for this review.
 | Source | What was verified | Use in AquaDissect |
 | --- | --- | --- |
 | [Hoai et al., 2026](https://doi.org/10.1155/tbed/2656593), Transboundary and Emerging Diseases | Exact species; diseased renal tissue. The article records CC BY 4.0 licensing. | Qualified reference link only; no image or outline is adopted. |
-| [Salinity study, DOI 10.1111/jwas.70106](https://doi.org/10.1111/jwas.70106) | A same-species candidate discussing renal histopathology. | Candidate only; suitability of its figures for whole-organ tracing remains unverified. |
+| [Salinity study, DOI 10.1111/jwas.70106](https://doi.org/10.1111/jwas.70106) | Same species; the primary text and Figure 7 caption describe microscopic kidney tissue in juveniles. The figure itself has not been visually inspected. | Tissue-level reference candidate only; it does not establish a whole-organ contour in the retained artwork. |
 | [Duray, 1998, Fig. 1, printed page 6](https://repository.seafdec.org.ph/bitstream/handle/10862/535/Siganids.pdf#page=12) | The figure explicitly labels kidney K, but depicts S. canaliculatus. The publication records all rights reserved. | Excluded from the kidney card under the user's species decision. No figure is copied into application assets. |
 | [General bony-fish anatomy](https://www.pa.gov/content/dam/copapwp-pagov/en/fishandboat/documents/education/activitiesandeducationportal/internal.pdf) | A general anatomical reference, without verification of the retained Rabbitfish artwork. | Excluded from the kidney card. Its separately qualified use for other parts remains subject to their later review. |
 
@@ -57,3 +57,19 @@ reviews.
 These are software and source-attribution checks. Biological validation remains
 pending. Synthetic engineering evidence and release results are retained
 separately from faculty decisions and academic records.
+
+### Second review, November 19, 2026
+
+The published application and source descriptions were checked again. The kidney
+image requirement remains unresolved; no verified replacement image or trace has
+been added. Primary text for the salinity study confirms tissue-level microscopy,
+not a location or contour on the current whole-fish artwork.
+
+A citation-editing defect was reproduced without saving a draft: changing only
+the kidney reference title discarded its `appliesTo` restriction, publisher and
+qualification text. That could turn a kidney-only citation into an image-wide
+reference in a later revision. Separate reference fields now retain each source's
+metadata and explicit supported parts. New references start with the selected
+part; image-wide scope requires an explicit selection. Empty restricted scope
+blocks saving. Existing immutable content, independent review, publication and
+academic-record rules remain in force.

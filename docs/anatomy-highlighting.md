@@ -94,6 +94,14 @@ reason. Uploading a complete anatomy JSON file takes precedence over the editor.
 If an image fails to load, Retry image reloads it while retaining completed local
 outline edits. Tracing and reference changes wait until the exact image loads.
 
+Each reference has separate citation, link, source-limit and supported-part fields.
+Editing the citation retains its exact part bindings and qualification text.
+New references initially support only the selected part. Authors can select other
+parts explicitly, or explicitly select every part in the image. A restricted
+reference with no selected parts blocks saving. Removing or reordering other
+references must not transfer a restriction to another citation. Add a new
+reference when replacing a publication, then remove the old entry.
+
 Replacing an image clears its previous region map instead of reusing stale
 coordinates. Save the image draft first and reopen it to trace the new image.
 Keep a version out of catalog inclusion while no outlines are available. Each

@@ -5,3 +5,6 @@
 .viewer-panel.has-measurement{display:flex;flex-direction:column}.viewer-panel.has-measurement>.scene{position:relative;inset:auto;width:100%;height:auto;min-height:180px;flex:1 1 auto}.viewer-panel.has-measurement>.viewer-dock{position:relative;inset:auto;flex:0 0 auto;width:100%;height:auto}.viewer-panel.has-measurement>.measurement-controls{flex:0 0 auto;max-height:180px;overflow:auto;z-index:2}
 
 @media(max-width:560px){.viewer-panel.has-measurement{height:620px;min-height:620px}}
+
+.enhancement-dialog form > *, .enhancement-dialog label, .enhancement-dialog .region-editor { min-width:0; }
+.enhancement-dialog input:not([type=checkbox]), .enhancement-dialog textarea, .enhancement-dialog select { width:100%; min-width:0; }

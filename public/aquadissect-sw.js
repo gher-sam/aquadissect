@@ -1,4 +1,4 @@
-const SHELL_CACHE = 'aquadissect-shell-v30';
+const SHELL_CACHE = 'aquadissect-shell-v31';
 // Refresh scoped media with network-aware locks and concurrent permission checks.
 const SHELL_CACHE_PREFIX = 'aquadissect-shell-';
 const scopeUrl = new URL(self.registration.scope);
