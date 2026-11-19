@@ -77,3 +77,10 @@ Current request: Please implement these improvements. Use accurate highlighting 
 - Remaining biological inputs: a suitable whole-organ kidney image, a clearly delineated vent image, and independent faculty validation. Do not call those outlines fixed merely because software checks pass.
 
 - Verification: 126 JavaScript tests passed, including publication/species/part binding and original-figure integrity. Four targeted backend checks passed with 67 assertions. Eight source/procedure workflows, eight reference-editor workflows and ten existing anatomy browser scenarios passed without application errors. The original package remained unchanged after a separate unapproved synthetic draft retained the figure ID. The managed game client displayed the real source view and matching text state; desktop and mobile screenshots were visually checked. No academic attempt was submitted by these source-view checks.
+
+## Reef Quest paired assessments
+
+- First Dive and Return Dive use the active test pair in My class. Each screen presents one original question. Learners can navigate backward and revise selections from the review before submission.
+- The existing server records and grades the submission. A retry after an interrupted response reuses the same identifier and exact answers. Return Dive displays the learner’s recorded, matched comparison when available.
+- Solid ocean blue, teal, coral and gold distinguish the phases and choices. Short animations follow the device and portal motion preferences. Assessment completion awards no practice points.
+- Browser checks covered 25-item and single-item pairs, keyboard navigation, mobile widths down to 320 pixels, both motion settings, review edits and the lesson prerequisite. A deliberately lost receipt produced one retained attempt. Zero and negative changes matched the server. The disposable database retained every original form, key, attempt and score. All 129 JavaScript tests and the 13 targeted backend tests passed.

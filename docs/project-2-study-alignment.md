@@ -785,3 +785,13 @@ package content, core target selection, progression, questions, scores, review
 records and publication gates. Source images do not establish an approved cut
 position. Whole-kidney and vent outlines remain Not available; biological and
 procedure validation remain pending. Engineering results are recorded separately.
+
+## November 19, 2026 — Reef Quest paired assessment presentation
+
+Use First Dive for the pre-test and Return Dive for the post-test. Present one
+faculty-authored question at a time in its original order, with an editable review
+before submission. Use solid Reef Quest colors and motion that follows the learner’s
+preference. Display the recorded score and, when available, the learner’s matched
+pre/post difference. Keep the original forms, keys, eligibility rules, single scored
+attempt per phase and retained history. Assessment participation carries no practice
+rewards. This presentation decision does not establish a research outcome.

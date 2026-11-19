@@ -36,6 +36,8 @@ import '../css/typography.css';
 import '../css/interface.css';
 import '../css/practice.css';
 import '../css/reef-quest.css';
+import '../css/reef-assessment.css';
+import { reefAssessmentSnapshot } from './portal/reefAssessment.js';
 import { setupMotionControls } from './motionPreferences.js';
 
 const app = document.querySelector('#app');
@@ -551,7 +553,8 @@ portal = setupAquaPortal({
   },
 });
 window.render_game_to_text = () => JSON.stringify({
-  mode: referenceFigureSnapshot() ? 'anatomy-reference' : query('#practiceDialog').open ? 'practice' : app.hidden ? 'portal' : 'lesson',
+  mode: reefAssessmentSnapshot() ? 'assessment' : referenceFigureSnapshot() ? 'anatomy-reference' : query('#practiceDialog').open ? 'practice' : app.hidden ? 'portal' : 'lesson',
+  assessment: reefAssessmentSnapshot(),
   lessonStep: state.step,
   lessonInstructionMode: presentedStep().referenceOnly ? 'reference-review' : 'guided',
   referenceFigure: referenceFigureSnapshot(),

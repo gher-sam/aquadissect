@@ -2,7 +2,7 @@ import { request, appUrl } from './api.js';
 import { escapeHtml as e } from './format.js';
 import { showFishDetails, fishProfileFields } from '../fishDetails.js';
 import { signOutPending } from './sessionAccess.js';
-import { createUuid } from '../uuid.js';
+import { diveNames, openReefAssessment } from './reefAssessment.js';
 
 function routePath(url){const u=new URL(url,location.href);if(u.origin!==location.origin)throw new Error('Invalid lesson URL.');const base=String(window.AQUADISSECT_BASE_URL||'').replace(/\/$/,'');if(base && !u.pathname.startsWith(base+'/'))throw new Error('Invalid lesson path.');return u.pathname.slice(base.length)+u.search;}
 
@@ -69,7 +69,7 @@ async function revision(button) {
 
 export function setupFishEnhancements(){
   document.addEventListener('click',async ev=>{
-    if(ev.target.closest('[data-portal-signout]'))document.querySelectorAll('.enhancement-dialog').forEach(d=>d.close());
+    if(ev.target.closest('[data-portal-signout]'))document.querySelectorAll('.enhancement-dialog, .reef-assessment[open]').forEach(d=>d.close());
     const details=ev.target.closest('[data-fish-manifest]'),edit=ev.target.closest('[data-revise-package]');
     if(!details&&!edit)return;
     try{if(edit)await revision(edit);else{const {package:m}=await request(routePath(details.dataset.fishManifest));if(!signOutPending())showFishDetails(m);}}
@@ -80,12 +80,14 @@ export function setupFishEnhancements(){
 export async function mountAssessmentPanel(container,state){
   if(!container||!state.currentUser)return;
   const owner=state.currentUser.id,role=state.currentUser.role;
-  const host=document.createElement('section');host.className='enhancement-panel';host.innerHTML='<h2>Pretest and posttest</h2><p role="status">Loading assessment records…</p>';container.append(host);
+  const host=document.createElement('section');host.className='enhancement-panel reef-study-panel';host.innerHTML='<h2>Pretest and posttest</h2><p role="status">Loading assessment records…</p>';container.append(host);
   try{
     const data=await request('/api/paired-assessments');
     if(signOutPending()||state.currentUser?.id!==owner||!host.isConnected)return;
     const reload=()=>{host.remove();void mountAssessmentPanel(container,state);};
-    host.innerHTML='<h2>Pretest and posttest</h2><p>Scores show recorded changes. Missing scores are not zero. New instruments stay disabled until independent faculty approval and administrator activation.</p>';
+    host.innerHTML=role==='student'
+      ? '<h2 tabindex="-1" data-studies-heading>Reef Quest assessments</h2><p>Take First Dive before the lesson and Return Dive afterward. Each test has one scored submission.</p>'
+      : '<h2>Pretest and posttest</h2><p>Scores show recorded changes. Missing scores are not zero. New instruments stay disabled until independent faculty approval and administrator activation.</p>';
     for(const study of data.studies){
       const learnerLabel=id=>{if(role==='student')return 'You';const learner=state.classes.find(c=>c.id===study.classId)?.students?.find(u=>u.id===id);return learner ? learner.name+' ('+(learner.identityNumber||id)+')' : 'Account '+id;};
       const section=document.createElement('article');section.className='enhancement-panel';
@@ -95,7 +97,27 @@ export async function mountAssessmentPanel(container,state){
       if(role!=='student'&&study.status==='approved')section.insertAdjacentHTML('beforeend','<p>Faculty approved · Awaiting administrator activation. Students cannot access this test pair yet. An administrator must publish and assign the reviewed lesson, then select “Activate approved tests” here.</p>');
       if(role==='student'){
         const row=study.rows.find(r=>r.studentId===owner);
-        for(const phase of ['pre','post'])if(study.status==='active' && (!row || row[phase+'State']==='not_taken')){const b=document.createElement('button');b.textContent=phase==='pre'?'Take pretest':row?.pre?'Take posttest':'Posttest · take pretest first';b.disabled=phase==='post'&&!row?.pre;b.onclick=()=>void takeAssessment(study,phase,reload);section.append(b);}
+        const launches=document.createElement('div');
+        launches.className='rq-launches';
+        for(const phase of ['pre','post']){
+          if(study.status!=='active' || (row && row[phase+'State']!=='not_taken'))continue;
+          const launcher=document.createElement('button');
+          launcher.type='button';
+          launcher.dataset.dive=phase;
+          launcher.disabled=phase==='post' && !row?.pre;
+          launcher.textContent=diveNames[phase]+' · '+(phase==='pre'?'Pre-test':'Post-test');
+          launcher.onclick=()=>openReefAssessment({
+            study,phase,owner,launcher,
+            isCurrent:()=>state.currentUser?.id===owner && state.currentPage==='classes' && container.isConnected,
+            refresh:async()=>{
+              container.querySelector('.reef-study-panel')?.remove();
+              await mountAssessmentPanel(container,state);
+              container.querySelector('[data-studies-heading]')?.focus();
+            },
+          });
+          launches.append(launcher);
+        }
+        if(launches.childElementCount)section.append(launches);
       }else{
         const view=document.createElement('button');view.textContent='Review test forms and keys';view.onclick=async()=>{try{const def=await request('/api/paired-assessments/'+study.id+'/definition');if(signOutPending())return;dialog('Test forms and answer keys',['pre','post'].map(phase=>`<h3>${phase==='pre'?'Pretest':'Posttest'}</h3><ol>${def[phase+'Questions'].map(q=>`<li>${e(q.prompt)}<ul>${q.options.map(o=>`<li>${e(o)}</li>`).join('')}</ul><p>Key: ${e(q.answer)}</p></li>`).join('')}</ol>`).join(''));}catch(err){section.querySelector('p').textContent=err.message;}};section.append(view);
         const actions=[];
@@ -117,12 +139,4 @@ function actionDialog(study,action,reload,attemptId){
   const approve=action==='approve',activate=action==='activate';
   const d=dialog(approve?'Faculty assessment review':activate?'Activate reviewed assessment':'Record assessment action',`<form>${approve?'<label>Faculty validation evidence<textarea name="evidence" required minlength="10" maxlength="3000"></textarea></label><label><input name="formsValidated" type="checkbox" required>I reviewed the forms, keys, equivalence and instrument validation.</label><label><input name="policyConfirmed" type="checkbox" required>I confirmed one scored attempt per phase, timing and applicable research permissions.</label>':activate?'<p>Enable this reviewed pair for its selected section? Existing learning and formative records stay retained.</p>':'<label>Reason<textarea name="reason" required minlength="10" maxlength="1000"></textarea></label>'}<button type="submit">Confirm ${e(action)}</button></form>`);
   const f=d.querySelector('form');f.onsubmit=async ev=>{ev.preventDefault();const body=Object.fromEntries(new FormData(f));if(approve){body.formsValidated=f.elements.formsValidated.checked;body.policyConfirmed=f.elements.policyConfirmed.checked;}if(attemptId)body.attemptId=attemptId;try{await request('/api/paired-assessments/'+study.id+'/actions/'+action,{method:'POST',body});d.close();reload();}catch(err){message(d,err.message);}};
-}
-async function takeAssessment(study,phase,reload){
-  try{
-    const data=await request('/api/paired-assessments/'+study.id+'/'+phase+'/questions');
-    if(signOutPending())return;
-    const d=dialog(phase==='pre'?'Pretest':'Posttest',`<p>One scored submission. Stay online to submit.</p><form>${data.questions.map((q,i)=>`<fieldset><legend>${i+1}. ${e(q.prompt)}</legend>${q.options.map((option,n)=>`<label><input type="radio" name="q${i}" value="${n}" required>${e(option)}</label>`).join('')}</fieldset>`).join('')}<button type="submit">Submit answers</button></form>`);
-    const uuid=createUuid(),f=d.querySelector('form');f.onsubmit=async ev=>{ev.preventDefault();const b=f.querySelector('button');b.disabled=true;try{const answers=Object.fromEntries(data.questions.map((q,i)=>[q.id,q.options[Number(f.elements['q'+i].value)]]));const result=await request('/api/paired-assessments/'+study.id+'/'+phase+'/attempts',{method:'POST',body:{attemptUuid:uuid,answers}});message(d,'Saved: '+result.result.score+' / '+result.result.total);f.hidden=true;reload();}catch(err){message(d,err.message);}finally{b.disabled=false;}};
-  }catch(error){const d=dialog('Assessment unavailable','');message(d,error.message);}
 }
