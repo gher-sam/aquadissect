@@ -84,3 +84,9 @@ Current request: Please implement these improvements. Use accurate highlighting 
 - The existing server records and grades the submission. A retry after an interrupted response reuses the same identifier and exact answers. Return Dive displays the learner’s recorded, matched comparison when available.
 - Solid ocean blue, teal, coral and gold distinguish the phases and choices. Short animations follow the device and portal motion preferences. Assessment completion awards no practice points.
 - Browser checks covered 25-item and single-item pairs, keyboard navigation, mobile widths down to 320 pixels, both motion settings, review edits and the lesson prerequisite. A deliberately lost receipt produced one retained attempt. Zero and negative changes matched the server. The disposable database retained every original form, key, attempt and score. All 129 JavaScript tests and the 13 targeted backend tests passed.
+
+## November 20, 2026 — Public Reef Quest student demo
+
+- The public demo uses the student question, review and score screens with two independent four-question sample forms. A short sample lesson unlocks Return Dive.
+- The demo calculates both scores inside the tab. Its page runs without a portal session and its browser policy blocks outgoing data requests and form submissions. Retrying or refreshing starts a fresh pair.
+- Desktop and mobile browser checks covered editable answers, a gain, a tie, a lower score, and starting again. The demo made zero requests to class assessment services. The signed-in assessment also passed its existing question, submission, prerequisite and score checks against a disposable database.

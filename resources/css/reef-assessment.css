@@ -75,7 +75,7 @@ html[data-aq-motion="on"] .rq-fill { transition: width 210ms ease-out; }
 .rq-review li > div { display: grid; grid-template-columns: 1.85rem minmax(0,1fr); gap: .15rem .6rem; align-items: baseline; }
 .rq-review li strong { line-height: 1.35; }
 .rq-review-answer { grid-column: 2; color: #38536b; white-space: pre-line; }
-.reef-assessment .rq-edit { padding: .4rem .65rem; font-size: .85rem; color: var(--dive-accent); }
+.reef-assessment .rq-edit { flex: none; white-space: nowrap; padding: .4rem .65rem; font-size: .85rem; color: var(--dive-accent); }
 .rq-receipt { display: flex; align-items: center; gap: .9rem; padding: .35rem 0 1.15rem; }
 .rq-stamp { flex: none; display: grid; place-items: center; width: 3.5rem; height: 3.5rem; border: 3px solid #f4bf3b; border-radius: 50%; color: #0c5c52; background: #dcf5e9; }
 .rq-stamp .rq-icon { width: 1.75rem; height: 1.75rem; }

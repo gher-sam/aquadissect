@@ -44,6 +44,7 @@ Route::get('/offline', fn () => view('app', ['page' => 'downloads', 'bootstrap' 
 
 Route::get('/', fn (Request $request) => redirect()->route($request->user() ? 'portal.home' : 'login'));
 Route::view('/privacy', 'privacy')->name('privacy');
+Route::view('/demo/reef-quest', 'reef-quest-demo')->withoutMiddleware('web')->name('demo.reef-quest');
 Route::get('/change-password', [StudentCredentialController::class, 'edit'])->middleware('auth')->name('password.change');
 Route::post('/change-password', [StudentCredentialController::class, 'update'])->middleware(['auth', 'throttle:student-password-change'])->name('password.update');
 Route::post('/sign-out', [StudentCredentialController::class, 'signOut'])->middleware('auth')->name('password.sign-out');

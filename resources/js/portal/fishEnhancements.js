@@ -2,7 +2,8 @@ import { request, appUrl } from './api.js';
 import { escapeHtml as e } from './format.js';
 import { showFishDetails, fishProfileFields } from '../fishDetails.js';
 import { signOutPending } from './sessionAccess.js';
-import { diveNames, openReefAssessment } from './reefAssessment.js';
+import { diveNames } from './reefAssessment.js';
+import { openReefAssessment } from './classAssessment.js';
 
 function routePath(url){const u=new URL(url,location.href);if(u.origin!==location.origin)throw new Error('Invalid lesson URL.');const base=String(window.AQUADISSECT_BASE_URL||'').replace(/\/$/,'');if(base && !u.pathname.startsWith(base+'/'))throw new Error('Invalid lesson path.');return u.pathname.slice(base.length)+u.search;}
 

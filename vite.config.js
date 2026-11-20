@@ -12,7 +12,7 @@ export default defineConfig({
     },
     plugins: [
         laravel({
-            input: ['resources/js/app.js', 'resources/css/privacy.css'],
+            input: ['resources/js/app.js', 'resources/css/privacy.css', 'resources/js/reefAssessmentDemo.js'],
             refresh: true,
         }),
     ],

@@ -1,10 +1,8 @@
 import { createElement, Fish, Shell, Flag, Check, X } from 'lucide';
-import { request } from './api.js';
 import { escapeHtml as escape } from './format.js';
-import { signOutPending, pendingSignOutKey } from './sessionAccess.js';
 import { createUuid } from '../uuid.js';
 import { animateFeedback } from '../motionPreferences.js';
-import { createDiveAnswers, recordedPair } from './reefAssessmentAnswers.js';
+import { createDiveAnswers } from './reefAssessmentAnswers.js';
 
 export const diveNames = { pre: 'First Dive', post: 'Return Dive' };
 
@@ -23,10 +21,17 @@ export function reefAssessmentSnapshot() {
   return { phase, screen, question: question ? Number(question) : null, total: Number(total), answered: Number(answered) };
 }
 
-export function openReefAssessment({ study, phase, owner, launcher, isCurrent, refresh }) {
+export function diveComparisonMarkup(row) {
+  const signed = value => value > 0 ? '+' + value : String(value);
+  return `<h4>Your paired scores</h4><dl><div><dt>Pre-test</dt><dd>${row.pre.score} / ${row.pre.total}</dd></div>
+    <div><dt>Post-test</dt><dd>${row.post.score} / ${row.post.total}</dd></div></dl>
+    <p>Score change <strong>${signed(row.pointDifference)} ${Math.abs(row.pointDifference) === 1 ? 'point' : 'points'}</strong> (${signed(row.percentagePointDifference)} percentage points)</p>`;
+}
+
+export function openDive({ study, phase, launcher, isCurrent, refresh, source, listenForAccessLoss, demo = false }) {
   if (!isCurrent() || document.querySelector('.reef-assessment[open]')) return;
   const phaseLabel = phase === 'pre' ? 'Pre-test' : 'Post-test';
-  const endpoint = `/api/paired-assessments/${study.id}/${phase}`;
+  const backLabel = demo ? 'Back to demo' : 'Back to My class';
   const session = new AbortController();
   const { signal } = session;
   const dialog = document.createElement('dialog');
@@ -47,17 +52,11 @@ export function openReefAssessment({ study, phase, owner, launcher, isCurrent, r
   dialog.showModal();
 
   let questions = [], draft, index = 0, editing = false, earlierScreen, refreshNeeded = false;
-  const active = () => dialog.open && !signal.aborted && isCurrent() && !signOutPending();
+  const active = () => dialog.open && !signal.aborted && isCurrent();
   const close = () => { if (dialog.open) dialog.close(); };
   const forceClose = () => { refreshNeeded = false; close(); };
 
-  window.addEventListener('aquadissect-authorization-lost', forceClose, { signal });
-  window.addEventListener('aquadissect-offline-media-locked', event => {
-    if (event.detail?.ownerId == null || event.detail.ownerId === owner) forceClose();
-  }, { signal });
-  window.addEventListener('storage', event => {
-    if (event.key === pendingSignOutKey && event.newValue === '1') forceClose();
-  }, { signal });
+  listenForAccessLoss?.(forceClose, signal);
   window.addEventListener('pagehide', forceClose, { signal });
   window.addEventListener('popstate', forceClose, { signal });
   window.addEventListener('beforeunload', event => {
@@ -69,7 +68,7 @@ export function openReefAssessment({ study, phase, owner, launcher, isCurrent, r
   dialog.addEventListener('close', () => {
     session.abort();
     dialog.remove();
-    if (!isCurrent() || signOutPending()) return;
+    if (!isCurrent()) return;
     if (refreshNeeded) refresh();
     else launcher.focus();
   }, { once: true });
@@ -115,7 +114,7 @@ export function openReefAssessment({ study, phase, owner, launcher, isCurrent, r
     const items = questions.map((q, n) => `<li><div><span class="rq-review-number">${n + 1}</span>
       <strong>${escape(q.prompt)}</strong><span class="rq-review-answer">${escape(q.options[draft.selected(n)])}</span></div>
       <button type="button" class="rq-edit" data-edit="${n}" aria-label="Change answer to question ${n + 1}">Change</button></li>`).join('');
-    show('review', `<h3 data-heading>Review your answers</h3><p>You can change any answer here. Submitting records your one scored attempt.</p>
+    show('review', `<h3 data-heading>Review your answers</h3><p>You can change any answer here. ${demo ? 'Submit to see your sample score.' : 'Submitting records your one scored attempt.'}</p>
       <ol class="rq-review">${items}</ol><div class="rq-actions">${button('submit', 'Submit '+phaseLabel.toLowerCase(), true)}</div>`);
   }
 
@@ -133,7 +132,7 @@ export function openReefAssessment({ study, phase, owner, launcher, isCurrent, r
     else showQuestion(-1);
   }
   function unavailable(text) {
-    show('unavailable', `<h3 data-heading>Assessment unavailable</h3><p>${escape(text)}</p><div class="rq-actions">${button('close', 'Back to My class', true)}</div>`);
+    show('unavailable', `<h3 data-heading>Assessment unavailable</h3><p>${escape(text)}</p><div class="rq-actions">${button('close', backLabel, true)}</div>`);
   }
 
   async function submit() {
@@ -143,22 +142,22 @@ export function openReefAssessment({ study, phase, owner, launcher, isCurrent, r
     catch (error) { unavailable(error.message); return; }
     if (!payload) return;
     refreshNeeded = true;
-    show('saving', '<h3 data-heading>Recording your answers…</h3><p role="status">Please stay online. You can check your score in My class after submission.</p>');
+    show('saving', demo ? '<h3 data-heading>Checking your answers…</h3>' : '<h3 data-heading>Recording your answers…</h3><p role="status">Please stay online. You can check your score in My class after submission.</p>');
     try {
-      const { result } = await request(endpoint+'/attempts', { method: 'POST', body: payload, signal });
+      const result = await source.submit(payload, signal);
       if (!active()) return;
       if (!result || result.phase !== phase || !Number.isFinite(result.score) || !Number.isFinite(result.total)) throw new Error('Missing receipt');
       show('result', `<div class="rq-receipt"><span class="rq-stamp" aria-hidden="true"></span><div>
-        <h3 data-heading>${phaseLabel} recorded</h3><p class="rq-score"><strong>${result.score}</strong> / ${result.total} <span>points</span></p></div></div>
-        <div class="rq-comparison" role="status">${phase === 'pre' ? 'Complete the assigned lesson to open Return Dive.' : 'Loading your paired scores…'}</div>
-        <div class="rq-actions">${button('close', 'Back to My class', true)}</div>`);
+        <h3 data-heading>${demo ? diveNames[phase] + ' complete' : phaseLabel + ' recorded'}</h3><p class="rq-score"><strong>${result.score}</strong> / ${result.total} <span>points</span></p></div></div>
+        <div class="rq-comparison" role="status">${phase === 'pre' ? (demo ? 'Explore the sample lesson to open Return Dive.' : 'Complete the assigned lesson to open Return Dive.') : 'Loading your paired scores…'}</div>
+        <div class="rq-actions">${button('close', demo && phase === 'pre' ? 'Continue to sample lesson' : backLabel, true)}</div>`);
       const stamp = find('.rq-stamp');
       stamp.append(icon(phase === 'pre' ? Check : Flag, 'rq-icon'));
       animateFeedback(stamp, [{ transform: 'scale(.85) rotate(-10deg)' }, { transform: 'scale(1.1)' }, { transform: 'none' }], { duration: 390 });
       if (phase === 'post') await showComparison(result.id);
     } catch (error) {
       if (!active()) return;
-      if ([403, 404, 409, 422].includes(error.status)) { unavailable(error.message); return; }
+      if (demo || [403, 404, 409, 422].includes(error.status)) { unavailable(error.message); return; }
       show('retry', `<h3 data-heading>Submission not confirmed</h3><p>Reconnect and retry to confirm these same answers. You can also check My class for your recorded score.</p>
         <div class="rq-actions">${button('close', 'Back to My class')}${button('submit', 'Retry submission', true)}</div>`);
     }
@@ -167,16 +166,12 @@ export function openReefAssessment({ study, phase, owner, launcher, isCurrent, r
   async function showComparison(resultId) {
     const panel = find('.rq-comparison');
     try {
-      const { studies } = await request('/api/paired-assessments', { signal });
+      const row = await source.comparison(resultId, signal);
       if (!active()) return;
-      const row = recordedPair(studies, study.id, owner, resultId);
       if (!row) { panel.textContent = 'A matched pre-test and post-test comparison is currently unavailable.'; return; }
-      const signed = value => value > 0 ? '+' + value : String(value);
-      panel.innerHTML = `<h4>Your paired scores</h4><dl><div><dt>Pre-test</dt><dd>${row.pre.score} / ${row.pre.total}</dd></div>
-        <div><dt>Post-test</dt><dd>${row.post.score} / ${row.post.total}</dd></div></dl>
-        <p>Score change <strong>${signed(row.pointDifference)} ${Math.abs(row.pointDifference) === 1 ? 'point' : 'points'}</strong> (${signed(row.percentagePointDifference)} percentage points)</p>`;
+      panel.innerHTML = diveComparisonMarkup(row);
     } catch {
-      if (active()) panel.textContent = 'Your post-test was recorded. Open My class to check the paired scores.';
+      if (active()) panel.textContent = demo ? 'Close this dive to view your sample scores.' : 'Your post-test was recorded. Open My class to check the paired scores.';
     }
   }
 
@@ -213,10 +208,10 @@ export function openReefAssessment({ study, phase, owner, launcher, isCurrent, r
 
   void (async () => {
     try {
-      const data = await request(endpoint+'/questions', { signal });
+      const items = await source.questions(signal);
       if (!active()) return;
-      if (!data.questions?.length) { unavailable('This form has no questions. Contact your instructor.'); return; }
-      questions = data.questions;
+      if (!items?.length) { unavailable('This form has no questions. Contact your instructor.'); return; }
+      questions = items;
       draft = createDiveAnswers(questions);
       dialog.dataset.total = String(questions.length);
       showQuestion();

@@ -795,3 +795,10 @@ preference. Display the recorded score and, when available, the learner’s matc
 pre/post difference. Keep the original forms, keys, eligibility rules, single scored
 attempt per phase and retained history. Assessment participation carries no practice
 rewards. This presentation decision does not establish a research outcome.
+
+## November 20, 2026 — Public Reef Quest student demo
+
+Offer an anonymous demo of First Dive, a short sample lesson and Return Dive. Use
+independently authored sample questions and score them in the open browser tab.
+A visitor can compare their own two sample scores and start again. Keep demo
+answers and scores out of all class records, attempts, reports and research data.
