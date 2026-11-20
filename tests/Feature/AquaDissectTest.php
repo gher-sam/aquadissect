@@ -21,6 +21,8 @@ class AquaDissectTest extends TestCase
             ->assertSee('portalSidebar')
             ->assertSee('dashboardMenuButton')
             ->assertSee('installAppButton')
+            ->assertSee('href="'.route('demo.reef-quest').'"', false)
+            ->assertSeeText('Try Reef Quest')
             ->assertSee('href="#portal-main"', false)
             ->assertSee('aria-label="Primary navigation"', false)
             ->assertSee('id="portal-main"', false)

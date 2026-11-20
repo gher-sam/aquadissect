@@ -19,6 +19,10 @@
         </div>
         <p class="portal-message" id="loginMessage" role="alert" hidden></p>
         <button class="portal-primary portal-full auth-submit" type="submit"><span>Sign in</span><i data-lucide="arrow-right" aria-hidden="true"></i></button>
+        <a class="portal-secondary portal-full d-flex align-items-center gap-2 text-decoration-none" href="{{ route('demo.reef-quest') }}" aria-describedby="reef-demo-note">
+          <i data-lucide="fish" aria-hidden="true"></i><span>Try Reef Quest</span>
+        </a>
+        <p id="reef-demo-note" class="text-center text-body-secondary mt-2 mb-0"><small>Try First Dive and Return Dive without signing in or using a class attempt.</small></p>
         <div class="login-account-options">
           <p>New to AquaDissect?</p>
           <div class="login-account-links">
